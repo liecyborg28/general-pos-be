@@ -1,7 +1,20 @@
 const User = require("../models/userModel");
+const authController = require("./authController");
+
+async function userDataIsExist(query) {
+  return new Promise((resolve, reject) => {
+    User.find(query)
+      .then((data) => {
+        resolve(data.length > 0 ? true : false);
+      })
+      .catch(() => {
+        reject(false);
+      });
+  });
+}
 
 const UserController = {
-  createUser: (userBody) => {
+  createUser: async (userBody) => {
     let isBodyValid = () => {
       return (
         userBody.type &&
@@ -31,8 +44,10 @@ const UserController = {
           // optional
           imageUrl: userBody.imageUrl || "",
           email: userBody.email || "",
+          // generate by BE
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
+          auth: authController.generateAuth(),
         }
       : {
           error: true,
@@ -40,6 +55,28 @@ const UserController = {
         };
 
     if (isBodyValid()) {
+      let phonenumberIsExist = await userDataIsExist({
+        phonenumber: userBody.phonenumber,
+      });
+
+      let usernameIsExist = await userDataIsExist({
+        username: userBody.username,
+      });
+
+      if (phonenumberIsExist) {
+        return Promise.reject({
+          error: true,
+          message: "Phone number already exists",
+        });
+      }
+
+      if (usernameIsExist) {
+        return Promise.reject({
+          error: true,
+          message: "Username already exists",
+        });
+      }
+
       return new Promise((resolve, reject) => {
         new User(payload)
           .save()
@@ -58,9 +95,23 @@ const UserController = {
     }
   },
 
-  getUsers: () => {
+  getUsers: (req) => {
     return new Promise((resolve, reject) => {
-      User.find()
+      let pipeline = {
+        $or: [
+          { type: req.query.keyword },
+          { name: req.query.keyword },
+          { username: req.query.keyword },
+          { gender: req.query.keyword },
+          { phonenumber: req.query.keyword },
+          { type: req.query.type },
+          { name: req.query.name },
+          { username: req.query.username },
+          { gender: req.query.gender },
+          { phonenumber: req.query.phonenumber },
+        ],
+      };
+      User.find(pipeline)
         .then((users) => {
           resolve({
             error: false,
@@ -72,26 +123,38 @@ const UserController = {
         });
     });
   },
+
+  updateUser: (userBody) => {
+    if (!userBody.userId) {
+      return Promise.reject({
+        error: true,
+        message: "Invalid data, body requires userId",
+      });
+    } else {
+      return new Promise((resolve, reject) => {
+        User.findByIdAndUpdate(userBody.userId, userBody.data, { new: true })
+          .then(() => {
+            User.findByIdAndUpdate(
+              userBody.userId,
+              { updatedAt: new Date().toISOString() },
+              { new: true }
+            )
+              .then(() => {
+                resolve({
+                  error: false,
+                  message: "Data has been successfully updated!",
+                });
+              })
+              .catch((err) => {
+                reject({ error: true, message: err });
+              });
+          })
+          .catch((err) => {
+            reject({ error: true, message: err });
+          });
+      });
+    }
+  },
 };
-
-// newUser
-//   .save()
-//   .then(() => console.log("User created"))
-//   .catch((err) => console.log(err));
-
-// // Read all users
-// User.find()
-//   .then((users) => console.log(users))
-//   .catch((err) => console.log(err));
-
-// // Update a user
-// User.findOneAndUpdate({ name: "John Doe" }, { name: "Jane Doe" })
-//   .then(() => console.log("User updated"))
-//   .catch((err) => console.log(err));
-
-// // Delete a user
-// User.deleteOne({ name: "Jane Doe" })
-//   .then(() => console.log("User deleted"))
-//   .catch((err) => console.log(err));
 
 module.exports = UserController;

@@ -20,6 +20,7 @@
   "homepage": "https://github.com/liecyborg28/general-pos-be#readme",
   "dependencies": {
     "express": "^4.18.2",
-    "mongoose": "^7.5.0"
+    "mongoose": "^7.5.0",
+    "uuid": "^9.0.1"
   }
 }

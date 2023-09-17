@@ -11,11 +11,20 @@ const User = mongoose.Schema({
   name: String,
   username: String,
   password: String,
+  createdAt: String,
+  updatedAt: String,
   businessId: [],
   access: [],
   outletId: [],
-  createdAt: String,
-  updatedAt: String,
+  auth: {},
+});
+
+User.index({
+  type: "text",
+  name: "text",
+  username: "text",
+  gender: "text",
+  phonenumber: "text",
 });
 
 module.exports = mongoose.model("User", User);
