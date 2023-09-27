@@ -1,9 +1,12 @@
 const mongoose = require("mongoose");
 
-mongoose.connect("mongodb://localhost:27017/test");
+const dbConfig = require("./../../config/dbConfig");
+
+mongoose.connect(dbConfig.url);
 
 const User = mongoose.Schema({
   type: String,
+  status: String,
   imageUrl: String,
   gender: String,
   email: String,
@@ -17,14 +20,6 @@ const User = mongoose.Schema({
   access: [],
   outletId: [],
   auth: {},
-});
-
-User.index({
-  type: "text",
-  name: "text",
-  username: "text",
-  gender: "text",
-  phonenumber: "text",
 });
 
 module.exports = mongoose.model("User", User);

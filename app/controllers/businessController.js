@@ -1,0 +1,143 @@
+const Business = require("../models/businessModel");
+const dataController = require("./dataController");
+const pageController = require("./pageController");
+const errorMessages = require("../messages/errorMessages");
+const successMessages = require("../messages/successMessages");
+
+module.exports = {
+  createBusiness: async (body) => {
+    let dateISOString = new Date().toISOString();
+    let isBodyValid = () => {
+      return body.status && body.imageUrl && body.name;
+    };
+
+    let payload = isBodyValid()
+      ? {
+          status: body.status,
+          imageUrl: body.imageUrl,
+          name: body.name,
+          createdAt: dateISOString,
+          updatedAt: dateISOString,
+        }
+      : {
+          error: true,
+          message: errorMessages.INVALID_DATA,
+        };
+
+    if (isBodyValid()) {
+      let nameIsExist = await dataController.isExist(
+        { name: body.name },
+        Business
+      );
+
+      if (nameIsExist) {
+        return Promise.reject({
+          error: true,
+          message: errorMessages.NAME_ALREADY_EXISTS,
+        });
+      }
+
+      return new Promise((resolve, reject) => {
+        new Business(payload)
+          .save()
+          .then(() => {
+            resolve({
+              error: false,
+              message: successMessages.BUSINESS_CREATED_SUCCESS,
+            });
+          })
+          .catch((err) => {
+            reject({ error: true, message: err });
+          });
+      });
+    } else {
+      return Promise.reject(payload);
+    }
+  },
+
+  getBusinesses: (req) => {
+    let pageKey = req.query.pageKey ? req.query.pageKey : 1;
+    let pageSize = req.query.pageSize ? req.query.pageSize : 10;
+
+    isNotEveryQueryNull = () => {
+      return req.query.keyword || req.query.name;
+    };
+
+    return new Promise((resolve, reject) => {
+      let pipeline = isNotEveryQueryNull()
+        ? {
+            $or: [
+              {
+                name: req.query.keyword
+                  ? { $regex: req.query.keyword, $options: "i" }
+                  : null,
+              },
+              {
+                name: req.query.name
+                  ? { $regex: req.query.name, $options: "i" }
+                  : null,
+              },
+            ],
+          }
+        : {};
+
+      pageController
+        .paginate(pageKey, pageSize, pipeline, Business)
+        .then((businesses) => {
+          resolve({
+            error: false,
+            data: businesses.data,
+            count: businesses.count,
+          });
+        })
+        .catch((err) => {
+          reject({ error: true, message: err });
+        });
+    });
+  },
+
+  updateBusiness: async (body) => {
+    let dateISOString = new Date().toISOString();
+    let nameIsExist = await dataController.isExist(
+      { name: body.data.name },
+      Business
+    );
+
+    if (nameIsExist) {
+      return Promise.reject({
+        error: true,
+        message: errorMessages.NAME_ALREADY_EXISTS,
+      });
+    }
+
+    if (!body.businessId) {
+      return Promise.reject({
+        error: true,
+        message: errorMessages.INVALID_DATA,
+      });
+    } else {
+      return new Promise((resolve, reject) => {
+        Business.findByIdAndUpdate(body.businessId, body.data, { new: true })
+          .then(() => {
+            Business.findByIdAndUpdate(
+              body.businessId,
+              { updatedAt: dateISOString },
+              { new: true }
+            )
+              .then(() => {
+                resolve({
+                  error: false,
+                  message: successMessages.DATA_SUCCESS_UPDATED,
+                });
+              })
+              .catch((err) => {
+                reject({ error: true, message: err });
+              });
+          })
+          .catch((err) => {
+            reject({ error: true, message: err });
+          });
+      });
+    }
+  },
+};

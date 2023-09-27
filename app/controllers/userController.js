@@ -1,79 +1,80 @@
 const User = require("../models/userModel");
 const authController = require("./authController");
-
-async function userDataIsExist(query) {
-  return new Promise((resolve, reject) => {
-    User.find(query)
-      .then((data) => {
-        resolve(data.length > 0 ? true : false);
-      })
-      .catch(() => {
-        reject(false);
-      });
-  });
-}
+const dataController = require("./dataController");
+const pageController = require("./pageController");
+const errorMessages = require("../messages/errorMessages");
+const successMessages = require("../messages/successMessages");
 
 const UserController = {
-  createUser: async (userBody) => {
+  createUser: async (body) => {
+    let dateISOString = new Date().toISOString();
     let isBodyValid = () => {
       return (
-        userBody.type &&
-        userBody.gender &&
-        userBody.name &&
-        userBody.phonenumber &&
-        userBody.username &&
-        userBody.password &&
-        userBody.businessId &&
-        userBody.outletId &&
-        userBody.access
+        body.type &&
+        body.gender &&
+        body.name &&
+        body.phonenumber &&
+        body.username &&
+        body.password &&
+        body.businessId &&
+        body.status &&
+        body.outletId &&
+        body.access
       );
     };
 
     let payload = isBodyValid()
       ? {
           // required
-          type: userBody.type,
-          gender: userBody.gender,
-          name: userBody.name,
-          phonenumber: userBody.phonenumber,
-          username: userBody.username,
-          password: userBody.password,
-          businessId: userBody.businessId,
-          outletId: userBody.outletId,
-          access: userBody.access,
+          type: body.type,
+          gender: body.gender,
+          name: body.name,
+          phonenumber: body.phonenumber,
+          username: body.username,
+          password: body.password,
+          businessId: body.businessId,
+          outletId: body.outletId,
+          access: body.access,
+          status: body.status,
           // optional
-          imageUrl: userBody.imageUrl || "",
-          email: userBody.email || "",
+          imageUrl: body.imageUrl || "",
+          email: body.email || "",
           // generate by BE
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
+          createdAt: dateISOString,
+          updatedAt: dateISOString,
           auth: authController.generateAuth(),
         }
       : {
           error: true,
-          message: `Invalid data, body requires (userBody.type && userBody.gender && userBody.name && userBody.phonenumber && userBody.username &&userBody.password && userBody.businessId && userBody.outletId && userBody.access)`,
+          message: errorMessages.INVALID_DATA,
         };
 
     if (isBodyValid()) {
-      let phonenumberIsExist = await userDataIsExist({
-        phonenumber: userBody.phonenumber,
-      });
+      let phonenumberIsExist = await dataController.isExist(
+        {
+          phonenumber: body.phonenumber,
+        },
+        User
+      );
 
-      let usernameIsExist = await userDataIsExist({
-        username: userBody.username,
-      });
+      let usernameIsExist = await dataController.isExist(
+        {
+          username: body.username,
+        },
+        User
+      );
 
       if (phonenumberIsExist) {
         return Promise.reject({
           error: true,
-          message: "Phone number already exists",
+          message: errorMessages.NAME_ALREADY_EXISTS,
         });
       }
 
       if (usernameIsExist) {
         return Promise.reject({
           error: true,
-          message: "Username already exists",
+          message: errorMessages.USERNAME_ALREADY_EXISTS,
         });
       }
 
@@ -83,7 +84,7 @@ const UserController = {
           .then(() => {
             resolve({
               error: false,
-              message: "User created successfully!",
+              message: successMessages.USER_CREATED_SUCCESS,
             });
           })
           .catch((err) => {
@@ -96,26 +97,78 @@ const UserController = {
   },
 
   getUsers: (req) => {
+    let pageKey = req.query.pageKey ? req.query.pageKey : 1;
+    let pageSize = req.query.pageSize ? req.query.pageSize : 10;
+
+    isNotEveryQueryNull = () => {
+      return (
+        req.query.keyword ||
+        req.query.name ||
+        req.query.username ||
+        req.query.gender ||
+        req.query.phonenumber
+      );
+    };
+
     return new Promise((resolve, reject) => {
-      let pipeline = {
-        $or: [
-          { type: req.query.keyword },
-          { name: req.query.keyword },
-          { username: req.query.keyword },
-          { gender: req.query.keyword },
-          { phonenumber: req.query.keyword },
-          { type: req.query.type },
-          { name: req.query.name },
-          { username: req.query.username },
-          { gender: req.query.gender },
-          { phonenumber: req.query.phonenumber },
-        ],
-      };
-      User.find(pipeline)
+      let pipeline = isNotEveryQueryNull()
+        ? {
+            $or: [
+              {
+                type: req.query.keyword ? { $regex: req.query.keyword } : null,
+              },
+              {
+                name: req.query.keyword
+                  ? { $regex: req.query.keyword, $options: "i" }
+                  : null,
+              },
+              {
+                username: req.query.keyword
+                  ? { $regex: req.query.keyword, $options: "i" }
+                  : null,
+              },
+              {
+                gender: req.query.keyword
+                  ? { $regex: req.query.keyword, $options: "i" }
+                  : null,
+              },
+              {
+                phonenumber: req.query.keyword ? req.query.keyword : null,
+              },
+              {
+                type: req.query.type ? { $regex: req.query.type } : null,
+              },
+              {
+                name: req.query.name
+                  ? { $regex: req.query.name, $options: "i" }
+                  : null,
+              },
+              {
+                username: req.query.username
+                  ? { $regex: req.query.username, $options: "i" }
+                  : null,
+              },
+              {
+                gender: req.query.gender
+                  ? { $regex: req.query.gender, $options: "i" }
+                  : null,
+              },
+              {
+                phonenumber: req.query.phonenumber
+                  ? req.query.phonenumber
+                  : null,
+              },
+            ],
+          }
+        : {};
+
+      pageController
+        .paginate(pageKey, pageSize, pipeline, User)
         .then((users) => {
           resolve({
             error: false,
-            data: users,
+            data: users.data,
+            count: users.count,
           });
         })
         .catch((err) => {
@@ -124,25 +177,50 @@ const UserController = {
     });
   },
 
-  updateUser: (userBody) => {
-    if (!userBody.userId) {
+  getUserByToken: (req) => {},
+
+  updateUser: async (body) => {
+    let dateISOString = new Date().toISOString();
+    let phonenumberIsExist = await userDataIsExist({
+      phonenumber: body.data.phonenumber,
+    });
+
+    let usernameIsExist = await userDataIsExist({
+      username: body.data.username,
+    });
+
+    if (phonenumberIsExist) {
       return Promise.reject({
         error: true,
-        message: "Invalid data, body requires userId",
+        message: errorMessages.PHONE_ALREADY_EXISTS,
+      });
+    }
+
+    if (usernameIsExist) {
+      return Promise.reject({
+        error: true,
+        message: errorMessages.USERNAME_ALREADY_EXISTS,
+      });
+    }
+
+    if (!body.userId) {
+      return Promise.reject({
+        error: true,
+        message: errorMessages.INVALID_DATA,
       });
     } else {
       return new Promise((resolve, reject) => {
-        User.findByIdAndUpdate(userBody.userId, userBody.data, { new: true })
+        User.findByIdAndUpdate(body.userId, body.data, { new: true })
           .then(() => {
             User.findByIdAndUpdate(
-              userBody.userId,
-              { updatedAt: new Date().toISOString() },
+              body.userId,
+              { updatedAt: dateISOString },
               { new: true }
             )
               .then(() => {
                 resolve({
                   error: false,
-                  message: "Data has been successfully updated!",
+                  message: successMessages.DATA_SUCCESS_UPDATED,
                 });
               })
               .catch((err) => {

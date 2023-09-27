@@ -1,3 +1,5 @@
+const errorMessages = require("../messages/errorMessages");
+const successMessages = require("../messages/successMessages");
 const User = require("../models/userModel");
 const authUtils = require("../utility/authUtils");
 
@@ -17,28 +19,31 @@ module.exports = {
           "auth.accessToken": bearerToken,
         }).then((data) => {
           data.length > 0
-            ? resolve({ error: false, message: "Authorized!" })
+            ? resolve({ error: false, message: successMessages.AUTHORIZED })
             : reject({
                 error: true,
-                message: "Unauthorized!",
+                message: errorMessages.UNAUTHORIZED,
               });
         });
       } else {
         reject({
           error: true,
-          message: "Token not found!",
+          message: errorMessages.SESSION_ENDED,
         });
       }
     });
   },
-  login: (userBody) => {
+  login: (req) => {
     return new Promise((resolve, reject) => {
       User.findOne({
         $or: [
-          { username: userBody.usernameOrPhonenumber, password: password },
-          { phonenumber: userBody.usernameOrPhonenumber, password: password },
+          { username: req.body.loginMethod, password: req.body.password },
+          { phonenumber: req.body.loginMethod, password: req.body.password },
         ],
       })
+        .catch((err) => {
+          return Promise.reject({ error: true, message: err });
+        })
         .then((data) => {
           if (data) {
             resolve({
@@ -52,7 +57,7 @@ module.exports = {
                 businessId: [],
                 outletId: [],
                 auth: {
-                  accessToken: data.accessToken,
+                  accessToken: data.auth.accessToken,
                   expiredAt: authUtils.generateTokenExpirateAt(7),
                 },
               },
@@ -60,50 +65,54 @@ module.exports = {
           } else {
             reject({
               error: false,
-              message: "User not found!",
+              message: errorMessages.LOGIN_FAILED,
             });
           }
-        })
-        .catch((err) => {
-          return Promise.reject({ error: true, message: err });
         });
     });
   },
-  logout: (accessToken) => {
+  logout: (req) => {
     return new Promise((resolve, reject) => {
       const bearerHeader = req.headers["authorization"];
 
       if (typeof bearerHeader !== "undefined") {
         const bearerToken = bearerHeader.split(" ")[1];
 
-        User.find({
-          "auth.accessToken": accessToken,
+        User.findOne({
+          "auth.accessToken": bearerToken,
         })
+          .catch((err) => {
+            reject({ error: true, message: err });
+          })
           .then((data) => {
-            let newAuth = { auth: this.generateAuth() };
-            if (data.length > 0) {
-              User.findByIdAndUpdate(data._id, newAuth, { new: true }).then(
-                () => {
+            console.log(data);
+            let newAuth = {
+              auth: {
+                accessToken: authUtils.generateAccessToken(),
+              },
+            };
+            if (data) {
+              User.findByIdAndUpdate(data._id, newAuth, { new: true })
+                .then(() => {
                   resolve({
                     error: false,
-                    message: "Access token updated successfully!",
+                    message: successMessages.TOKEN_SUCCESS_UPDATED,
                   });
-                }
-              );
+                })
+                .catch((err) => {
+                  reject({ error: true, message: err });
+                });
             } else {
               reject({
                 error: true,
-                message: "Access token not found!",
+                message: errorMessages.TOKEN_NOT_FOUND,
               });
             }
-          })
-          .catch((err) => {
-            return Promise.reject({ error: true, message: err });
           });
       } else {
         reject({
           error: true,
-          message: "Token not found!",
+          message: errorMessages.TOKEN_IS_REQUIRED,
         });
       }
     });
