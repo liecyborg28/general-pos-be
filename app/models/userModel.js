@@ -16,9 +16,19 @@ const User = mongoose.Schema({
   password: String,
   createdAt: String,
   updatedAt: String,
-  businessId: [],
+  businessIds: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Business",
+    },
+  ],
+  outletIds: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Outlet",
+    },
+  ],
   access: [],
-  outletId: [],
   auth: {},
 });
 

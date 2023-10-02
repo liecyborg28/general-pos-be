@@ -1,24 +1,32 @@
 const User = require("../models/userModel");
-const Item = require("../models/itemModel");
-const dataController = require("./dataController");
+const Transaction = require("../models/transactionModel");
+// const dataController = require("./dataController");
 const pageController = require("./pageController");
 const errorMessages = require("../messages/errorMessages");
 const successMessages = require("../messages/successMessages");
 
+function generateRequestCodes() {
+  // Generate 6 digit angka acak untuk viewCode
+  const viewCode = Math.floor(100000 + Math.random() * 900000);
+
+  // Hitung valueCode sesuai dengan aturan
+  let valueCode = viewCode + 123456;
+
+  // Ambil hanya 6 digit kode dari belakang valueCode
+  valueCode = valueCode % 1000000;
+
+  // Balik urutan digit-digit valueCode
+  const reversedValueCode = parseInt(
+    valueCode.toString().split("").reverse().join("")
+  );
+
+  return { status: "initial", viewCode, valueCode: reversedValueCode };
+}
+
 module.exports = {
-  createItem: async (req) => {
+  createTransaction: async (req) => {
     let dateISOString = new Date().toISOString();
     let body = req.body;
-
-    let isBodyValid = () => {
-      return (
-        body.businessId &&
-        body.status &&
-        body.name &&
-        body.price &&
-        body.imageUrl
-      );
-    };
 
     const bearerHeader = req.headers["authorization"];
     const bearerToken = bearerHeader.split(" ")[1];
@@ -27,18 +35,37 @@ module.exports = {
       "auth.accessToken": bearerToken,
     });
 
+    let isBodyValid = () => {
+      return (
+        body.businessId &&
+        body.outletId &&
+        body.userId &&
+        body.status &&
+        body.orderStatus &&
+        body.details &&
+        body.tax &&
+        body.details.length > 0
+      );
+    };
+
     let payload = isBodyValid()
       ? {
           status: body.status,
+          orderStatus: body.orderStatus,
           businessId: body.businessId,
-          name: body.name,
-          imageUrl: body.imageUrl,
-          price: body.price,
+          outletId: body.outletId,
+          userId: body.userId,
+          details: body.details,
+          tax: body.tax,
+          charge: body.charge ? body.charge : 0,
+          costs: body.costs ? body.costs : [],
+          customer: body.customer ? body.customer : null,
+          request: generateRequestCodes(),
           changeLog: [
             {
               date: dateISOString,
               by: userByToken._id,
-              data: { name: body.name, price: body.price },
+              data: { status: body.status },
             },
           ],
           changedBy: userByToken._id,
@@ -51,25 +78,13 @@ module.exports = {
         };
 
     if (isBodyValid()) {
-      let nameIsExist = await dataController.isExist(
-        { businessId: body.businessId, name: body.name },
-        Item
-      );
-
-      if (nameIsExist) {
-        return Promise.reject({
-          error: true,
-          message: errorMessages.NAME_ALREADY_EXISTS,
-        });
-      }
-
       return new Promise((resolve, reject) => {
-        new Item(payload)
+        new Transaction(payload)
           .save()
           .then(() => {
             resolve({
               error: false,
-              message: successMessages.ITEM_CREATED_SUCCESS,
+              message: successMessages.TRANSACTION_CREATED_SUCCESS,
             });
           })
           .catch((err) => {
@@ -81,12 +96,19 @@ module.exports = {
     }
   },
 
-  getItems: (req) => {
+  getTransactions: (req) => {
     let pageKey = req.query.pageKey ? req.query.pageKey : 1;
     let pageSize = req.query.pageSize ? req.query.pageSize : 10;
 
     isNotEveryQueryNull = () => {
-      return req.query.keyword || req.query.name || req.query.businessId;
+      return (
+        req.query.keyword ||
+        req.query.customer ||
+        req.query.businessId ||
+        req.query.outletId ||
+        req.query.userId ||
+        req.query.createdAt
+      );
     };
 
     return new Promise((resolve, reject) => {
@@ -94,49 +116,67 @@ module.exports = {
         ? {
             $or: [
               {
-                name: req.query.keyword
+                customer: req.query.keyword
                   ? { $regex: req.query.keyword, $options: "i" }
                   : null,
               },
               {
-                name: req.query.name
-                  ? { $regex: req.query.name, $options: "i" }
-                  : null,
-              },
-              {
-                price: req.query.price
-                  ? { $regex: req.query.price, $options: "i" }
+                customer: req.query.customer
+                  ? { $regex: req.query.customer, $options: "i" }
                   : null,
               },
               {
                 businessId: req.query.businessId ? req.query.businessId : null,
+              },
+              {
+                outletId: req.query.outletId ? req.query.outletId : null,
+              },
+              {
+                userId: req.query.userId ? req.query.userId : null,
+              },
+              {
+                createdAt: req.query.createdAt ? req.query.createdAt : null,
               },
             ],
           }
         : {};
 
       pageController
-        .paginate(pageKey, pageSize, pipeline, Item)
-        .then((items) => {
-          Item.populate(items.data, { path: "businessId" })
+        .paginate(pageKey, pageSize, pipeline, Transaction)
+        .then((transactions) => {
+          Transaction(transactions.data)
+            .populate({ path: "businessId outletId userId details.itemId" })
             .then((data) => {
               resolve({
                 error: false,
                 data: data,
-                count: items.count,
+                count: transactions.count,
               });
             })
             .catch((err) => {
               reject({ error: true, message: err });
             });
-        })
-        .catch((err) => {
-          reject({ error: true, message: err });
+          // let transformedData = transactions.data.map((e) => ({
+          //   status: e.status,
+          //   businessId: e.businessId,
+          //   outletId: e.outletId,
+          //   userId: e.userId,
+          //   details: e.details.map((detail) => ({
+          //     item_profile: detail.itemId,
+          //     qty: detail.qty,
+          //     price: detail.price,
+          //   })),
+          //   customer: body.customer ? body.customer : null,
+          //   changeLog: e.changeLog,
+          //   changedBy: e.changedBy,
+          //   createdAt: e.createdAt,
+          //   updatedAt: e.updatedAt,
+          // }));
         });
     });
   },
 
-  updateItem: async (req) => {
+  updateTransaction: async (req) => {
     let dateISOString = new Date().toISOString();
     const bearerHeader = req.headers["authorization"];
     const bearerToken = bearerHeader.split(" ")[1];
@@ -147,29 +187,19 @@ module.exports = {
 
     let body = req.body;
 
-    let nameIsExist = await dataController.isExist(
-      { businessId: body.data.businessId, name: body.data.name },
-      Item
-    );
-
-    if (nameIsExist) {
-      return Promise.reject({
-        error: true,
-        message: errorMessages.NAME_ALREADY_EXISTS,
-      });
-    }
-
-    if (!body.itemId) {
+    if (!body.transactionId) {
       return Promise.reject({
         error: true,
         message: errorMessages.INVALID_DATA,
       });
     } else {
       return new Promise((resolve, reject) => {
-        Item.findByIdAndUpdate(body.itemId, body.data, { new: true })
+        Transaction.findByIdAndUpdate(body.transactionId, body.data, {
+          new: true,
+        })
           .then(() => {
-            Item.findByIdAndUpdate(
-              body.itemId,
+            Transaction.findByIdAndUpdate(
+              body.transactionId,
               {
                 updatedAt: dateISOString,
                 changedBy: userByToken._id,

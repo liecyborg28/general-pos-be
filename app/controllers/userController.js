@@ -16,9 +16,9 @@ const UserController = {
         body.phonenumber &&
         body.username &&
         body.password &&
-        body.businessId &&
+        body.businessIds &&
         body.status &&
-        body.outletId &&
+        body.outletIds &&
         body.access
       );
     };
@@ -32,8 +32,8 @@ const UserController = {
           phonenumber: body.phonenumber,
           username: body.username,
           password: body.password,
-          businessId: body.businessId,
-          outletId: body.outletId,
+          businessIds: body.businessIds,
+          outletIds: body.outletIds,
           access: body.access,
           status: body.status,
           // optional

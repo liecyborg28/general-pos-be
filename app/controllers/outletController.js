@@ -87,11 +87,17 @@ module.exports = {
       pageController
         .paginate(pageKey, pageSize, pipeline, Outlet)
         .then((outlets) => {
-          resolve({
-            error: false,
-            data: outlets.data,
-            count: outlets.count,
-          });
+          Outlet.populate(outlets.data, { path: "businessId" })
+            .then((data) => {
+              resolve({
+                error: false,
+                data: data,
+                count: outlets.count,
+              });
+            })
+            .catch((err) => {
+              reject({ error: true, message: err });
+            });
         })
         .catch((err) => {
           reject({ error: true, message: err });

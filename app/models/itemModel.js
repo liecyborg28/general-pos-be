@@ -6,12 +6,18 @@ mongoose.connect(dbConfig.url);
 
 const Item = mongoose.Schema({
   status: String,
-  businessId: String,
+  businessId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Business",
+  },
   name: String,
   imageUrl: String,
   price: String,
   changeLog: [],
-  changedBy: {},
+  changedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
   createdAt: String,
   updatedAt: String,
 });

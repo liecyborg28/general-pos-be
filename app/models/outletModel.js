@@ -6,7 +6,10 @@ mongoose.connect(dbConfig.url);
 
 const Outlet = mongoose.Schema({
   status: String,
-  businessId: String,
+  businessId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Business",
+  },
   name: String,
   address: String,
   createdAt: String,
