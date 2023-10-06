@@ -1,21 +1,17 @@
 const User = require("../models/userModel");
 const Transaction = require("../models/transactionModel");
 // const dataController = require("./dataController");
-const pageController = require("./pageController");
-const errorMessages = require("../messages/errorMessages");
-const successMessages = require("../messages/successMessages");
+const pageController = require("./utils/pageController");
+const errorMessages = require("../repository/messages/errorMessages");
+const successMessages = require("../repository/messages/successMessages");
 
 function generateRequestCodes() {
-  // Generate 6 digit angka acak untuk viewCode
   const viewCode = Math.floor(100000 + Math.random() * 900000);
 
-  // Hitung valueCode sesuai dengan aturan
   let valueCode = viewCode + 123456;
 
-  // Ambil hanya 6 digit kode dari belakang valueCode
   valueCode = valueCode % 1000000;
 
-  // Balik urutan digit-digit valueCode
   const reversedValueCode = parseInt(
     valueCode.toString().split("").reverse().join("")
   );
@@ -60,6 +56,7 @@ module.exports = {
           charge: body.charge ? body.charge : 0,
           costs: body.costs ? body.costs : [],
           customer: body.customer ? body.customer : null,
+          table: body.table ? body.table : null,
           request: generateRequestCodes(),
           changeLog: [
             {
@@ -144,8 +141,9 @@ module.exports = {
       pageController
         .paginate(pageKey, pageSize, pipeline, Transaction)
         .then((transactions) => {
-          Transaction(transactions.data)
-            .populate({ path: "businessId outletId userId details.itemId" })
+          Transaction.populate(transactions.data, {
+            path: "businessId outletId userId details.itemId",
+          })
             .then((data) => {
               resolve({
                 error: false,
@@ -156,22 +154,9 @@ module.exports = {
             .catch((err) => {
               reject({ error: true, message: err });
             });
-          // let transformedData = transactions.data.map((e) => ({
-          //   status: e.status,
-          //   businessId: e.businessId,
-          //   outletId: e.outletId,
-          //   userId: e.userId,
-          //   details: e.details.map((detail) => ({
-          //     item_profile: detail.itemId,
-          //     qty: detail.qty,
-          //     price: detail.price,
-          //   })),
-          //   customer: body.customer ? body.customer : null,
-          //   changeLog: e.changeLog,
-          //   changedBy: e.changedBy,
-          //   createdAt: e.createdAt,
-          //   updatedAt: e.updatedAt,
-          // }));
+        })
+        .catch((err) => {
+          reject({ error: true, message: err });
         });
     });
   },

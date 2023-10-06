@@ -1,11 +1,14 @@
 const User = require("../models/userModel");
 const authController = require("./authController");
-const dataController = require("./dataController");
-const pageController = require("./pageController");
-const errorMessages = require("../messages/errorMessages");
-const successMessages = require("../messages/successMessages");
+const dataController = require("./utils/dataController");
+const pageController = require("./utils/pageController");
+const excelController = require("./utils/excelController");
+const errorMessages = require("../repository/messages/errorMessages");
+const successMessages = require("../repository/messages/successMessages");
 
 const UserController = {
+  createBulkUser: (req) => {},
+
   createUser: async (body) => {
     let dateISOString = new Date().toISOString();
     let isBodyValid = () => {
@@ -176,8 +179,6 @@ const UserController = {
         });
     });
   },
-
-  getUserByToken: (req) => {},
 
   updateUser: async (body) => {
     let dateISOString = new Date().toISOString();

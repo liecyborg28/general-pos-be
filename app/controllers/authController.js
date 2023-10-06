@@ -1,5 +1,5 @@
-const errorMessages = require("../messages/errorMessages");
-const successMessages = require("../messages/successMessages");
+const errorMessages = require("../repository/messages/errorMessages");
+const successMessages = require("../repository/messages/successMessages");
 const User = require("../models/userModel");
 const authUtils = require("../utility/authUtils");
 

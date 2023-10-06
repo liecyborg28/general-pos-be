@@ -9,6 +9,9 @@ const Transaction = mongoose.Schema({
   orderStatus: String,
   tax: Number,
   charge: Number,
+  table: String,
+  paymentType: String,
+  orderType: String,
   request: {
     status: String,
     viewCode: Number,

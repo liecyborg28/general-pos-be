@@ -1,8 +1,8 @@
 const Business = require("../models/businessModel");
-const dataController = require("./dataController");
-const pageController = require("./pageController");
-const errorMessages = require("../messages/errorMessages");
-const successMessages = require("../messages/successMessages");
+const dataController = require("./utils/dataController");
+const pageController = require("./utils/pageController");
+const errorMessages = require("../repository/messages/errorMessages");
+const successMessages = require("../repository/messages/successMessages");
 
 module.exports = {
   createBusiness: async (body) => {
