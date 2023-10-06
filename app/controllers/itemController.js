@@ -1,3 +1,6 @@
+const ExcelJS = require("exceljs");
+const excelController = require("./utils/excelController");
+
 const User = require("../models/userModel");
 const Item = require("../models/itemModel");
 const dataController = require("./utils/dataController");
@@ -6,6 +9,11 @@ const errorMessages = require("../repository/messages/errorMessages");
 const successMessages = require("../repository/messages/successMessages");
 
 module.exports = {
+  createBulkItem: (req) => {
+    let dateISOString = new Date().toISOString();
+
+    return new Promise((resolve, reject) => {});
+  },
   createItem: async (req) => {
     let dateISOString = new Date().toISOString();
     let body = req.body;
@@ -14,6 +22,7 @@ module.exports = {
       return (
         body.businessId &&
         body.status &&
+        body.category &&
         body.name &&
         body.price &&
         body.imageUrl
@@ -33,6 +42,7 @@ module.exports = {
           businessId: body.businessId,
           name: body.name,
           imageUrl: body.imageUrl,
+          category: body.category,
           price: body.price,
           changeLog: [
             {
@@ -86,7 +96,12 @@ module.exports = {
     let pageSize = req.query.pageSize ? req.query.pageSize : 10;
 
     isNotEveryQueryNull = () => {
-      return req.query.keyword || req.query.name || req.query.businessId;
+      return (
+        req.query.keyword ||
+        req.query.name ||
+        req.query.businessId ||
+        req.query.category
+      );
     };
 
     return new Promise((resolve, reject) => {
@@ -107,6 +122,9 @@ module.exports = {
                 price: req.query.price
                   ? { $regex: req.query.price, $options: "i" }
                   : null,
+              },
+              {
+                category: req.query.category ? req.query.category : null,
               },
               {
                 businessId: req.query.businessId ? req.query.businessId : null,

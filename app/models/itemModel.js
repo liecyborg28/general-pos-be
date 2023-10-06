@@ -10,6 +10,7 @@ const Item = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Business",
   },
+  category: String,
   name: String,
   imageUrl: String,
   price: String,

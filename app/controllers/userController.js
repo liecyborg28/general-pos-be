@@ -1,13 +1,99 @@
+const ExcelJS = require("exceljs");
+const excelController = require("./utils/excelController");
+
 const User = require("../models/userModel");
 const authController = require("./authController");
 const dataController = require("./utils/dataController");
 const pageController = require("./utils/pageController");
-const excelController = require("./utils/excelController");
 const errorMessages = require("../repository/messages/errorMessages");
 const successMessages = require("../repository/messages/successMessages");
 
 const UserController = {
-  createBulkUser: (req) => {},
+  createBulkUser: (req) => {
+    let dateISOString = new Date().toISOString();
+    return new Promise((resolve, reject) => {
+      try {
+        const workbook = new ExcelJS.Workbook();
+        workbook.xlsx.load(req.file.buffer).then(async () => {
+          const worksheet = workbook.getWorksheet(1);
+
+          const data = excelController.convertExcelToObject(2, 9, worksheet);
+
+          let existingUsers = [];
+
+          const transformedData = data.map((e) => {
+            return {
+              name: e["nama lengkap (wajib)"],
+              phonenumber: e["nomor hp (wajib)"],
+              gender: e["jenis kelamin (pria / wanita) (wajib)"],
+              type: e["tipe akun (admin/member) (wajib)"],
+              username: e["username (wajib)"],
+              password: e["password (wajib)"],
+              email: e["email"] || null,
+              imageUrl: e["url gambar"]["text"],
+              // generate by BE
+              createdAt: dateISOString,
+              updatedAt: dateISOString,
+              auth: authController.generateAuth(),
+            };
+          });
+
+          const promises = transformedData.map(async (user) => {
+            try {
+              const existingUser = await User.findOne({
+                $or: [
+                  { username: user.username },
+                  { phonenumber: user.phonenumber },
+                ],
+              });
+
+              if (!existingUser) {
+                await new User(user).save();
+                console.log(user);
+              } else {
+                existingUsers.push(user);
+              }
+            } catch (error) {
+              console.log(error);
+            }
+          });
+
+          await Promise.all(promises);
+
+          if (existingUsers.length < 1) {
+            resolve({
+              error: false,
+              message: {
+                en: "All data has been successfully saved!",
+                id: "Semua data berhasil tersimpan!",
+              },
+            });
+          } else if (existingUsers.length === existingUsers.length) {
+            reject({
+              error: true,
+              message: {
+                en: "All data is not saved because it is duplicate!",
+                id: "Semua data tidak tersimpan karena duplikat!",
+              },
+            });
+          } else {
+            reject({
+              error: true,
+              message: {
+                en: "Some data is not saved because it is duplicate!",
+                id: "Sebagian data tidak tersimpan karena duplikat!",
+              },
+            });
+          }
+        });
+      } catch (error) {
+        reject({
+          error: true,
+          message: errorMessages.EXCEL_UPLOAD_ERROR,
+        });
+      }
+    });
+  },
 
   createUser: async (body) => {
     let dateISOString = new Date().toISOString();
