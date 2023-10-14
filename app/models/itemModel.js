@@ -13,7 +13,7 @@ const Item = mongoose.Schema({
   category: String,
   name: String,
   imageUrl: String,
-  price: String,
+  price: Number,
   changeLog: [],
   changedBy: {
     type: mongoose.Schema.Types.ObjectId,

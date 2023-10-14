@@ -1,6 +1,5 @@
 const ExcelJS = require("exceljs");
 const excelController = require("./utils/excelController");
-
 const User = require("../models/userModel");
 const authController = require("./authController");
 const dataController = require("./utils/dataController");
@@ -9,6 +8,38 @@ const errorMessages = require("../repository/messages/errorMessages");
 const successMessages = require("../repository/messages/successMessages");
 
 const UserController = {
+  getBulkUserTemplate: () => {
+    return new Promise((resolve, reject) => {
+      const properties = {
+        workbook: "Template_Upload_Daftar_Pengguna",
+        worksheet: "Daftar Pengguna",
+        title: "Daftar Pengguna",
+        data: [
+          {
+            no: 1,
+            name: "Nama lengkap (wajib)",
+            phonenumber: "Nomor HP (Cth: 852xxxxxxxx) (wajib)",
+            gender: "Jenis kelamin (pria / wanita) (wajib)",
+            type: "Tipe akun (admin/member) (wajib)",
+            username: "username (wajib)",
+            password: "password (wajib)",
+            email: "Alamat email",
+            imageUrl: "URL Gambar",
+          },
+        ],
+      };
+
+      excelController
+        .generateExcelTemplate(properties)
+        .then((result) => {
+          resolve(result);
+        })
+        .catch((error) => {
+          reject(error);
+        });
+    });
+  },
+
   createBulkUser: (req) => {
     let dateISOString = new Date().toISOString();
     return new Promise((resolve, reject) => {
@@ -23,14 +54,14 @@ const UserController = {
 
           const transformedData = data.map((e) => {
             return {
-              name: e["nama lengkap (wajib)"],
-              phonenumber: e["nomor hp (wajib)"],
-              gender: e["jenis kelamin (pria / wanita) (wajib)"],
-              type: e["tipe akun (admin/member) (wajib)"],
-              username: e["username (wajib)"],
-              password: e["password (wajib)"],
-              email: e["email"] || null,
-              imageUrl: e["url gambar"]["text"],
+              name: e.name,
+              phonenumber: e.phonenumber,
+              gender: e.gender,
+              type: e.type,
+              username: e.username,
+              password: e.password,
+              email: e.email || null,
+              imageUrl: e.imageUrl.text,
               // generate by BE
               createdAt: dateISOString,
               updatedAt: dateISOString,
@@ -40,16 +71,18 @@ const UserController = {
 
           const promises = transformedData.map(async (user) => {
             try {
-              const existingUser = await User.findOne({
-                $or: [
-                  { username: user.username },
-                  { phonenumber: user.phonenumber },
-                ],
-              });
+              let existingUser = dataController.isExist(
+                {
+                  $or: [
+                    { username: user.username },
+                    { phonenumber: user.phonenumber },
+                  ],
+                },
+                User
+              );
 
               if (!existingUser) {
                 await new User(user).save();
-                console.log(user);
               } else {
                 existingUsers.push(user);
               }
@@ -63,26 +96,17 @@ const UserController = {
           if (existingUsers.length < 1) {
             resolve({
               error: false,
-              message: {
-                en: "All data has been successfully saved!",
-                id: "Semua data berhasil tersimpan!",
-              },
+              message: successMessages.ALL_DATA_SAVED,
             });
-          } else if (existingUsers.length === existingUsers.length) {
+          } else if (existingUsers.length === data.length) {
             reject({
               error: true,
-              message: {
-                en: "All data is not saved because it is duplicate!",
-                id: "Semua data tidak tersimpan karena duplikat!",
-              },
+              message: errorMessages.ALL_DATA_NOT_SAVED_BECAUSE_DUPLICATE,
             });
           } else {
             reject({
               error: true,
-              message: {
-                en: "Some data is not saved because it is duplicate!",
-                id: "Sebagian data tidak tersimpan karena duplikat!",
-              },
+              message: errorMessages.SOME_DATA_NOT_SAVED_BECAUSE_DUPLICATE,
             });
           }
         });

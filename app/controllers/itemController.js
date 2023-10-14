@@ -7,13 +7,159 @@ const dataController = require("./utils/dataController");
 const pageController = require("./utils/pageController");
 const errorMessages = require("../repository/messages/errorMessages");
 const successMessages = require("../repository/messages/successMessages");
+const itemResource = require("../repository/resources/itemResource");
+
+function getConstValue(categoryName, language, constant) {
+  const lowerCaseCategoryName = categoryName.toLowerCase();
+  for (const item of constant) {
+    if (item[language] && item.id.toLowerCase() === lowerCaseCategoryName) {
+      return item[language];
+    }
+  }
+
+  return "Not found";
+}
 
 module.exports = {
-  createBulkItem: (req) => {
+  getBulkItemTemplate: async (req) => {
+    let businessId = req.query.id || null;
+
+    let businessIdIsExist = await dataController.isExist({ businessId }, Item);
+
+    if (!businessIdIsExist || businessIdIsExist.length < 1) {
+      return Promise.reject({
+        error: true,
+        message: errorMessages.ID_NOT_FOUND,
+      });
+    }
+
+    if (businessId) {
+      return new Promise(async (resolve, reject) => {
+        const properties = {
+          workbook: "Template_Upload_Daftar_Item",
+          worksheet: "Daftar Item",
+          title: "Daftar Item",
+          data: [
+            {
+              no: 1,
+              businessId,
+              status: "Status (active / inactive) (wajib)",
+              name: "Nama menu (wajib)",
+              price: "Harga menu (wajib)",
+              category: "Kategori menu (makanan / minuman / paket) (wajib)",
+              imageUrl: "URL gambar",
+            },
+          ],
+        };
+
+        excelController
+          .generateExcelTemplate(properties)
+          .then((result) => {
+            resolve(result);
+          })
+          .catch((error) => {
+            reject(error);
+          });
+      });
+    } else {
+      return Promise.reject({
+        error: true,
+        message: errorMessages.INVALID_DATA,
+      });
+    }
+  },
+
+  createBulkItem: async (req) => {
     let dateISOString = new Date().toISOString();
 
-    return new Promise((resolve, reject) => {});
+    const bearerHeader = req.headers["authorization"];
+    const bearerToken = bearerHeader.split(" ")[1];
+
+    let userByToken = await User.findOne({
+      "auth.accessToken": bearerToken,
+    });
+
+    const categoryItem = itemResource.CATEGORY;
+
+    return new Promise((resolve, reject) => {
+      try {
+        const workbook = new ExcelJS.Workbook();
+        workbook.xlsx.load(req.file.buffer).then(async () => {
+          const worksheet = workbook.getWorksheet(1);
+
+          const data = excelController.convertExcelToObject(2, 7, worksheet);
+
+          let existingItems = [];
+
+          const transformedData = data.map((e) => {
+            return {
+              status: e.status,
+              businessId: e.businessId,
+              name: e.name,
+              price: e.price,
+              category: getConstValue(e.category, "value", categoryItem),
+              imageUrl: e.imageUrl ? e.imageUrl.text : null,
+              changeLog: [
+                {
+                  date: dateISOString,
+                  by: userByToken._id,
+                  data: {
+                    name: e.name,
+                    price: e.price,
+                  },
+                },
+              ],
+              changedBy: userByToken._id,
+              createdAt: dateISOString,
+              updatedAt: dateISOString,
+            };
+          });
+
+          const promises = transformedData.map(async (item) => {
+            try {
+              let existingItem = await dataController.isExist(
+                { businessId: item.businessId, name: item.name },
+                Item
+              );
+
+              if (!existingItem) {
+                await new Item(item).save();
+              } else {
+                existingItems.push(item);
+              }
+            } catch (error) {
+              console.log(error);
+            }
+          });
+
+          await Promise.all(promises);
+
+          if (existingItems.length < 1) {
+            resolve({
+              error: false,
+              message: successMessages.ALL_DATA_SAVED,
+            });
+          } else if (existingItems.length === data.length) {
+            reject({
+              error: true,
+              message: errorMessages.ALL_DATA_NOT_SAVED_BECAUSE_DUPLICATE,
+            });
+          } else {
+            reject({
+              error: true,
+              message: errorMessages.SOME_DATA_NOT_SAVED_BECAUSE_DUPLICATE,
+            });
+          }
+        });
+      } catch (error) {
+        reject({
+          error: true,
+          message: errorMessages.EXCEL_UPLOAD_ERROR,
+        });
+      }
+    });
   },
+
   createItem: async (req) => {
     let dateISOString = new Date().toISOString();
     let body = req.body;

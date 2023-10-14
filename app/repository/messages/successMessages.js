@@ -25,10 +25,18 @@ module.exports = {
   },
   AUTHORIZED: {
     en: "Authorized!",
-    id: "Akses dizinkan!",
+    id: "Akses diizinkan!",
   },
   TOKEN_SUCCESS_UPDATED: {
     en: "Token updated successfully!",
     id: "Token berhasil diperbarui!",
+  },
+  ALL_DATA_SAVED: {
+    en: "All data has been successfully saved!",
+    id: "Semua data berhasil tersimpan!",
+  },
+  FILE_CREATED_SUCCESS: {
+    en: "File created successfully!",
+    id: "File berhasil dibuat!",
   },
 };

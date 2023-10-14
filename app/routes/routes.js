@@ -8,6 +8,7 @@ const businessRouter = require("./businessRouter/businessRouter");
 const outletRouter = require("./outletRouter/outletRouter");
 const itemRouter = require("./itemRouter/itemRouter");
 const transactionRouter = require("./transactionRouter/transactionRouter");
+const reportRouter = require("./reportRouter/reportRouter");
 
 router.use(authRouter);
 router.use(userRouter);
@@ -16,5 +17,6 @@ router.use(businessRouter);
 router.use(outletRouter);
 router.use(itemRouter);
 router.use(transactionRouter);
+router.use(reportRouter);
 
 module.exports = router;

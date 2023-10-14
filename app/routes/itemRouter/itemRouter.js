@@ -7,6 +7,19 @@ const multer = require("multer");
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
+router.get("/items/bulk/template", (req, res) => {
+  authController.checkAccessToken(req).then(() => {
+    itemController
+      .getBulkItemTemplate(req)
+      .then((value) => {
+        res.status(200).send(value);
+      })
+      .catch((err) => {
+        res.status(500).send(err);
+      });
+  });
+});
+
 router.post("/items/bulk", upload.single("file"), (req, res) => {
   authController.checkAccessToken(req).then(() => {
     itemController

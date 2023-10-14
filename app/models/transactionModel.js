@@ -10,7 +10,8 @@ const Transaction = mongoose.Schema({
   tax: Number,
   charge: Number,
   table: String,
-  paymentType: String,
+  paymentAmount: Number,
+  paymentMethod: String,
   orderType: String,
   request: {
     status: String,
@@ -30,7 +31,8 @@ const Transaction = mongoose.Schema({
     ref: "User",
   },
   customer: String,
-  costs: [{ title: String, cost: Number }],
+  discounts: [{ title: String, amount: Number }],
+  costs: [{ title: String, amount: Number }],
   details: [
     {
       itemId: {

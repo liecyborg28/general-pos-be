@@ -43,4 +43,20 @@ module.exports = {
     en: "An error occurred while uploading and converting the Excel file",
     id: "Terjadi kesalahan saat mengunggah dan mengonversi file Excel",
   },
+  SOME_DATA_NOT_SAVED_BECAUSE_DUPLICATE: {
+    en: "Some data is not saved because it is duplicate!",
+    id: "Sebagian data tidak tersimpan karena duplikat",
+  },
+  ALL_DATA_NOT_SAVED_BECAUSE_DUPLICATE: {
+    en: "All data is not saved because it is duplicate!",
+    id: "Semua data tidak tersimpan karena duplikat!",
+  },
+  FAILED_CREATED_FILE: {
+    en: "Failed to create file!",
+    id: "Gagal membuat file!",
+  },
+  ID_NOT_FOUND: {
+    en: "ID not found!",
+    id: "ID tidak ditemukan!",
+  },
 };

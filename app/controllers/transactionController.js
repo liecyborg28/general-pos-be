@@ -1,6 +1,5 @@
 const User = require("../models/userModel");
 const Transaction = require("../models/transactionModel");
-// const dataController = require("./dataController");
 const pageController = require("./utils/pageController");
 const errorMessages = require("../repository/messages/errorMessages");
 const successMessages = require("../repository/messages/successMessages");
@@ -40,6 +39,8 @@ module.exports = {
         body.orderStatus &&
         body.details &&
         body.tax &&
+        body.paymentAmount &&
+        body.paymentMethod &&
         body.details.length > 0
       );
     };
@@ -53,8 +54,11 @@ module.exports = {
           userId: body.userId,
           details: body.details,
           tax: body.tax,
+          paymentAmount: body.paymentAmount,
+          paymentMethod: body.paymentMethod,
           charge: body.charge ? body.charge : 0,
           costs: body.costs ? body.costs : [],
+          discounts: body.discounts ? body.discounts : [],
           customer: body.customer ? body.customer : null,
           table: body.table ? body.table : null,
           request: generateRequestCodes(),
@@ -135,6 +139,52 @@ module.exports = {
                 createdAt: req.query.createdAt ? req.query.createdAt : null,
               },
             ],
+          }
+        : {};
+
+      pageController
+        .paginate(pageKey, pageSize, pipeline, Transaction)
+        .then((transactions) => {
+          Transaction.populate(transactions.data, {
+            path: "businessId outletId userId details.itemId",
+          })
+            .then((data) => {
+              resolve({
+                error: false,
+                data: data,
+                count: transactions.count,
+              });
+            })
+            .catch((err) => {
+              reject({ error: true, message: err });
+            });
+        })
+        .catch((err) => {
+          reject({ error: true, message: err });
+        });
+    });
+  },
+
+  getTransactionsByPeriod: (req) => {
+    let pageKey = req.query.pageKey ? req.query.pageKey : 1;
+    let pageSize = req.query.pageSize ? req.query.pageSize : 10;
+
+    let defaultFrom = new Date(new Date().setHours(0, 0, 0, 0)).toISOString();
+    let defaultTo = new Date(
+      new Date().setHours(23, 59, 59, 999)
+    ).toISOString();
+
+    isNotEveryQueryNull = () => {
+      return req.query.from || req.query.to;
+    };
+
+    return new Promise((resolve, reject) => {
+      let pipeline = isNotEveryQueryNull()
+        ? {
+            createdAt: {
+              $gte: req.query.from || defaultFrom,
+              $lte: req.query.to || defaultTo,
+            },
           }
         : {};
 
