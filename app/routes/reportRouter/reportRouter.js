@@ -38,4 +38,22 @@ router.get("/reports/transaction/sales", (req, res) => {
     });
 });
 
+router.get("/reports/transaction/closing", (req, res) => {
+  authController
+    .checkAccessToken(req)
+    .then(() => {
+      reportController
+        .getClosingReport(req)
+        .then((value) => {
+          res.status(200).send(value);
+        })
+        .catch((err) => {
+          res.status(500).send(err);
+        });
+    })
+    .catch((err) => {
+      res.status(500).send(err);
+    });
+});
+
 module.exports = router;

@@ -3,6 +3,7 @@ const Transaction = require("../models/transactionModel");
 const pageController = require("./utils/pageController");
 const errorMessages = require("../repository/messages/errorMessages");
 const successMessages = require("../repository/messages/successMessages");
+const transactionResource = require("../repository/resources/transactionResource");
 
 function generateRequestCodes() {
   const viewCode = Math.floor(100000 + Math.random() * 900000);
@@ -115,6 +116,7 @@ module.exports = {
     return new Promise((resolve, reject) => {
       let pipeline = isNotEveryQueryNull()
         ? {
+            // status: transactionResource.STATUS.COMPLETED.value,
             $or: [
               {
                 customer: req.query.keyword

@@ -1,24 +1,24 @@
 module.exports = {
-  STATUS: [
-    { value: "pending", en: "Pending", id: "Menunggu Pembayaran" },
-    {
+  STATUS: {
+    PENDING: { value: "pending", en: "Pending", id: "Menunggu Pembayaran" },
+    COMPLETED: {
       value: "completed",
       en: "Completed",
       id: "Pembayaran Selesai",
     },
-    {
+    CANCELED: {
       value: "canceled",
       en: "Canceled",
       id: "Pembayaran Dibatalkan",
     },
-  ],
-  ORDER_STATUS: [
-    { value: "pending", en: "Pending", id: "Menunggu Pembayaran" },
-    { value: "queued", en: "Queued", id: "Dalam Antrian" },
-    { value: "ongoing", en: "Ongoing", id: "Sedang Diproses" },
-    { value: "completed", en: "Completed", id: "Pesanan Selesai" },
-    { value: "canceled", en: "Canceled", id: "Pesanan Dibatalkan" },
-  ],
+  },
+  ORDER_STATUS: {
+    PENDING: { value: "pending", en: "Pending", id: "Menunggu Pembayaran" },
+    QUEUED: { value: "queued", en: "Queued", id: "Dalam Antrian" },
+    ONGOING: { value: "ongoing", en: "Ongoing", id: "Sedang Diproses" },
+    COMPELTED: { value: "completed", en: "Completed", id: "Pesanan Selesai" },
+    CANCELED: { value: "canceled", en: "Canceled", id: "Pesanan Dibatalkan" },
+  },
   PAYMENT_METHOD: [
     {
       value: "cash",
@@ -54,11 +54,25 @@ module.exports = {
   DISCOUNTS: [
     {
       title: "Promo Ayam Bawang 1",
-      amount: 5000,
+      fixAmount: 5000,
+      persentage: null,
     },
     {
       title: "Promo Ayam Bawang 2",
-      amount: 2000,
+      fixAmount: null,
+      persentage: 0.02,
     },
   ],
+  RULES: {
+    TAX: {
+      title: "PPN",
+      fixAmount: null,
+      persentage: 0.1,
+    },
+    CHARGE: {
+      title: "charge",
+      fixAmount: null,
+      persentage: 0.04,
+    },
+  },
 };

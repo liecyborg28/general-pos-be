@@ -59,4 +59,12 @@ module.exports = {
     en: "ID not found!",
     id: "ID tidak ditemukan!",
   },
+  BUSINESS_ID_NOT_FOUND: {
+    en: "Business ID not found!",
+    id: "Business ID tidak ditemukan!",
+  },
+  OUTLET_ID_NOT_FOUND: {
+    en: "Outlet ID not found!",
+    id: "Outlet ID tidak ditemukan!",
+  },
 };
