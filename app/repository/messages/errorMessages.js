@@ -12,8 +12,8 @@ module.exports = {
     id: "Nama sudah terdaftar!",
   },
   INVALID_DATA: {
-    en: "Invalid data!",
-    id: "Data tidak valid!",
+    en: "Invalid data! please check the data you filled in!",
+    id: "Data tidak valid! mohon periksa kembali data yang Anda isi!",
   },
   UNAUTHORIZED: {
     en: "Unautorized!",
@@ -32,8 +32,8 @@ module.exports = {
     id: "Pengguna tidak ditemukan!",
   },
   LOGIN_FAILED: {
-    en: "Login gagal! Pastikan data login Anda telah benar",
-    id: "Login failed! Make sure your login data is correct",
+    en: "Login failed! Make sure your login data is correct",
+    id: "Login gagal! Pastikan data login Anda telah benar",
   },
   SESSION_ENDED: {
     en: "Your session has ended, please login again!",

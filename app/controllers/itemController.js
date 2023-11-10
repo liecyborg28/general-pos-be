@@ -170,8 +170,7 @@ module.exports = {
         body.status &&
         body.category &&
         body.name &&
-        body.price &&
-        body.imageUrl
+        body.price
       );
     };
 
@@ -187,7 +186,7 @@ module.exports = {
           status: body.status,
           businessId: body.businessId,
           name: body.name,
-          imageUrl: body.imageUrl,
+          imageUrl: body.imageUrl ? body.imageUrl : null,
           category: body.category,
           price: body.price,
           changeLog: [
@@ -239,7 +238,7 @@ module.exports = {
 
   getItems: (req) => {
     let pageKey = req.query.pageKey ? req.query.pageKey : 1;
-    let pageSize = req.query.pageSize ? req.query.pageSize : 10;
+    let pageSize = req.query.pageSize ? req.query.pageSize : 1000;
 
     isNotEveryQueryNull = () => {
       return (
@@ -253,6 +252,7 @@ module.exports = {
     return new Promise((resolve, reject) => {
       let pipeline = isNotEveryQueryNull()
         ? {
+            status: { $ne: "deleted" },
             $or: [
               {
                 name: req.query.keyword
@@ -277,7 +277,9 @@ module.exports = {
               },
             ],
           }
-        : {};
+        : {
+            status: { $ne: "deleted" },
+          };
 
       pageController
         .paginate(pageKey, pageSize, pipeline, Item)

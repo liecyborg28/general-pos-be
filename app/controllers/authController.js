@@ -38,7 +38,7 @@ module.exports = {
       User.findOne({
         $or: [
           { username: req.body.loginMethod, password: req.body.password },
-          { phonenumber: req.body.loginMethod, password: req.body.password },
+          // { phonenumber: req.body.loginMethod, password: req.body.password },
         ],
       })
         .catch((err) => {
@@ -53,9 +53,10 @@ module.exports = {
                 name: data.name,
                 gender: data.gender,
                 imageUrl: data.imageUrl,
+                userId: data._id,
                 access: [],
-                businessId: [],
-                outletId: [],
+                businessIds: [],
+                outletIds: [],
                 auth: {
                   accessToken: data.auth.accessToken,
                   expiredAt: authUtils.generateTokenExpirateAt(7),

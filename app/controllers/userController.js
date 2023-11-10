@@ -58,6 +58,7 @@ const UserController = {
               phonenumber: e.phonenumber,
               gender: e.gender,
               type: e.type,
+              status: "active",
               username: e.username,
               password: e.password,
               email: e.email || null,
@@ -71,7 +72,7 @@ const UserController = {
 
           const promises = transformedData.map(async (user) => {
             try {
-              let existingUser = dataController.isExist(
+              let existingUser = await dataController.isExist(
                 {
                   $or: [
                     { username: user.username },
@@ -166,6 +167,7 @@ const UserController = {
       let phonenumberIsExist = await dataController.isExist(
         {
           phonenumber: body.phonenumber,
+          status: { $ne: "deleted" },
         },
         User
       );
@@ -173,6 +175,7 @@ const UserController = {
       let usernameIsExist = await dataController.isExist(
         {
           username: body.username,
+          status: { $ne: "deleted" },
         },
         User
       );
@@ -180,7 +183,7 @@ const UserController = {
       if (phonenumberIsExist) {
         return Promise.reject({
           error: true,
-          message: errorMessages.NAME_ALREADY_EXISTS,
+          message: errorMessages.PHONE_ALREADY_EXISTS,
         });
       }
 
@@ -211,7 +214,7 @@ const UserController = {
 
   getUsers: (req) => {
     let pageKey = req.query.pageKey ? req.query.pageKey : 1;
-    let pageSize = req.query.pageSize ? req.query.pageSize : 10;
+    let pageSize = req.query.pageSize ? req.query.pageSize : 1000;
 
     isNotEveryQueryNull = () => {
       return (
@@ -226,6 +229,7 @@ const UserController = {
     return new Promise((resolve, reject) => {
       let pipeline = isNotEveryQueryNull()
         ? {
+            status: { $ne: "deleted" },
             $or: [
               {
                 type: req.query.keyword ? { $regex: req.query.keyword } : null,
@@ -273,7 +277,9 @@ const UserController = {
               },
             ],
           }
-        : {};
+        : {
+            status: { $ne: "deleted" },
+          };
 
       pageController
         .paginate(pageKey, pageSize, pipeline, User)
@@ -292,13 +298,23 @@ const UserController = {
 
   updateUser: async (body) => {
     let dateISOString = new Date().toISOString();
-    let phonenumberIsExist = await userDataIsExist({
-      phonenumber: body.data.phonenumber,
-    });
+    let phonenumberIsExist = await dataController.isExist(
+      {
+        phonenumber: body.data.phonenumber,
+        _id: { $ne: body.userId },
+        status: { $ne: "deleted" },
+      },
+      User
+    );
 
-    let usernameIsExist = await userDataIsExist({
-      username: body.data.username,
-    });
+    let usernameIsExist = await dataController.isExist(
+      {
+        username: body.data.username,
+        _id: { $ne: body.userId },
+        status: { $ne: "deleted" },
+      },
+      User
+    );
 
     if (phonenumberIsExist) {
       return Promise.reject({

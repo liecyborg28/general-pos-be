@@ -8,7 +8,7 @@ module.exports = {
   createOutlet: async (body) => {
     let dateISOString = new Date().toISOString();
     let isBodyValid = () => {
-      return body.businessId && body.status && body.name;
+      return body.businessId && body.status && body.name && body.address;
     };
 
     let payload = isBodyValid()
@@ -16,6 +16,7 @@ module.exports = {
           businessId: body.businessId,
           status: body.status,
           name: body.name,
+          address: body.address ? body.address : null,
           createdAt: dateISOString,
           updatedAt: dateISOString,
         }
@@ -57,7 +58,7 @@ module.exports = {
 
   getOutlets: (req) => {
     let pageKey = req.query.pageKey ? req.query.pageKey : 1;
-    let pageSize = req.query.pageSize ? req.query.pageSize : 10;
+    let pageSize = req.query.pageSize ? req.query.pageSize : 1000;
 
     isNotEveryQueryNull = () => {
       return req.query.keyword || req.query.name || req.query.businessId;
@@ -66,6 +67,7 @@ module.exports = {
     return new Promise((resolve, reject) => {
       let pipeline = isNotEveryQueryNull()
         ? {
+            status: { $ne: "deleted" },
             $or: [
               {
                 name: req.query.keyword
@@ -82,7 +84,9 @@ module.exports = {
               },
             ],
           }
-        : {};
+        : {
+            status: { $ne: "deleted" },
+          };
 
       pageController
         .paginate(pageKey, pageSize, pipeline, Outlet)

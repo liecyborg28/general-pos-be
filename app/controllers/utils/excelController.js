@@ -85,7 +85,7 @@ module.exports = {
       workbookObj.xlsx
         .writeBuffer()
         .then((buffer) => {
-          fs.writeFileSync(fileName, buffer, "binary");
+          // fs.writeFileSync(fileName, buffer, "binary");
           resolve({
             error: false,
             message: successMessages.FILE_CREATED_SUCCESS,

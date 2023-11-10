@@ -19,6 +19,21 @@ function generateRequestCodes() {
   return { status: "initial", viewCode, valueCode: reversedValueCode };
 }
 
+function convertToLocaleISOString(date, type) {
+  if (type !== "start" && type !== "end") {
+    throw new Error('Parameter "type" harus "start" atau "end"');
+  }
+
+  // if (type === "start") date.setDate(date.getDate() + 1);
+
+  return date
+    .toISOString()
+    .replace(
+      /T\d{2}:\d{2}:\d{2}.\d{3}Z/,
+      type === "start" ? "T00:00:00.000Z" : "T23:59:59.999Z"
+    );
+}
+
 module.exports = {
   createTransaction: async (req) => {
     let dateISOString = new Date().toISOString();
@@ -169,12 +184,12 @@ module.exports = {
 
   getTransactionsByPeriod: (req) => {
     let pageKey = req.query.pageKey ? req.query.pageKey : 1;
-    let pageSize = req.query.pageSize ? req.query.pageSize : 10;
+    let pageSize = req.query.pageSize
+      ? req.query.pageSize
+      : 1 * 1000 * 1000 * 1000;
 
-    let defaultFrom = new Date(new Date().setHours(0, 0, 0, 0)).toISOString();
-    let defaultTo = new Date(
-      new Date().setHours(23, 59, 59, 999)
-    ).toISOString();
+    let defaultFrom = convertToLocaleISOString(new Date(), "start");
+    let defaultTo = convertToLocaleISOString(new Date(), "end");
 
     isNotEveryQueryNull = () => {
       return req.query.from || req.query.to;
@@ -182,13 +197,34 @@ module.exports = {
 
     return new Promise((resolve, reject) => {
       let pipeline = isNotEveryQueryNull()
+        ? req.query.outletId
+          ? {
+              outletId: req.query.outletId,
+              createdAt: {
+                $gte: req.query.from ? req.query.from : defaultFrom,
+                $lte: req.query.to ? req.query.to : defaultTo,
+              },
+            }
+          : {
+              createdAt: {
+                $gte: req.query.from ? req.query.from : defaultFrom,
+                $lte: req.query.to ? req.query.to : defaultTo,
+              },
+            }
+        : req.query.outletId
         ? {
+            outletId: req.query.outletId,
             createdAt: {
-              $gte: req.query.from || defaultFrom,
-              $lte: req.query.to || defaultTo,
+              $gte: defaultFrom,
+              $lte: defaultTo,
             },
           }
-        : {};
+        : {
+            createdAt: {
+              $gte: defaultFrom,
+              $lte: defaultTo,
+            },
+          };
 
       pageController
         .paginate(pageKey, pageSize, pipeline, Transaction)

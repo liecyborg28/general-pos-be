@@ -16,7 +16,7 @@ module.exports = {
     PENDING: { value: "pending", en: "Pending", id: "Menunggu Pembayaran" },
     QUEUED: { value: "queued", en: "Queued", id: "Dalam Antrian" },
     ONGOING: { value: "ongoing", en: "Ongoing", id: "Sedang Diproses" },
-    COMPELTED: { value: "completed", en: "Completed", id: "Pesanan Selesai" },
+    COMPLETED: { value: "completed", en: "Completed", id: "Pesanan Selesai" },
     CANCELED: { value: "canceled", en: "Canceled", id: "Pesanan Dibatalkan" },
   },
   PAYMENT_METHOD: [
@@ -35,11 +35,11 @@ module.exports = {
       en: "QRIS",
       id: "QRIS",
     },
-    {
-      value: "entertain",
-      en: "Entertain",
-      id: "Hiburan",
-    },
+    // {
+    //   value: "entertain",
+    //   en: "Entertain",
+    //   id: "Hiburan",
+    // },
     {
       value: "transfer",
       en: "Bank Transfer",
