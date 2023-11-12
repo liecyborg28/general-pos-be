@@ -66,24 +66,49 @@ module.exports = {
 
     return new Promise((resolve, reject) => {
       let pipeline = isNotEveryQueryNull()
-        ? {
-            status: { $ne: "deleted" },
-            $or: [
-              {
-                name: req.query.keyword
-                  ? { $regex: req.query.keyword, $options: "i" }
-                  : null,
-              },
-              {
-                name: req.query.name
-                  ? { $regex: req.query.name, $options: "i" }
-                  : null,
-              },
-              {
-                businessId: req.query.businessId ? req.query.businessId : null,
-              },
-            ],
-          }
+        ? req.query.isActive
+          ? {
+              status: "active",
+              $or: [
+                {
+                  name: req.query.keyword
+                    ? { $regex: req.query.keyword, $options: "i" }
+                    : null,
+                },
+                {
+                  name: req.query.name
+                    ? { $regex: req.query.name, $options: "i" }
+                    : null,
+                },
+                {
+                  businessId: req.query.businessId
+                    ? req.query.businessId
+                    : null,
+                },
+              ],
+            }
+          : {
+              status: { $ne: "deleted" },
+              $or: [
+                {
+                  name: req.query.keyword
+                    ? { $regex: req.query.keyword, $options: "i" }
+                    : null,
+                },
+                {
+                  name: req.query.name
+                    ? { $regex: req.query.name, $options: "i" }
+                    : null,
+                },
+                {
+                  businessId: req.query.businessId
+                    ? req.query.businessId
+                    : null,
+                },
+              ],
+            }
+        : req.query.isActive
+        ? { status: "active" }
         : {
             status: { $ne: "deleted" },
           };
