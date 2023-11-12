@@ -53,12 +53,12 @@ module.exports = {
   ],
   DISCOUNTS: [
     {
-      title: "Promo Ayam Bawang 1",
+      title: "Test Promo Ayam Bawang 1",
       fixAmount: 5000,
       persentage: null,
     },
     {
-      title: "Promo Ayam Bawang 2",
+      title: "Test Promo Ayam Bawang 2",
       fixAmount: null,
       persentage: 0.02,
     },
@@ -72,7 +72,8 @@ module.exports = {
     CHARGE: {
       title: "charge",
       fixAmount: null,
-      persentage: 0.04,
+      persentage: 0,
+      // persentage: 0.04,
     },
   },
 };
