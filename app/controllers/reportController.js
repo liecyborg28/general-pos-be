@@ -513,11 +513,27 @@ module.exports = {
                 })
               );
 
-              resolve({
-                error: false,
+              const properties = {
+                workbook: "Laporan_Closing",
+                worksheet: "Laporan Closing",
+                title: "Laporan Closing",
                 data: transformedData,
-                count: transformedData.length,
-              });
+              };
+
+              excelController
+                .generateExcelTemplate(properties)
+                .then((result) => {
+                  resolve({
+                    error: false,
+                    data: {
+                      obj: getClosingTransactions(data),
+                      excel: result.data.excel,
+                    },
+                  });
+                })
+                .catch((error) => {
+                  reject(error);
+                });
             })
             .catch((err) => {
               reject({ error: true, message: err });
