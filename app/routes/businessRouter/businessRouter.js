@@ -1,5 +1,4 @@
 const router = require("express").Router();
-
 const authController = require("../../controllers/authController");
 const businessController = require("../../controllers/businessController");
 
