@@ -12,7 +12,7 @@ router.get("/receipt/transaction/:transactionId", (req, res) => {
           res.setHeader("Content-Type", "application/pdf");
           res.setHeader(
             "Content-Disposition",
-            "attachment; filename=generated.pdf"
+            `attachment; filename=Struk_Orderan_${new Date().toISOString()}.pdf`
           );
           res.status(200).send(value);
         })
@@ -35,7 +35,7 @@ router.get("/receipt/item/:transactionId", (req, res) => {
           res.setHeader("Content-Type", "application/pdf");
           res.setHeader(
             "Content-Disposition",
-            "attachment; filename=generated.pdf"
+            `attachment; filename=Struk_Transaksi_${new Date().toISOString()}.pdf`
           );
           res.status(200).send(value);
         })

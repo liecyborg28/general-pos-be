@@ -1,12 +1,19 @@
 const errorMessages = require("../repository/messages/errorMessages");
 const successMessages = require("../repository/messages/successMessages");
+const crypto = require("crypto");
 const User = require("../models/userModel");
 const authUtils = require("../utility/authUtils");
+
+function generateHash(data) {
+  const hash = crypto.createHash("sha256");
+  hash.update(data);
+  return hash.digest("hex");
+}
 
 module.exports = {
   generateAuth: () => {
     return {
-      accessToken: authUtils.generateAccessToken(),
+      accessToken: generateHash(authUtils.generateAccessToken()),
     };
   },
   checkAccessToken: (req) => {
@@ -89,7 +96,7 @@ module.exports = {
             console.log(data);
             let newAuth = {
               auth: {
-                accessToken: authUtils.generateAccessToken(),
+                accessToken: generateHash(authUtils.generateAccessToken()),
               },
             };
             if (data) {
