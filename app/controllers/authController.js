@@ -93,7 +93,6 @@ module.exports = {
             reject({ error: true, message: err });
           })
           .then((data) => {
-            console.log(data);
             let newAuth = {
               auth: {
                 accessToken: generateHash(authUtils.generateAccessToken()),
