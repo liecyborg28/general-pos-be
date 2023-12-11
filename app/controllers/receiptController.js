@@ -1,8 +1,16 @@
+const fs = require("fs");
 const errorMessages = require("../repository/messages/errorMessages");
 const successMessages = require("../repository/messages/successMessages");
 const pdfController = require("../controllers/utils/pdfController");
 const Transaction = require("../models/transactionModel");
 const transactionResource = require("../repository/resources/transactionResource");
+
+function getPageSize(pdfPath) {
+  const pdfReader = hummus.createReader(pdfPath);
+  const firstPage = pdfReader.getPage(0);
+  const pageSize = firstPage.getMediaBox();
+  return { width: pageSize[2], height: pageSize[3] };
+}
 
 function formatReceiptDate(inputDate) {
   const date = new Date(inputDate);
