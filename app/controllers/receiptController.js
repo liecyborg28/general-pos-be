@@ -4,6 +4,7 @@ const successMessages = require("../repository/messages/successMessages");
 const pdfController = require("../controllers/utils/pdfController");
 const Transaction = require("../models/transactionModel");
 const transactionResource = require("../repository/resources/transactionResource");
+const formatController = require("../controllers/utils/formatController");
 
 function getPageSize(pdfPath) {
   const pdfReader = hummus.createReader(pdfPath);
@@ -176,21 +177,21 @@ module.exports = {
           receiptData.details.map((e) => {
             html += `<div class="detail">
         <span>${e.qty} ${e.name}</span>
-        <span>${e.price}</span>
+        <span>${formatController.currencyTransform(e.price)}</span>
     </div>`;
           });
 
           receiptData.costs.map((e) => {
             html += `<div class="detail">
         <span>${e.title}</span>
-        <span>${e.amount}</span>
+        <span>${formatController.currencyTransform(e.amount)}</span>
     </div>`;
           });
 
           receiptData.discounts.map((e) => {
             html += `<div class="detail">
         <span>${e.title}</span>
-        <span>${e.amount}</span>
+        <span>${formatController.currencyTransform(e.amount)}</span>
     </div>`;
           });
 
@@ -199,34 +200,48 @@ module.exports = {
       <div>
           <div class="detail">
               <span>Total ${receiptData.details.length} Item</span>
-              <span>${receiptData.totalDetails}</span>
+              <span>${formatController.currencyTransform(
+                receiptData.totalDetails
+              )}</span>
           </div>
           <div class="detail">
               <span>Total Biaya Tambahan</span>
-              <span>${receiptData.totalCosts}</span>
+              <span>${formatController.currencyTransform(
+                receiptData.totalCosts
+              )}</span>
           </div>
           <div class="detail">
               <span>Total Pajak</span>
-              <span>${receiptData.totalTax}</span>
+              <span>${formatController.currencyTransform(
+                receiptData.totalTax
+              )}</span>
           </div>
           <div class="detail">
               <span>Total Diskon</span>
-              <span>(${receiptData.totalDiscounts})</span>
+              <span>(${formatController.currencyTransform(
+                receiptData.totalDiscounts
+              )})</span>
           </div>
           <hr>
       </div>
       <div>
           <div class="detail">
               <span>Total Tagihan</span>
-              <span>${receiptData.grandTotal}</span>
+              <span>${formatController.currencyTransform(
+                receiptData.grandTotal
+              )}</span>
           </div>
           <div class="detail">
               <span>Total Bayar (${receiptData.paymentMethod})</span>
-              <span>${receiptData.paymentAmount}</span>
+              <span>${formatController.currencyTransform(
+                receiptData.paymentAmount
+              )}</span>
           </div>
           <div class="detail">
               <span>Kembalian</span>
-              <span>${receiptData.change}</span>
+              <span>${formatController.currencyTransform(
+                receiptData.change
+              )}</span>
           </div>
           <hr>
       </div>
@@ -394,7 +409,7 @@ module.exports = {
           receiptData.details.map((e) => {
             html += `<div class="detail">
         <span>${e.qty} ${e.name}</span>
-        <span>${e.price}</span>
+        <span>${formatController.currencyTransform(e.price)}</span>
     </div>`;
           });
 

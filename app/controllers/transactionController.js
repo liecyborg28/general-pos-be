@@ -98,9 +98,10 @@ module.exports = {
       return new Promise((resolve, reject) => {
         new Transaction(payload)
           .save()
-          .then(() => {
+          .then((result) => {
             resolve({
               error: false,
+              data: result,
               message: successMessages.TRANSACTION_CREATED_SUCCESS,
             });
           })
