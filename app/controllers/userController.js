@@ -24,7 +24,7 @@ const UserController = {
             username: "username (wajib)",
             password: "password (wajib)",
             email: "Alamat email",
-            imageUrl: "URL Gambar",
+            imageUrl: "URL gambar",
           },
         ],
       };

@@ -24,15 +24,6 @@ module.exports = {
   getBulkItemTemplate: async (req) => {
     let businessId = req.query.id || null;
 
-    let businessIdIsExist = await dataController.isExist({ businessId }, Item);
-
-    if (!businessIdIsExist || businessIdIsExist.length < 1) {
-      return Promise.reject({
-        error: true,
-        message: errorMessages.ID_NOT_FOUND,
-      });
-    }
-
     if (businessId) {
       return new Promise(async (resolve, reject) => {
         const properties = {
