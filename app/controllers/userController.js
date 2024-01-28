@@ -337,6 +337,7 @@ const UserController = {
       });
     } else {
       body.data["updatedAt"] = dateISOString;
+
       return new Promise((resolve, reject) => {
         User.findByIdAndUpdate(body.userId, body.data, { new: true })
           .then(() => {
