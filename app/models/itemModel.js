@@ -5,20 +5,23 @@ const dbConfig = require("./../../config/dbConfig");
 mongoose.connect(dbConfig.url);
 
 const Item = mongoose.Schema({
-  status: String,
   businessId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Business",
   },
-  category: String,
-  name: String,
-  imageUrl: String,
-  price: Number,
-  changeLog: [],
+  category: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Category",
+  },
   changedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
+  changeLog: [],
+  status: String,
+  name: String,
+  imageUrl: String,
+  price: Number,
   createdAt: String,
   updatedAt: String,
 });

@@ -154,23 +154,14 @@ module.exports = {
         message: errorMessages.INVALID_DATA,
       });
     } else {
+      body.data["updatedAt"] = dateISOString;
       return new Promise((resolve, reject) => {
         Outlet.findByIdAndUpdate(body.outletId, body.data, { new: true })
           .then(() => {
-            Outlet.findByIdAndUpdate(
-              body.outletId,
-              { updatedAt: dateISOString },
-              { new: true }
-            )
-              .then(() => {
-                resolve({
-                  error: false,
-                  message: successMessages.DATA_SUCCESS_UPDATED,
-                });
-              })
-              .catch((err) => {
-                reject({ error: true, message: err });
-              });
+            resolve({
+              error: false,
+              message: successMessages.DATA_SUCCESS_UPDATED,
+            });
           })
           .catch((err) => {
             reject({ error: true, message: err });

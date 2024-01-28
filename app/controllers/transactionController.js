@@ -267,35 +267,24 @@ module.exports = {
         message: errorMessages.INVALID_DATA,
       });
     } else {
+      body.data["updatedAt"] = dateISOString;
+      body.data["changedBy"] = userByToken._id;
+      body.data["$push"] = {
+        changeLog: {
+          date: dateISOString,
+          by: userByToken._id,
+          data: body.data,
+        },
+      };
       return new Promise((resolve, reject) => {
         Transaction.findByIdAndUpdate(body.transactionId, body.data, {
           new: true,
         })
           .then(() => {
-            Transaction.findByIdAndUpdate(
-              body.transactionId,
-              {
-                updatedAt: dateISOString,
-                changedBy: userByToken._id,
-                $push: {
-                  changeLog: {
-                    date: dateISOString,
-                    by: userByToken._id,
-                    data: body.data,
-                  },
-                },
-              },
-              { new: true }
-            )
-              .then(() => {
-                resolve({
-                  error: false,
-                  message: successMessages.DATA_SUCCESS_UPDATED,
-                });
-              })
-              .catch((err) => {
-                reject({ error: true, message: err });
-              });
+            resolve({
+              error: false,
+              message: successMessages.DATA_SUCCESS_UPDATED,
+            });
           })
           .catch((err) => {
             reject({ error: true, message: err });

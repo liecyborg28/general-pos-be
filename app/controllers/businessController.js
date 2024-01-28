@@ -116,23 +116,14 @@ module.exports = {
         message: errorMessages.INVALID_DATA,
       });
     } else {
+      body.data["updatedAt"] = dateISOString;
       return new Promise((resolve, reject) => {
         Business.findByIdAndUpdate(body.businessId, body.data, { new: true })
           .then(() => {
-            Business.findByIdAndUpdate(
-              body.businessId,
-              { updatedAt: dateISOString },
-              { new: true }
-            )
-              .then(() => {
-                resolve({
-                  error: false,
-                  message: successMessages.DATA_SUCCESS_UPDATED,
-                });
-              })
-              .catch((err) => {
-                reject({ error: true, message: err });
-              });
+            resolve({
+              error: false,
+              message: successMessages.DATA_SUCCESS_UPDATED,
+            });
           })
           .catch((err) => {
             reject({ error: true, message: err });

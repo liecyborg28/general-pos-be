@@ -5,19 +5,6 @@ const dbConfig = require("./../../config/dbConfig");
 mongoose.connect(dbConfig.url);
 
 const Transaction = mongoose.Schema({
-  status: String,
-  orderStatus: String,
-  tax: Number,
-  charge: Number,
-  table: String,
-  paymentAmount: Number,
-  paymentMethod: String,
-  orderType: String,
-  request: {
-    status: String,
-    viewCode: Number,
-    valueCode: Number,
-  },
   businessId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Business",
@@ -30,7 +17,6 @@ const Transaction = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
-  customer: String,
   discounts: [{ title: String, amount: Number }],
   costs: [{ title: String, amount: Number }],
   details: [
@@ -39,11 +25,29 @@ const Transaction = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "Item",
       },
+      categoryId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Category",
+      },
       qty: Number,
       price: Number,
     },
   ],
+  request: {
+    status: String,
+    viewCode: Number,
+    valueCode: Number,
+  },
   changeLog: [],
+  status: String,
+  orderStatus: String,
+  tax: Number,
+  charge: Number,
+  table: String,
+  paymentAmount: Number,
+  paymentMethod: String,
+  orderType: String,
+  customer: String,
   createdAt: String,
   updatedAt: String,
 });
