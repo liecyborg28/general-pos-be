@@ -51,16 +51,20 @@ module.exports = {
       id: "Mesin EDC",
     },
   ],
-  DISCOUNTS: [
+  PROMO: [
     {
-      title: "Test Promo Ayam Bawang 1",
-      fixAmount: 5000,
-      persentage: null,
+      type: "fixAmount",
+      title: {
+        en: "Tetap",
+        id: "Fix Amount",
+      },
     },
     {
-      title: "Test Promo Ayam Bawang 2",
-      fixAmount: null,
-      persentage: 0.02,
+      type: "persentage",
+      title: {
+        en: "Persen",
+        id: "Persentage",
+      },
     },
   ],
   RULES: {
