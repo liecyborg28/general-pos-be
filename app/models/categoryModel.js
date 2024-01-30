@@ -9,7 +9,7 @@ const Category = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Business",
   },
-  title: String,
+  name: String,
 });
 
 module.exports = mongoose.model("Category", Category);

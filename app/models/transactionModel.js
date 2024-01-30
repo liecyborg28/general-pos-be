@@ -25,10 +25,6 @@ const Transaction = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "Item",
       },
-      categoryId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Category",
-      },
       qty: Number,
       price: Number,
     },

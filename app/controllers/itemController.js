@@ -7,18 +7,6 @@ const dataController = require("./utils/dataController");
 const pageController = require("./utils/pageController");
 const errorMessages = require("../repository/messages/errorMessages");
 const successMessages = require("../repository/messages/successMessages");
-const itemResource = require("../repository/resources/itemResource");
-
-function getConstValue(categoryName, language, constant) {
-  const lowerCaseCategoryName = categoryName.toLowerCase();
-  for (const item of constant) {
-    if (item[language] && item.id.toLowerCase() === lowerCaseCategoryName) {
-      return item[language];
-    }
-  }
-
-  return "Not found";
-}
 
 module.exports = {
   getBulkItemTemplate: async (req) => {
@@ -37,7 +25,7 @@ module.exports = {
               status: "Status (active / inactive) (wajib)",
               name: "Nama menu (wajib)",
               price: "Harga menu (wajib)",
-              category: "Kategori menu (makanan / minuman / paket) (wajib)",
+              category: "Kategori menu (wajib)",
               imageUrl: "URL gambar",
             },
           ],
@@ -70,8 +58,6 @@ module.exports = {
       "auth.accessToken": bearerToken,
     });
 
-    const categoryItem = itemResource.CATEGORY;
-
     return new Promise((resolve, reject) => {
       try {
         const workbook = new ExcelJS.Workbook();
@@ -88,7 +74,7 @@ module.exports = {
               businessId: e.businessId,
               name: e.name,
               price: e.price,
-              category: getConstValue(e.category, "value", categoryItem),
+              category: e.category.toLowerCase(),
               imageUrl: e.imageUrl ? e.imageUrl.text : null,
               changeLog: [
                 {

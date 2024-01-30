@@ -15,6 +15,14 @@ module.exports = {
     en: "Item created successfully!",
     id: "Item berhasil dibuat!",
   },
+  CATEGORY_CREATED_SUCCESS: {
+    en: "Item created successfully!",
+    id: "Item berhasil dibuat!",
+  },
+  ADVANCEMENT_CREATED_SUCCESS: {
+    en: "Advancement created successfully!",
+    id: "Promo berhasil dibuat!",
+  },
   TRANSACTION_CREATED_SUCCESS: {
     en: "Transaction created successfully!",
     id: "Transaksi berhasil dibuat!",

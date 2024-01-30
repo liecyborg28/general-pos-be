@@ -9,10 +9,11 @@ const Item = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Business",
   },
-  category: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Category",
-  },
+  // category: {
+  //   type: mongoose.Schema.Types.ObjectId,
+  //   ref: "Category",
+  // },
+  category: String,
   changedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
