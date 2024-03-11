@@ -76,16 +76,16 @@ module.exports = {
               price: e.price,
               category: e.category.toLowerCase(),
               imageUrl: e.imageUrl ? e.imageUrl.text : null,
-              changeLog: [
-                {
-                  date: dateISOString,
-                  by: userByToken._id,
-                  data: {
-                    name: e.name,
-                    price: e.price,
-                  },
-                },
-              ],
+              // changeLog: [
+              //   {
+              //     date: dateISOString,
+              //     by: userByToken._id,
+              //     data: {
+              //       name: e.name,
+              //       price: e.price,
+              //     },
+              //   },
+              // ],
               changedBy: userByToken._id,
               createdAt: dateISOString,
               updatedAt: dateISOString,
@@ -215,7 +215,7 @@ module.exports = {
 
   getItems: (req) => {
     let pageKey = req.query.pageKey ? req.query.pageKey : 1;
-    let pageSize = req.query.pageSize ? req.query.pageSize : 1000;
+    let pageSize = req.query.pageSize ? req.query.pageSize : null;
 
     isNotEveryQueryNull = () => {
       return (
@@ -310,13 +310,13 @@ module.exports = {
     } else {
       body.data["updatedAt"] = dateISOString;
       body.data["changedBy"] = userByToken._id;
-      body.data["$push"] = {
-        changeLog: {
-          date: dateISOString,
-          by: userByToken._id,
-          data: body.data,
-        },
-      };
+      // body.data["$push"] = {
+      //   changeLog: {
+      //     date: dateISOString,
+      //     by: userByToken._id,
+      //     data: body.data,
+      //   },
+      // };
 
       return new Promise((resolve, reject) => {
         Item.findByIdAndUpdate(body.itemId, body.data, { new: true })

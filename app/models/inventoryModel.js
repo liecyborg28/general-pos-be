@@ -4,28 +4,35 @@ const dbConfig = require("./../../config/dbConfig");
 
 mongoose.connect(dbConfig.url);
 
-const Item = mongoose.Schema({
+const Inventory = mongoose.Schema({
   businessId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Business",
+  },
+  outletId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Outlet",
   },
   category: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Category",
   },
+  name: String,
+  qty: {
+    status: String,
+    early: Number,
+    last: Number,
+    min: Number,
+    max: Number,
+  },
+  denomination: String,
   changedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
   // changeLog: [],
-  taxed: Boolean,
-  charged: Boolean,
-  status: String,
-  name: String,
-  imageUrl: String,
-  price: Number,
   createdAt: String,
-  updatedAt: String,
+  uodatedAt: String,
 });
 
-module.exports = mongoose.model("Item", Item);
+module.exports = mongoose.model("Inventory", Inventory);

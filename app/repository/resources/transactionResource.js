@@ -71,7 +71,7 @@ module.exports = {
     TAX: {
       title: "PPN",
       fixAmount: null,
-      persentage: 0.1,
+      persentage: 0.11,
     },
     CHARGE: {
       title: "charge",

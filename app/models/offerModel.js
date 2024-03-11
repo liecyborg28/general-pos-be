@@ -4,7 +4,7 @@ const dbConfig = require("../../config/dbConfig");
 
 mongoose.connect(dbConfig.url);
 
-const Advancement = mongoose.Schema({
+const Offer = mongoose.Schema({
   title: String,
   type: String,
   amount: Number,
@@ -14,4 +14,4 @@ const Advancement = mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model("Advancement", Advancement);
+module.exports = mongoose.model("Offer", Offer);

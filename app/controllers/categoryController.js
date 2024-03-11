@@ -8,13 +8,15 @@ module.exports = {
   createCategory: async (body) => {
     let dateISOString = new Date().toISOString();
     let isBodyValid = () => {
-      return body.name && body.businessId;
+      return body.name && body.businessId && body.type && body.subtype;
     };
 
     let payload = isBodyValid()
       ? {
           name: body.name,
           businessId: body.businesssId,
+          type: body.type,
+          subtype: body.subtype,
         }
       : {
           error: true,
@@ -57,7 +59,12 @@ module.exports = {
     let pageSize = req.query.pageSize ? req.query.pageSize : 10;
 
     isNotEveryQueryNull = () => {
-      return req.query.keyword || req.query.name || req.query.businessId;
+      return (
+        req.query.keyword ||
+        req.query.name ||
+        req.query.businessId ||
+        req.query.type
+      );
     };
 
     return new Promise((resolve, reject) => {
@@ -77,6 +84,11 @@ module.exports = {
               {
                 businessId: req.query.businessId
                   ? { $regex: req.query.businessId, $options: "i" }
+                  : null,
+              },
+              {
+                type: req.query.type
+                  ? { $regex: req.query.type, $options: "i" }
                   : null,
               },
             ],

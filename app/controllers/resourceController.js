@@ -1,6 +1,7 @@
 const outletResource = require("../repository/resources/outletResource");
 const itemResource = require("../repository/resources/itemResource");
 const transactionResource = require("../repository/resources/transactionResource");
+const inventoryResource = require("../repository/resources/inventoryResource");
 
 module.exports = {
   getOutletResource: () => {
@@ -26,6 +27,15 @@ module.exports = {
       resolve({
         error: false,
         data: transactionResource,
+      });
+    });
+  },
+
+  getInventoryResource: () => {
+    return new Promise((resolve, reject) => {
+      resolve({
+        error: false,
+        data: inventoryResource,
       });
     });
   },

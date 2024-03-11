@@ -3,7 +3,6 @@ const Transaction = require("../models/transactionModel");
 const pageController = require("./utils/pageController");
 const errorMessages = require("../repository/messages/errorMessages");
 const successMessages = require("../repository/messages/successMessages");
-const transactionResource = require("../repository/resources/transactionResource");
 
 function generateRequestCodes() {
   const viewCode = Math.floor(100000 + Math.random() * 900000);
@@ -78,13 +77,13 @@ module.exports = {
           customer: body.customer ? body.customer : null,
           table: body.table ? body.table : null,
           request: generateRequestCodes(),
-          changeLog: [
-            {
-              date: dateISOString,
-              by: userByToken._id,
-              data: { status: body.status },
-            },
-          ],
+          // changeLog: [
+          //   {
+          //     date: dateISOString,
+          //     by: userByToken._id,
+          //     data: { status: body.status },
+          //   },
+          // ],
           changedBy: userByToken._id,
           createdAt: dateISOString,
           updatedAt: dateISOString,
@@ -116,7 +115,7 @@ module.exports = {
 
   getTransactions: (req) => {
     let pageKey = req.query.pageKey ? req.query.pageKey : 1;
-    let pageSize = req.query.pageSize ? req.query.pageSize : 10;
+    let pageSize = req.query.pageSize ? req.query.pageSize : null;
 
     isNotEveryQueryNull = () => {
       return (
@@ -202,14 +201,22 @@ module.exports = {
           ? {
               outletId: req.query.outletId,
               createdAt: {
-                $gte: req.query.from ? req.query.from : defaultFrom,
-                $lte: req.query.to ? req.query.to : defaultTo,
+                $gte: req.query.from
+                  ? convertToLocaleISOString(new Date(req.query.from), "start")
+                  : defaultFrom,
+                $lte: req.query.to
+                  ? convertToLocaleISOString(new Date(req.query.to), "end")
+                  : defaultTo,
               },
             }
           : {
               createdAt: {
-                $gte: req.query.from ? req.query.from : defaultFrom,
-                $lte: req.query.to ? req.query.to : defaultTo,
+                $gte: req.query.from
+                  ? convertToLocaleISOString(new Date(req.query.from), "start")
+                  : defaultFrom,
+                $lte: req.query.to
+                  ? convertToLocaleISOString(new Date(req.query.to), "end")
+                  : defaultTo,
               },
             }
         : req.query.outletId
@@ -269,13 +276,13 @@ module.exports = {
     } else {
       body.data["updatedAt"] = dateISOString;
       body.data["changedBy"] = userByToken._id;
-      body.data["$push"] = {
-        changeLog: {
-          date: dateISOString,
-          by: userByToken._id,
-          data: body.data,
-        },
-      };
+      // body.data["$push"] = {
+      //   changeLog: {
+      //     date: dateISOString,
+      //     by: userByToken._id,
+      //     data: body.data,
+      //   },
+      // };
       return new Promise((resolve, reject) => {
         Transaction.findByIdAndUpdate(body.transactionId, body.data, {
           new: true,

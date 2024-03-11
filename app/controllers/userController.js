@@ -105,8 +105,8 @@ const UserController = {
               message: errorMessages.ALL_DATA_NOT_SAVED_BECAUSE_DUPLICATE,
             });
           } else {
-            reject({
-              error: true,
+            resolve({
+              error: false,
               message: errorMessages.SOME_DATA_NOT_SAVED_BECAUSE_DUPLICATE,
             });
           }

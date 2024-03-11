@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const dbConfig = require("./../../config/dbConfig");
+const dbConfig = require("../../config/dbConfig");
 
 mongoose.connect(dbConfig.url);
 
@@ -9,6 +9,8 @@ const Category = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Business",
   },
+  type: String,
+  subtype: String,
   name: String,
 });
 

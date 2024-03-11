@@ -19,9 +19,13 @@ module.exports = {
     en: "Item created successfully!",
     id: "Item berhasil dibuat!",
   },
-  ADVANCEMENT_CREATED_SUCCESS: {
-    en: "Advancement created successfully!",
+  OFFER_CREATED_SUCCESS: {
+    en: "Offer created successfully!",
     id: "Promo berhasil dibuat!",
+  },
+  LOG_CREATED_SUCCESS: {
+    en: "Log created successfully!",
+    id: "Log berhasil dibuat!",
   },
   TRANSACTION_CREATED_SUCCESS: {
     en: "Transaction created successfully!",

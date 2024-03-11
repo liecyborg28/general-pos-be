@@ -1,11 +1,11 @@
-const Advancement = require("../models/advancementModel");
+const Offer = require("../models/offerModel");
 const dataController = require("./utils/dataController");
 const pageController = require("./utils/pageController");
 const errorMessages = require("../repository/messages/errorMessages");
 const successMessages = require("../repository/messages/successMessages");
 
 module.exports = {
-  createAdvancement: async (body) => {
+  createOffer: async (body) => {
     let dateISOString = new Date().toISOString();
     let isBodyValid = () => {
       return body.name && body.businessId;
@@ -24,7 +24,7 @@ module.exports = {
     if (isBodyValid()) {
       let nameIsExist = await dataController.isExist(
         { name: body.name, businessId: body.businessId },
-        Advancement
+        Offer
       );
 
       if (nameIsExist) {
@@ -35,12 +35,13 @@ module.exports = {
       }
 
       return new Promise((resolve, reject) => {
-        new Advancement(payload)
+        new Offer(payload)
           .save()
-          .then(() => {
+          .then((result) => {
             resolve({
               error: false,
-              message: successMessages.ADVANCEMENT_CREATED_SUCCESS,
+              data: result,
+              message: successMessages.OFFER_CREATED_SUCCESS,
             });
           })
           .catch((err) => {
@@ -52,9 +53,9 @@ module.exports = {
     }
   },
 
-  getAdvancements: (req) => {
+  getOffers: (req) => {
     let pageKey = req.query.pageKey ? req.query.pageKey : 1;
-    let pageSize = req.query.pageSize ? req.query.pageSize : 10;
+    let pageSize = req.query.pageSize ? req.query.pageSize : null;
 
     isNotEveryQueryNull = () => {
       return req.query.keyword || req.query.name || req.query.businessId;
@@ -75,21 +76,19 @@ module.exports = {
                   : null,
               },
               {
-                businessId: req.query.businessId
-                  ? { $regex: req.query.businessId, $options: "i" }
-                  : null,
+                businessId: req.query.businessId ? req.query.businessId : null,
               },
             ],
           }
         : {};
 
       pageController
-        .paginate(pageKey, pageSize, pipeline, Advancement)
-        .then((advancements) => {
+        .paginate(pageKey, pageSize, pipeline, Offer)
+        .then((offers) => {
           resolve({
             error: false,
-            data: advancements.data,
-            count: advancements.count,
+            data: offers.data,
+            count: offers.count,
           });
         })
         .catch((err) => {
@@ -98,11 +97,11 @@ module.exports = {
     });
   },
 
-  updateAdvancement: async (body) => {
+  updateOffer: async (body) => {
     let dateISOString = new Date().toISOString();
     let nameIsExist = await dataController.isExist(
       { name: body.data.name, businessId: body.data.businessId },
-      Advancement
+      Offer
     );
 
     if (nameIsExist) {
@@ -112,7 +111,7 @@ module.exports = {
       });
     }
 
-    if (!body.advancementId) {
+    if (!body.OfferId) {
       return Promise.reject({
         error: true,
         message: errorMessages.INVALID_DATA,
@@ -120,7 +119,7 @@ module.exports = {
     } else {
       body.data["updatedAt"] = dateISOString;
       return new Promise((resolve, reject) => {
-        Advancement.findByIdAndUpdate(body.businessId, body.data, { new: true })
+        Offer.findByIdAndUpdate(body.businessId, body.data, { new: true })
           .then(() => {
             resolve({
               error: false,
