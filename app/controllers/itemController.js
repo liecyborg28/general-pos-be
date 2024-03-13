@@ -7,6 +7,7 @@ const dataController = require("./utils/dataController");
 const pageController = require("./utils/pageController");
 const errorMessages = require("../repository/messages/errorMessages");
 const successMessages = require("../repository/messages/successMessages");
+const logController = require("./logController");
 
 module.exports = {
   getBulkItemTemplate: async (req) => {
@@ -198,9 +199,19 @@ module.exports = {
       return new Promise((resolve, reject) => {
         new Item(payload)
           .save()
-          .then(() => {
+          .then((result) => {
+            logController.createLog({
+              createdAt: dateISOString,
+              title: "Create Item",
+              note: "",
+              type: "item",
+              from: result._id,
+              by: userByToken._id,
+              data: result,
+            });
             resolve({
               error: false,
+              data: result,
               message: successMessages.ITEM_CREATED_SUCCESS,
             });
           })
@@ -320,7 +331,16 @@ module.exports = {
 
       return new Promise((resolve, reject) => {
         Item.findByIdAndUpdate(body.itemId, body.data, { new: true })
-          .then(() => {
+          .then((result) => {
+            logController.createLog({
+              createdAt: dateISOString,
+              title: "Update Item",
+              note: "",
+              type: "item",
+              from: body.itemId,
+              by: userByToken._id,
+              data: body.data,
+            });
             resolve({
               error: false,
               message: successMessages.DATA_SUCCESS_UPDATED,

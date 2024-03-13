@@ -3,6 +3,7 @@ const dataController = require("./utils/dataController");
 const pageController = require("./utils/pageController");
 const errorMessages = require("../repository/messages/errorMessages");
 const successMessages = require("../repository/messages/successMessages");
+const logController = require("./logController");
 
 module.exports = {
   createOutlet: async (body) => {
@@ -41,9 +42,19 @@ module.exports = {
       return new Promise((resolve, reject) => {
         new Outlet(payload)
           .save()
-          .then(() => {
+          .then((result) => {
+            logController.createLog({
+              createdAt: dateISOString,
+              title: "Create Outlet",
+              note: "",
+              type: "outlet",
+              from: result._id,
+              by: userByToken._id,
+              data: result,
+            });
             resolve({
               error: false,
+              data: result,
               message: successMessages.OUTLET_CREATED_SUCCESS,
             });
           })
@@ -157,9 +168,19 @@ module.exports = {
       body.data["updatedAt"] = dateISOString;
       return new Promise((resolve, reject) => {
         Outlet.findByIdAndUpdate(body.outletId, body.data, { new: true })
-          .then(() => {
+          .then((result) => {
+            logController.createLog({
+              createdAt: dateISOString,
+              title: "Update Outlet",
+              note: "",
+              type: "outlet",
+              from: body.outletId,
+              by: userByToken._id,
+              data: body.data,
+            });
             resolve({
               error: false,
+              data: result,
               message: successMessages.DATA_SUCCESS_UPDATED,
             });
           })

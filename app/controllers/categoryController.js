@@ -3,6 +3,7 @@ const dataController = require("./utils/dataController");
 const pageController = require("./utils/pageController");
 const errorMessages = require("../repository/messages/errorMessages");
 const successMessages = require("../repository/messages/successMessages");
+const logController = require("./logController");
 
 module.exports = {
   createCategory: async (body) => {
@@ -39,7 +40,16 @@ module.exports = {
       return new Promise((resolve, reject) => {
         new Category(payload)
           .save()
-          .then(() => {
+          .then((result) => {
+            logController.createLog({
+              createdAt: dateISOString,
+              title: "Create Category",
+              note: "",
+              type: "category",
+              from: result._id,
+              by: userByToken._id,
+              data: result,
+            });
             resolve({
               error: false,
               message: successMessages.CATEGORY_CREATED_SUCCESS,
@@ -133,9 +143,20 @@ module.exports = {
       body.data["updatedAt"] = dateISOString;
       return new Promise((resolve, reject) => {
         Category.findByIdAndUpdate(body.businessId, body.data, { new: true })
-          .then(() => {
+          .then((result) => {
+            logController.createLog({
+              createdAt: dateISOString,
+              title: "Update Category",
+              note: "",
+              type: "category",
+              from: result._id,
+              by: userByToken._id,
+              data: result,
+            });
+
             resolve({
               error: false,
+              data: result,
               message: successMessages.DATA_SUCCESS_UPDATED,
             });
           })

@@ -225,6 +225,7 @@ module.exports = {
       { businessId: req.query.businessId },
       Transaction
     );
+
     let outletIdIsExist = await dataController.isExist(
       { outletId: req.query.outletId },
       Transaction

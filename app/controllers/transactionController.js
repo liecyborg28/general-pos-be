@@ -3,6 +3,7 @@ const Transaction = require("../models/transactionModel");
 const pageController = require("./utils/pageController");
 const errorMessages = require("../repository/messages/errorMessages");
 const successMessages = require("../repository/messages/successMessages");
+const logController = require("./logController");
 
 function generateRequestCodes() {
   const viewCode = Math.floor(100000 + Math.random() * 900000);
@@ -98,6 +99,15 @@ module.exports = {
         new Transaction(payload)
           .save()
           .then((result) => {
+            logController.createLog({
+              createdAt: dateISOString,
+              title: "Create Transaction",
+              note: "",
+              type: "transaction",
+              from: result._id,
+              by: userByToken._id,
+              data: result,
+            });
             resolve({
               error: false,
               data: result,
@@ -283,6 +293,15 @@ module.exports = {
       //     data: body.data,
       //   },
       // };
+      logController.createLog({
+        createdAt: dateISOString,
+        title: "Update Transaction",
+        note: "",
+        type: "transaction",
+        from: body.transactionId,
+        by: userByToken._id,
+        data: body.data,
+      });
       return new Promise((resolve, reject) => {
         Transaction.findByIdAndUpdate(body.transactionId, body.data, {
           new: true,

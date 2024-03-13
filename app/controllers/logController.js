@@ -5,29 +5,27 @@ const successMessages = require("../repository/messages/successMessages");
 
 module.exports = {
   createLog: async (req) => {
-    let body = req.body;
-
     let isBodyValid = () => {
       return (
-        body.title &&
-        body.note &&
-        body.type &&
-        body.from &&
-        body.by &&
-        body.data &&
-        body.createdAt
+        req.title &&
+        req.note &&
+        req.type &&
+        req.from &&
+        req.by &&
+        req.data &&
+        req.createdAt
       );
     };
 
     let payload = isBodyValid()
       ? {
-          title: body.title,
-          note: body.note,
-          type: body.type,
-          from: body.from,
-          by: body.by,
-          data: body.data,
-          createdAt: body.createdAt,
+          title: req.title,
+          note: req.note,
+          type: req.type,
+          from: req.from,
+          by: req.by,
+          data: req.data,
+          createdAt: req.createdAt,
         }
       : {
           error: true,

@@ -6,6 +6,7 @@ const dataController = require("./utils/dataController");
 const pageController = require("./utils/pageController");
 const errorMessages = require("../repository/messages/errorMessages");
 const successMessages = require("../repository/messages/successMessages");
+const logController = require("./logController");
 
 const UserController = {
   getBulkUserTemplate: () => {
@@ -197,7 +198,16 @@ const UserController = {
       return new Promise((resolve, reject) => {
         new User(payload)
           .save()
-          .then(() => {
+          .then((result) => {
+            logController.createLog({
+              createdAt: dateISOString,
+              title: "Create User",
+              note: "",
+              type: "user",
+              from: result._id,
+              by: userByToken._id,
+              data: result,
+            });
             resolve({
               error: false,
               message: successMessages.USER_CREATED_SUCCESS,
@@ -340,7 +350,16 @@ const UserController = {
 
       return new Promise((resolve, reject) => {
         User.findByIdAndUpdate(body.userId, body.data, { new: true })
-          .then(() => {
+          .then((result) => {
+            logController.createLog({
+              createdAt: dateISOString,
+              title: "Create User",
+              note: "",
+              type: "user",
+              from: body.userId,
+              by: userByToken._id,
+              data: body.data,
+            });
             resolve({
               error: false,
               message: successMessages.DATA_SUCCESS_UPDATED,

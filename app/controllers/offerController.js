@@ -3,6 +3,7 @@ const dataController = require("./utils/dataController");
 const pageController = require("./utils/pageController");
 const errorMessages = require("../repository/messages/errorMessages");
 const successMessages = require("../repository/messages/successMessages");
+const logController = require("./logController");
 
 module.exports = {
   createOffer: async (body) => {
@@ -38,6 +39,16 @@ module.exports = {
         new Offer(payload)
           .save()
           .then((result) => {
+            logController.createLog({
+              createdAt: dateISOString,
+              title: "Create Offer",
+              note: "",
+              type: "offer",
+              from: result._id,
+              by: userByToken._id,
+              data: result,
+            });
+
             resolve({
               error: false,
               data: result,
@@ -111,7 +122,7 @@ module.exports = {
       });
     }
 
-    if (!body.OfferId) {
+    if (!body.offerId) {
       return Promise.reject({
         error: true,
         message: errorMessages.INVALID_DATA,
@@ -121,6 +132,15 @@ module.exports = {
       return new Promise((resolve, reject) => {
         Offer.findByIdAndUpdate(body.businessId, body.data, { new: true })
           .then(() => {
+            logController.createLog({
+              createdAt: dateISOString,
+              title: "Update Offer",
+              note: "",
+              type: "offer",
+              from: body.offerId,
+              by: userByToken._id,
+              data: body.data,
+            });
             resolve({
               error: false,
               message: successMessages.DATA_SUCCESS_UPDATED,
