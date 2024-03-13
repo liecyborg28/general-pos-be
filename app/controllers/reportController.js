@@ -60,10 +60,14 @@ function getAccumulateEachTransaction(transactions) {
     );
 
     // Menghitung total charge dan membulatkannya
-    const charge = Math.round(totalGrossSales * transaction.charge);
+    const charge = transaction.charged
+      ? Math.round(totalGrossSales * transaction.charge)
+      : 0;
 
     // Menghitung total pajak dan membulatkannya
-    const totalTax = Math.round((totalGrossSales + charge) * transaction.tax);
+    const totalTax = transaction.taxed
+      ? Math.round((totalGrossSales + charge) * transaction.tax)
+      : 0;
 
     // Menghitung total biaya dari objek costs
     const totalCost = transaction.costs.reduce(
