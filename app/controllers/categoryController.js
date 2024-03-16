@@ -147,7 +147,7 @@ module.exports = {
             logController.createLog({
               createdAt: dateISOString,
               title: "Update Category",
-              note: "",
+              note: body.note ? body.note : "",
               type: "category",
               from: result._id,
               by: userByToken._id,

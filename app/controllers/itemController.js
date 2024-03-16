@@ -12,6 +12,7 @@ const logController = require("./logController");
 module.exports = {
   getBulkItemTemplate: async (req) => {
     let businessId = req.query.id || null;
+    let categoryId = req.query.category || null;
 
     if (businessId) {
       return new Promise(async (resolve, reject) => {
@@ -26,8 +27,17 @@ module.exports = {
               status: "Status (active / inactive) (wajib)",
               name: "Nama menu (wajib)",
               price: "Harga menu (wajib)",
-              category: "Kategori menu (wajib)",
               imageUrl: "URL gambar",
+            },
+          ],
+          hiddenSheets: [
+            {
+              name: "businessId",
+              value: businessId,
+            },
+            {
+              name: "categoryId",
+              value: categoryId,
             },
           ],
         };
@@ -65,17 +75,25 @@ module.exports = {
         workbook.xlsx.load(req.file.buffer).then(async () => {
           const worksheet = workbook.getWorksheet(1);
 
-          const data = excelController.convertExcelToObject(2, 7, worksheet);
+          const { data, hiddenSheets } = excelController.convertExcelToObject(
+            2,
+            7,
+            worksheet
+          );
+
+          let businessId = hiddenSheets.filter((e) => e.name === "businessId");
+
+          let categoryId = hiddenSheets.filter((e) => e.name === "categoryId");
 
           let existingItems = [];
 
           const transformedData = data.map((e) => {
             return {
               status: e.status,
-              businessId: e.businessId,
+              businessId: businessId,
               name: e.name,
               price: e.price,
-              category: e.category.toLowerCase(),
+              categoryId: categoryId,
               imageUrl: e.imageUrl ? e.imageUrl.text : null,
               // changeLog: [
               //   {
@@ -87,6 +105,8 @@ module.exports = {
               //     },
               //   },
               // ],
+              taxed: true,
+              charged: true,
               changedBy: userByToken._id,
               createdAt: dateISOString,
               updatedAt: dateISOString,
@@ -101,7 +121,17 @@ module.exports = {
               );
 
               if (!existingItem) {
-                await new Item(item).save();
+                await new Item(item).save().then((result) => {
+                  logController.createLog({
+                    createdAt: dateISOString,
+                    title: "Create Item",
+                    note: "",
+                    type: "item",
+                    from: result._id,
+                    by: userByToken._id,
+                    data: result,
+                  });
+                });
               } else {
                 existingItems.push(item);
               }
@@ -335,7 +365,7 @@ module.exports = {
             logController.createLog({
               createdAt: dateISOString,
               title: "Update Item",
-              note: "",
+              note: body.note ? body.note : "",
               type: "item",
               from: body.itemId,
               by: userByToken._id,

@@ -5,7 +5,7 @@ const fs = require("fs");
 
 module.exports = {
   generateExcelTemplate: (properties) => {
-    const { title, worksheet, workbook, data } = properties;
+    const { title, worksheet, workbook, data, hiddenSheets } = properties;
 
     const workbookObj = new ExcelJS.Workbook();
     const worksheetObj = workbookObj.addWorksheet(worksheet);
@@ -78,6 +78,14 @@ module.exports = {
       });
     });
 
+    // Tambahkan hidden sheets
+    hiddenSheets.forEach((hiddenSheet) => {
+      const newSheet = workbookObj.addWorksheet(hiddenSheet.name);
+      newSheet.state = "hidden"; // Sembunyikan sheet
+      // Isi nilai di cell paling awal
+      newSheet.getCell("A1").value = hiddenSheet.value;
+    });
+
     const timestamp = Date.now();
     const fileName = `${workbook}_${timestamp}.xlsx`;
 
@@ -108,6 +116,7 @@ module.exports = {
 
   convertExcelToObject: (startColumn, endColumn, worksheet) => {
     const data = [];
+    const hiddenSheets = [];
 
     let currentRow = 3;
 
@@ -137,6 +146,15 @@ module.exports = {
       currentRow++;
     }
 
-    return data;
+    // Menambahkan informasi sheet yang tersembunyi
+    worksheet.workbook.eachSheet((sheet) => {
+      if (sheet.state === "hidden") {
+        const hiddenSheetName = sheet.name;
+        const hiddenSheetValue = sheet.getCell("A1").value;
+        hiddenSheets.push({ name: hiddenSheetName, value: hiddenSheetValue });
+      }
+    });
+
+    return { data: data, hiddenSheets: hiddenSheets };
   },
 };

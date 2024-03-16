@@ -172,7 +172,7 @@ module.exports = {
             logController.createLog({
               createdAt: dateISOString,
               title: "Update Outlet",
-              note: "",
+              note: body.note ? body.note : "",
               type: "outlet",
               from: body.outletId,
               by: userByToken._id,

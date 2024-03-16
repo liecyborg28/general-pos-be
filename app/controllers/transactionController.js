@@ -296,7 +296,7 @@ module.exports = {
       logController.createLog({
         createdAt: dateISOString,
         title: "Update Transaction",
-        note: "",
+        note: body.note ? body.note : "",
         type: "transaction",
         from: body.transactionId,
         by: userByToken._id,

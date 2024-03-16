@@ -9,36 +9,45 @@ const successMessages = require("../repository/messages/successMessages");
 const logController = require("./logController");
 
 const UserController = {
-  getBulkUserTemplate: () => {
-    return new Promise((resolve, reject) => {
-      const properties = {
-        workbook: "Template_Upload_Daftar_Pengguna",
-        worksheet: "Daftar Pengguna",
-        title: "Daftar Pengguna",
-        data: [
-          {
-            no: 1,
-            name: "Nama lengkap (wajib)",
-            phonenumber: "Nomor HP (Cth: 852xxxxxxxx) (wajib)",
-            gender: "Jenis kelamin (pria / wanita) (wajib)",
-            type: "Tipe akun (admin/member) (wajib)",
-            username: "username (wajib)",
-            password: "password (wajib)",
-            email: "Alamat email",
-            imageUrl: "URL gambar",
-          },
-        ],
-      };
+  getBulkUserTemplate: (req) => {
+    let type = req.query.type || null;
 
-      excelController
-        .generateExcelTemplate(properties)
-        .then((result) => {
-          resolve(result);
-        })
-        .catch((error) => {
-          reject(error);
-        });
-    });
+    if (type) {
+      return new Promise((resolve, reject) => {
+        const properties = {
+          workbook: `Template_Upload_Daftar_Pengguna ${type}`,
+          worksheet: "Daftar Pengguna",
+          title: "Daftar Pengguna",
+          data: [
+            {
+              no: 1,
+              name: "Nama lengkap (wajib)",
+              phonenumber: "Nomor HP (Cth: 852xxxxxxxx) (wajib)",
+              gender: "Jenis kelamin (pria / wanita) (wajib)",
+              username: "username (wajib)",
+              password: "password (wajib)",
+              email: "Alamat email",
+              imageUrl: "URL gambar",
+            },
+          ],
+          hiddenSheets: [
+            {
+              name: "type",
+              value: type,
+            },
+          ],
+        };
+
+        excelController
+          .generateExcelTemplate(properties)
+          .then((result) => {
+            resolve(result);
+          })
+          .catch((error) => {
+            reject(error);
+          });
+      });
+    }
   },
 
   createBulkUser: (req) => {
@@ -49,7 +58,11 @@ const UserController = {
         workbook.xlsx.load(req.file.buffer).then(async () => {
           const worksheet = workbook.getWorksheet(1);
 
-          const data = excelController.convertExcelToObject(2, 9, worksheet);
+          const { data, hiddenSheets } = excelController.convertExcelToObject(
+            2,
+            9,
+            worksheet
+          );
 
           let existingUsers = [];
 
@@ -58,7 +71,7 @@ const UserController = {
               name: e.name,
               phonenumber: e.phonenumber,
               gender: e.gender,
-              type: e.type,
+              type: hiddenSheets[0].value,
               status: "active",
               username: e.username,
               password: e.password,
@@ -353,8 +366,8 @@ const UserController = {
           .then((result) => {
             logController.createLog({
               createdAt: dateISOString,
-              title: "Create User",
-              note: "",
+              title: "Update User",
+              note: body.note ? body.note : "",
               type: "user",
               from: body.userId,
               by: userByToken._id,

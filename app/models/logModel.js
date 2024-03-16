@@ -9,18 +9,7 @@ const Log = mongoose.Schema({
   title: String,
   note: String,
   type: String,
-  from: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref:
-      "Business" ||
-      "Category" ||
-      "Inventory" ||
-      "Item" ||
-      "Offer" ||
-      "Outlet" ||
-      "Transaction" ||
-      "User",
-  },
+  from: String,
   by: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",

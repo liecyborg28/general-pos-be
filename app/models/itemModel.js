@@ -9,7 +9,7 @@ const Item = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Business",
   },
-  category: {
+  categoryId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Category",
   },
@@ -17,6 +17,15 @@ const Item = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
+  ingredients: [
+    {
+      inventoryId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Inventory",
+      },
+      qty: Number,
+    },
+  ],
   // changeLog: [],
   taxed: Boolean,
   charged: Boolean,
