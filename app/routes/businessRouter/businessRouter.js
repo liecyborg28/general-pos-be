@@ -43,7 +43,7 @@ router
       .checkAccessToken(req)
       .then(() => {
         businessController
-          .updateBusiness(req.body)
+          .updateBusiness(req)
           .then((value) => {
             res.status(200).send(value);
           })

@@ -1,6 +1,5 @@
 const Log = require("../models/logModel");
 const pageController = require("./utils/pageController");
-const errorMessages = require("../repository/messages/errorMessages");
 const successMessages = require("../repository/messages/successMessages");
 
 module.exports = {
@@ -15,7 +14,7 @@ module.exports = {
         });
       })
       .catch((err) => {
-        reject({ error: true, message: err });
+        console.log({ error: true, message: err });
       });
   },
 

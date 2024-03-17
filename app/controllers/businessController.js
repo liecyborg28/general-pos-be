@@ -117,7 +117,8 @@ module.exports = {
     });
   },
 
-  updateBusiness: async (body) => {
+  updateBusiness: async (req) => {
+    body = req.body;
     let dateISOString = new Date().toISOString();
     const bearerHeader = req.headers["authorization"];
     const bearerToken = bearerHeader.split(" ")[1];
@@ -148,15 +149,15 @@ module.exports = {
       return new Promise((resolve, reject) => {
         Business.findByIdAndUpdate(body.businessId, body.data, { new: true })
           .then((result) => {
-            // logController.createLog({
-            //   createdAt: dateISOString,
-            //   title: "Update Business",
-            //   note: body.note ? body.note : "",
-            //   type: "business",
-            //   from: body.businessId,
-            //   by: userByToken._id,
-            //   data: body.data,
-            // });
+            logController.createLog({
+              createdAt: dateISOString,
+              title: "Update Business",
+              note: body.note ? body.note : "",
+              type: "business",
+              from: body.businessId,
+              by: userByToken._id,
+              data: body.data,
+            });
             resolve({
               error: false,
               data: result,
