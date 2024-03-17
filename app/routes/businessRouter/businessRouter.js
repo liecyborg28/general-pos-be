@@ -26,7 +26,7 @@ router
       .checkAccessToken(req)
       .then(() => {
         businessController
-          .createBusiness(req.body)
+          .createBusiness(req)
           .then((value) => {
             res.status(200).send(value);
           })

@@ -78,13 +78,6 @@ module.exports = {
           customer: body.customer ? body.customer : null,
           table: body.table ? body.table : null,
           request: generateRequestCodes(),
-          // changeLog: [
-          //   {
-          //     date: dateISOString,
-          //     by: userByToken._id,
-          //     data: { status: body.status },
-          //   },
-          // ],
           changedBy: userByToken._id,
           createdAt: dateISOString,
           updatedAt: dateISOString,

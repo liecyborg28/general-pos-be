@@ -11,10 +11,10 @@ const logController = require("./logController");
 
 module.exports = {
   getBulkItemTemplate: async (req) => {
-    let businessId = req.query.id || null;
-    let categoryId = req.query.category || null;
+    let businessId = req.query.businessId || null;
+    let categoryId = req.query.categoryId || null;
 
-    if (businessId) {
+    if (businessId && categoryId) {
       return new Promise(async (resolve, reject) => {
         const properties = {
           workbook: "Template_Upload_Daftar_Item",
@@ -23,8 +23,6 @@ module.exports = {
           data: [
             {
               no: 1,
-              businessId,
-              status: "Status (active / inactive) (wajib)",
               name: "Nama menu (wajib)",
               price: "Harga menu (wajib)",
               imageUrl: "URL gambar",
@@ -81,30 +79,20 @@ module.exports = {
             worksheet
           );
 
-          let businessId = hiddenSheets.filter((e) => e.name === "businessId");
+          let businessId = hiddenSheets.find((e) => e.name === "businessId");
 
-          let categoryId = hiddenSheets.filter((e) => e.name === "categoryId");
+          let categoryId = hiddenSheets.find((e) => e.name === "categoryId");
 
           let existingItems = [];
 
           const transformedData = data.map((e) => {
             return {
-              status: e.status,
-              businessId: businessId,
+              status: "active",
+              businessId,
+              categoryId,
               name: e.name,
               price: e.price,
-              categoryId: categoryId,
               imageUrl: e.imageUrl ? e.imageUrl.text : null,
-              // changeLog: [
-              //   {
-              //     date: dateISOString,
-              //     by: userByToken._id,
-              //     data: {
-              //       name: e.name,
-              //       price: e.price,
-              //     },
-              //   },
-              // ],
               taxed: true,
               charged: true,
               changedBy: userByToken._id,
@@ -176,7 +164,7 @@ module.exports = {
       return (
         body.businessId &&
         body.status &&
-        body.category &&
+        body.categoryId &&
         body.name &&
         body.price
       );
@@ -195,15 +183,8 @@ module.exports = {
           businessId: body.businessId,
           name: body.name,
           imageUrl: body.imageUrl ? body.imageUrl : null,
-          category: body.category,
+          categoryId: body.categoryId,
           price: body.price,
-          changeLog: [
-            {
-              date: dateISOString,
-              by: userByToken._id,
-              data: { name: body.name, price: body.price },
-            },
-          ],
           changedBy: userByToken._id,
           createdAt: dateISOString,
           updatedAt: dateISOString,
@@ -263,7 +244,7 @@ module.exports = {
         req.query.keyword ||
         req.query.name ||
         req.query.businessId ||
-        req.query.category
+        req.query.categoryId
       );
     };
 
@@ -288,7 +269,7 @@ module.exports = {
                   : null,
               },
               {
-                category: req.query.category ? req.query.category : null,
+                categoryId: req.query.categoryId ? req.query.categoryId : null,
               },
               {
                 businessId: req.query.businessId ? req.query.businessId : null,
@@ -302,7 +283,7 @@ module.exports = {
       pageController
         .paginate(pageKey, pageSize, pipeline, Item)
         .then((items) => {
-          Item.populate(items.data, { path: "businessId" })
+          Item.populate(items.data, { path: "businessId categoryId" })
             .then((data) => {
               resolve({
                 error: false,
@@ -348,38 +329,32 @@ module.exports = {
         error: true,
         message: errorMessages.INVALID_DATA,
       });
-    } else {
-      body.data["updatedAt"] = dateISOString;
-      body.data["changedBy"] = userByToken._id;
-      // body.data["$push"] = {
-      //   changeLog: {
-      //     date: dateISOString,
-      //     by: userByToken._id,
-      //     data: body.data,
-      //   },
-      // };
-
-      return new Promise((resolve, reject) => {
-        Item.findByIdAndUpdate(body.itemId, body.data, { new: true })
-          .then((result) => {
-            logController.createLog({
-              createdAt: dateISOString,
-              title: "Update Item",
-              note: body.note ? body.note : "",
-              type: "item",
-              from: body.itemId,
-              by: userByToken._id,
-              data: body.data,
-            });
-            resolve({
-              error: false,
-              message: successMessages.DATA_SUCCESS_UPDATED,
-            });
-          })
-          .catch((err) => {
-            reject({ error: true, message: err });
-          });
-      });
     }
+
+    body.data["updatedAt"] = dateISOString;
+    body.data["changedBy"] = userByToken._id;
+
+    return new Promise((resolve, reject) => {
+      Item.findByIdAndUpdate(body.itemId, body.data, { new: true })
+        .then((result) => {
+          logController.createLog({
+            createdAt: dateISOString,
+            title: "Update Item",
+            note: body.note ? body.note : "",
+            type: "item",
+            from: body.itemId,
+            by: userByToken._id,
+            data: body.data,
+          });
+          resolve({
+            error: false,
+            data: result,
+            message: successMessages.DATA_SUCCESS_UPDATED,
+          });
+        })
+        .catch((err) => {
+          reject({ error: true, message: err });
+        });
+    });
   },
 };

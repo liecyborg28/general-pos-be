@@ -212,17 +212,9 @@ const UserController = {
         new User(payload)
           .save()
           .then((result) => {
-            logController.createLog({
-              createdAt: dateISOString,
-              title: "Create User",
-              note: "",
-              type: "user",
-              from: result._id,
-              by: userByToken._id,
-              data: result,
-            });
             resolve({
               error: false,
+              data: result,
               message: successMessages.USER_CREATED_SUCCESS,
             });
           })
@@ -364,17 +356,9 @@ const UserController = {
       return new Promise((resolve, reject) => {
         User.findByIdAndUpdate(body.userId, body.data, { new: true })
           .then((result) => {
-            logController.createLog({
-              createdAt: dateISOString,
-              title: "Update User",
-              note: body.note ? body.note : "",
-              type: "user",
-              from: body.userId,
-              by: userByToken._id,
-              data: body.data,
-            });
             resolve({
               error: false,
+              data: result,
               message: successMessages.DATA_SUCCESS_UPDATED,
             });
           })

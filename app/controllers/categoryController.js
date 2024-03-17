@@ -64,7 +64,7 @@ module.exports = {
     }
   },
 
-  getCategorys: (req) => {
+  getCategories: (req) => {
     let pageKey = req.query.pageKey ? req.query.pageKey : 1;
     let pageSize = req.query.pageSize ? req.query.pageSize : 10;
 

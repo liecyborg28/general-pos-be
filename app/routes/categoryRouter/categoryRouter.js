@@ -4,13 +4,13 @@ const authController = require("../../controllers/authController");
 const categoryController = require("../../controllers/categoryController");
 
 router
-  .route("/categorys")
+  .route("/categories")
   .get((req, res) => {
     authController
       .checkAccessToken(req)
       .then(() => {
         categoryController
-          .getCategorys(req)
+          .getCategories(req)
           .then((value) => {
             res.status(200).send(value);
           })

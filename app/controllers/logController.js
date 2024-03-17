@@ -5,51 +5,18 @@ const successMessages = require("../repository/messages/successMessages");
 
 module.exports = {
   createLog: async (req) => {
-    let isBodyValid = () => {
-      return (
-        req.title &&
-        req.note &&
-        req.type &&
-        req.from &&
-        req.by &&
-        req.data &&
-        req.createdAt
-      );
-    };
-
-    let payload = isBodyValid()
-      ? {
-          title: req.title,
-          note: req.note,
-          type: req.type,
-          from: req.from,
-          by: req.by,
-          data: req.data,
-          createdAt: req.createdAt,
-        }
-      : {
-          error: true,
-          message: errorMessages.INVALID_DATA,
-        };
-
-    if (isBodyValid()) {
-      return new Promise((resolve, reject) => {
-        new Log(payload)
-          .save()
-          .then((result) => {
-            resolve({
-              error: false,
-              data: result,
-              message: successMessages.LOG_CREATED_SUCCESS,
-            });
-          })
-          .catch((err) => {
-            reject({ error: true, message: err });
-          });
+    new Log(req)
+      .save()
+      .then((result) => {
+        console.log({
+          error: false,
+          // data: result,
+          message: successMessages.LOG_CREATED_SUCCESS,
+        });
+      })
+      .catch((err) => {
+        reject({ error: true, message: err });
       });
-    } else {
-      return Promise.reject(payload);
-    }
   },
 
   getLogs: async (req) => {

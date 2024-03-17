@@ -17,6 +17,7 @@ const Inventory = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Category",
   },
+  status: String,
   name: String,
   qty: {
     status: String,
@@ -30,7 +31,6 @@ const Inventory = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
-  // changeLog: [],
   createdAt: String,
   uodatedAt: String,
 });

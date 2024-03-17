@@ -1,3 +1,4 @@
+const User = require("../models/userModel");
 const Business = require("../models/businessModel");
 const dataController = require("./utils/dataController");
 const pageController = require("./utils/pageController");
@@ -6,8 +7,16 @@ const successMessages = require("../repository/messages/successMessages");
 const logController = require("./logController");
 
 module.exports = {
-  createBusiness: async (body) => {
+  createBusiness: async (req) => {
+    let body = req.body;
     let dateISOString = new Date().toISOString();
+    const bearerHeader = req.headers["authorization"];
+    const bearerToken = bearerHeader.split(" ")[1];
+
+    let userByToken = await User.findOne({
+      "auth.accessToken": bearerToken,
+    });
+
     let isBodyValid = () => {
       return body.status && body.imageUrl && body.name;
     };
@@ -19,6 +28,7 @@ module.exports = {
           name: body.name,
           createdAt: dateISOString,
           updatedAt: dateISOString,
+          userIds: [],
         }
       : {
           error: true,
@@ -109,6 +119,13 @@ module.exports = {
 
   updateBusiness: async (body) => {
     let dateISOString = new Date().toISOString();
+    const bearerHeader = req.headers["authorization"];
+    const bearerToken = bearerHeader.split(" ")[1];
+
+    let userByToken = await User.findOne({
+      "auth.accessToken": bearerToken,
+    });
+
     let nameIsExist = await dataController.isExist(
       { name: body.data.name },
       Business
@@ -131,15 +148,15 @@ module.exports = {
       return new Promise((resolve, reject) => {
         Business.findByIdAndUpdate(body.businessId, body.data, { new: true })
           .then((result) => {
-            logController.createLog({
-              createdAt: dateISOString,
-              title: "Update Business",
-              note: body.note ? body.note : "",
-              type: "business",
-              from: body.businessId,
-              by: userByToken._id,
-              data: body.data,
-            });
+            // logController.createLog({
+            //   createdAt: dateISOString,
+            //   title: "Update Business",
+            //   note: body.note ? body.note : "",
+            //   type: "business",
+            //   from: body.businessId,
+            //   by: userByToken._id,
+            //   data: body.data,
+            // });
             resolve({
               error: false,
               data: result,
