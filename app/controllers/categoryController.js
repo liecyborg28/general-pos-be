@@ -1,3 +1,4 @@
+const User = require("../models/userModel");
 const Category = require("../models/categoryModel");
 const dataController = require("./utils/dataController");
 const pageController = require("./utils/pageController");
@@ -6,8 +7,16 @@ const successMessages = require("../repository/messages/successMessages");
 const logController = require("./logController");
 
 module.exports = {
-  createCategory: async (body) => {
+  createCategory: async (req) => {
+    let body = req.body;
     let dateISOString = new Date().toISOString();
+    const bearerHeader = req.headers["authorization"];
+    const bearerToken = bearerHeader.split(" ")[1];
+
+    let userByToken = await User.findOne({
+      "auth.accessToken": bearerToken,
+    });
+
     let isBodyValid = () => {
       return body.name && body.businessId && body.type && body.subtype;
     };
@@ -15,7 +24,7 @@ module.exports = {
     let payload = isBodyValid()
       ? {
           name: body.name,
-          businessId: body.businesssId,
+          businessId: body.businessId,
           type: body.type,
           subtype: body.subtype,
         }
@@ -52,6 +61,7 @@ module.exports = {
             });
             resolve({
               error: false,
+              data: result,
               message: successMessages.CATEGORY_CREATED_SUCCESS,
             });
           })
@@ -120,19 +130,15 @@ module.exports = {
     });
   },
 
-  updateCategory: async (body) => {
+  updateCategory: async (req) => {
+    let body = req.body;
     let dateISOString = new Date().toISOString();
-    let nameIsExist = await dataController.isExist(
-      { name: body.data.name, businessId: body.data.businessId },
-      Category
-    );
+    const bearerHeader = req.headers["authorization"];
+    const bearerToken = bearerHeader.split(" ")[1];
 
-    if (nameIsExist) {
-      return Promise.reject({
-        error: true,
-        message: errorMessages.NAME_ALREADY_EXISTS,
-      });
-    }
+    let userByToken = await User.findOne({
+      "auth.accessToken": bearerToken,
+    });
 
     if (!body.categoryId) {
       return Promise.reject({
@@ -142,14 +148,14 @@ module.exports = {
     } else {
       body.data["updatedAt"] = dateISOString;
       return new Promise((resolve, reject) => {
-        Category.findByIdAndUpdate(body.businessId, body.data, { new: true })
+        Category.findByIdAndUpdate(body.categoryId, body.data, { new: true })
           .then((result) => {
             logController.createLog({
               createdAt: dateISOString,
               title: "Update Category",
               note: body.note ? body.note : "",
               type: "category",
-              from: result._id,
+              from: body.categoryId,
               by: userByToken._id,
               data: result,
             });

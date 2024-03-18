@@ -127,18 +127,6 @@ module.exports = {
       "auth.accessToken": bearerToken,
     });
 
-    let nameIsExist = await dataController.isExist(
-      { name: body.data.name },
-      Business
-    );
-
-    if (nameIsExist) {
-      return Promise.reject({
-        error: true,
-        message: errorMessages.NAME_ALREADY_EXISTS,
-      });
-    }
-
     if (!body.businessId) {
       return Promise.reject({
         error: true,

@@ -12,7 +12,7 @@ router.get("/users/bulk/template", (req, res) => {
     .checkAccessToken(req)
     .then(() => {
       userController
-        .getBulkUserTemplate()
+        .getBulkUserTemplate(req)
         .then((value) => {
           res.status(200).send(value);
         })

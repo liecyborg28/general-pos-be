@@ -6,11 +6,17 @@ const dataController = require("./utils/dataController");
 const pageController = require("./utils/pageController");
 const errorMessages = require("../repository/messages/errorMessages");
 const successMessages = require("../repository/messages/successMessages");
-const logController = require("./logController");
 
 const UserController = {
   getBulkUserTemplate: (req) => {
     let type = req.query.type || null;
+
+    if (!type) {
+      return Promise.reject({
+        error: true,
+        message: errorMessages.INVALID_DATA,
+      });
+    }
 
     if (type) {
       return new Promise((resolve, reject) => {
