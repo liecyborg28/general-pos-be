@@ -1,6 +1,5 @@
 const ExcelJS = require("exceljs");
 const excelController = require("./utils/excelController");
-
 const User = require("../models/userModel");
 const Inventory = require("../models/inventoryModel");
 const dataController = require("./utils/dataController");
@@ -321,19 +320,7 @@ module.exports = {
 
     let body = req.body;
 
-    let nameIsExist = await dataController.isExist(
-      { businessId: body.data.businessId, name: body.data.name },
-      Inventory
-    );
-
-    if (nameIsExist) {
-      return Promise.reject({
-        error: true,
-        message: errorMessages.NAME_ALREADY_EXISTS,
-      });
-    }
-
-    if (!body.itemId) {
+    if (!body.inventoryId) {
       return Promise.reject({
         error: true,
         message: errorMessages.INVALID_DATA,
@@ -344,7 +331,7 @@ module.exports = {
     body.data["changedBy"] = userByToken._id;
 
     return new Promise((resolve, reject) => {
-      Item.findByIdAndUpdate(body.itemId, body.data, { new: true })
+      Inventory.findByIdAndUpdate(body.inventoryId, body.data, { new: true })
         .then((result) => {
           logController.createLog({
             createdAt: dateISOString,

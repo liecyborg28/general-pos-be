@@ -166,7 +166,9 @@ module.exports = {
         body.status &&
         body.categoryId &&
         body.name &&
-        body.price
+        body.price &&
+        body.taxed &&
+        body.charged
       );
     };
 
@@ -188,6 +190,9 @@ module.exports = {
           changedBy: userByToken._id,
           createdAt: dateISOString,
           updatedAt: dateISOString,
+          ingredients: body.ingredients ? body.ingredients : [],
+          taxed: body.taxed,
+          charged: body.charged,
         }
       : {
           error: true,
@@ -346,6 +351,7 @@ module.exports = {
             by: userByToken._id,
             data: body.data,
           });
+
           resolve({
             error: false,
             data: result,

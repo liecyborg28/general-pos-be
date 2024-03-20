@@ -1,6 +1,8 @@
 const User = require("../models/userModel");
 const Transaction = require("../models/transactionModel");
 const pageController = require("./utils/pageController");
+const itemController = require("./itemController");
+const inventoryController = require("./inventoryController");
 const errorMessages = require("../repository/messages/errorMessages");
 const successMessages = require("../repository/messages/successMessages");
 const logController = require("./logController");
@@ -101,6 +103,18 @@ module.exports = {
               by: userByToken._id,
               data: result,
             });
+
+            // connect transaction to inventory
+            body.details.map((e) => {
+              let payload = {
+                inventoryId: "",
+                qty: {
+                  // change inventory qty
+                },
+              };
+              inventoryController.updateInventory();
+            });
+
             resolve({
               error: false,
               data: result,
