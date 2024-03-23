@@ -1,70 +1,118 @@
 module.exports = {
-  PHONE_ALREADY_EXISTS: {
-    en: "Phone number already exists",
-    id: "Nomor telepon sudah terdaftar",
+  // A
+  ALL_DATA_NOT_SAVED_BECAUSE_DUPLICATE: {
+    en: "All data is not saved because it is duplicate!",
+    id: "Semua data tidak tersimpan karena duplikat!",
   },
-  USERNAME_ALREADY_EXISTS: {
-    en: "Username already exists",
-    id: "Username sudah terdaftar!",
+  // B
+  BUSINESS_ID_NOT_FOUND: {
+    en: "Business ID not found!",
+    id: "Business ID tidak ditemukan!",
   },
-  NAME_ALREADY_EXISTS: {
-    en: "Name already exists",
-    id: "Nama sudah terdaftar!",
+  // C
+
+  // D
+
+  // E
+  EXCEL_UPLOAD_ERROR: {
+    en: "An error occurred while uploading and converting the Excel file",
+    id: "Terjadi kesalahan saat mengunggah dan mengonversi file Excel",
+  },
+  // F
+  FAILED_CREATED_FILE: {
+    en: "Failed to create file!",
+    id: "Gagal membuat file!",
+  },
+  FAILED_SAVED_DATA: {
+    en: "Failed to save data!",
+    id: "Terjadi kesalahan saat menyimpan data!",
+  },
+  // G
+
+  // H
+
+  // I
+  ID_NOT_FOUND: {
+    en: "ID not found!",
+    id: "ID tidak ditemukan!",
   },
   INVALID_DATA: {
     en: "Invalid data! please check the data you filled in!",
     id: "Data tidak valid! mohon periksa kembali data yang Anda isi!",
   },
-  UNAUTHORIZED: {
-    en: "Unautorized!",
-    id: "Akses tidak diizinkan!",
-  },
-  TOKEN_NOT_FOUND: {
-    en: "Token not found!",
-    id: "Token tidak ditemukan!",
-  },
-  TOKEN_IS_REQUIRED: {
-    en: "Token is required!",
-    id: "Token diperlukan!",
-  },
-  USER_NOT_FOUND: {
-    en: "User not found!",
-    id: "Pengguna tidak ditemukan!",
-  },
+  // J
+
+  // K
+
+  // L
   LOGIN_FAILED: {
     en: "Login failed! Make sure your login data is correct",
     id: "Login gagal! Pastikan data login Anda telah benar",
   },
+  // M
+
+  // N
+  NAME_ALREADY_EXISTS: {
+    en: "Name already exists",
+    id: "Nama sudah terdaftar!",
+  },
+
+  // O
+  OUTLET_ID_NOT_FOUND: {
+    en: "Outlet ID not found!",
+    id: "Outlet ID tidak ditemukan!",
+  },
+  // P
+  PHONE_ALREADY_EXISTS: {
+    en: "Phone number already exists",
+    id: "Nomor telepon sudah terdaftar",
+  },
+  // Q
+
+  // R
+
+  // S
   SESSION_ENDED: {
     en: "Your session has ended, please login again!",
     id: "Sesi Anda telah berakhir, mohon melakukan login kembali!",
-  },
-  EXCEL_UPLOAD_ERROR: {
-    en: "An error occurred while uploading and converting the Excel file",
-    id: "Terjadi kesalahan saat mengunggah dan mengonversi file Excel",
   },
   SOME_DATA_NOT_SAVED_BECAUSE_DUPLICATE: {
     en: "Some data is not saved because it is duplicate!",
     id: "Sebagian data tidak tersimpan karena duplikat",
   },
-  ALL_DATA_NOT_SAVED_BECAUSE_DUPLICATE: {
-    en: "All data is not saved because it is duplicate!",
-    id: "Semua data tidak tersimpan karena duplikat!",
+  // T
+  TOKEN_IS_REQUIRED: {
+    en: "Token is required!",
+    id: "Token diperlukan!",
   },
-  FAILED_CREATED_FILE: {
-    en: "Failed to create file!",
-    id: "Gagal membuat file!",
+  TOKEN_NOT_FOUND: {
+    en: "Token not found!",
+    id: "Token tidak ditemukan!",
   },
-  ID_NOT_FOUND: {
-    en: "ID not found!",
-    id: "ID tidak ditemukan!",
+  TRANSACTION_FAILED_OUT_OF_STOCK: {
+    en: "Transaction failed. Out of stock!",
+    id: "Transaksi gagal. Persediaan habis!",
   },
-  BUSINESS_ID_NOT_FOUND: {
-    en: "Business ID not found!",
-    id: "Business ID tidak ditemukan!",
+  // U
+  UNAUTHORIZED: {
+    en: "Unautorized!",
+    id: "Akses tidak diizinkan!",
   },
-  OUTLET_ID_NOT_FOUND: {
-    en: "Outlet ID not found!",
-    id: "Outlet ID tidak ditemukan!",
+  USERNAME_ALREADY_EXISTS: {
+    en: "Username already exists",
+    id: "Username sudah terdaftar!",
   },
+  USER_NOT_FOUND: {
+    en: "User not found!",
+    id: "Pengguna tidak ditemukan!",
+  },
+  // V
+
+  // W
+
+  // X
+
+  // Y
+
+  // Z
 };

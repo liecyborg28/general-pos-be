@@ -27,7 +27,7 @@ router
       .checkAccessToken(req)
       .then(() => {
         outletController
-          .createOutlet(req.body)
+          .createOutlet(req)
           .then((value) => {
             res.status(200).send(value);
           })
@@ -44,7 +44,7 @@ router
       .checkAccessToken(req)
       .then(() => {
         outletController
-          .updateOutlet(req.body)
+          .updateOutlet(req)
           .then((value) => {
             res.status(200).send(value);
           })

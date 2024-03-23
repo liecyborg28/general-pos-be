@@ -79,7 +79,7 @@ router.get("/resources/inventory", (req, res) => {
     .checkAccessToken(req)
     .then(() => {
       resourceController
-        .getOutletResource()
+        .getInventoryResource()
         .then((value) => {
           res.status(200).send(value);
         })

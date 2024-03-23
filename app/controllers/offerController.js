@@ -1,4 +1,5 @@
 const Offer = require("../models/offerModel");
+const User = require("../models/userModel");
 const dataController = require("./utils/dataController");
 const pageController = require("./utils/pageController");
 const errorMessages = require("../repository/messages/errorMessages");
@@ -6,16 +7,26 @@ const successMessages = require("../repository/messages/successMessages");
 const logController = require("./logController");
 
 module.exports = {
-  createOffer: async (body) => {
+  createOffer: async (req) => {
+    let body = req.body;
+    const bearerHeader = req.headers["authorization"];
+    const bearerToken = bearerHeader.split(" ")[1];
+
+    let userByToken = await User.findOne({
+      "auth.accessToken": bearerToken,
+    });
+
     let dateISOString = new Date().toISOString();
     let isBodyValid = () => {
-      return body.name && body.businessId;
+      return body.title && body.type && body.amount && body.businessId;
     };
 
     let payload = isBodyValid()
       ? {
-          name: body.name,
+          title: body.title,
           businessId: body.businesssId,
+          amount: body.amount,
+          type: body.type,
         }
       : {
           error: true,
@@ -24,7 +35,7 @@ module.exports = {
 
     if (isBodyValid()) {
       let nameIsExist = await dataController.isExist(
-        { name: body.name, businessId: body.businessId },
+        { title: body.title, businessId: body.businessId },
         Offer
       );
 
@@ -69,7 +80,7 @@ module.exports = {
     let pageSize = req.query.pageSize ? req.query.pageSize : null;
 
     isNotEveryQueryNull = () => {
-      return req.query.keyword || req.query.name || req.query.businessId;
+      return req.query.keyword || req.query.title || req.query.businessId;
     };
 
     return new Promise((resolve, reject) => {
@@ -77,13 +88,13 @@ module.exports = {
         ? {
             $or: [
               {
-                name: req.query.keyword
+                title: req.query.keyword
                   ? { $regex: req.query.keyword, $options: "i" }
                   : null,
               },
               {
-                name: req.query.name
-                  ? { $regex: req.query.name, $options: "i" }
+                title: req.query.title
+                  ? { $regex: req.query.title, $options: "i" }
                   : null,
               },
               {
@@ -108,19 +119,16 @@ module.exports = {
     });
   },
 
-  updateOffer: async (body) => {
-    let dateISOString = new Date().toISOString();
-    let nameIsExist = await dataController.isExist(
-      { name: body.data.name, businessId: body.data.businessId },
-      Offer
-    );
+  updateOffer: async (req) => {
+    let body = req.body;
+    const bearerHeader = req.headers["authorization"];
+    const bearerToken = bearerHeader.split(" ")[1];
 
-    if (nameIsExist) {
-      return Promise.reject({
-        error: true,
-        message: errorMessages.NAME_ALREADY_EXISTS,
-      });
-    }
+    let userByToken = await User.findOne({
+      "auth.accessToken": bearerToken,
+    });
+
+    let dateISOString = new Date().toISOString();
 
     if (!body.offerId) {
       return Promise.reject({

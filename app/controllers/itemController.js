@@ -62,7 +62,6 @@ module.exports = {
 
     const bearerHeader = req.headers["authorization"];
     const bearerToken = bearerHeader.split(" ")[1];
-
     let userByToken = await User.findOne({
       "auth.accessToken": bearerToken,
     });
@@ -166,9 +165,7 @@ module.exports = {
         body.status &&
         body.categoryId &&
         body.name &&
-        body.price &&
-        body.taxed &&
-        body.charged
+        body.price
       );
     };
 

@@ -1,4 +1,5 @@
 const Outlet = require("../models/outletModel");
+const User = require("../models/userModel");
 const dataController = require("./utils/dataController");
 const pageController = require("./utils/pageController");
 const errorMessages = require("../repository/messages/errorMessages");
@@ -6,7 +7,14 @@ const successMessages = require("../repository/messages/successMessages");
 const logController = require("./logController");
 
 module.exports = {
-  createOutlet: async (body) => {
+  createOutlet: async (req) => {
+    let body = req.body;
+    const bearerHeader = req.headers["authorization"];
+    const bearerToken = bearerHeader.split(" ")[1];
+    let userByToken = await User.findOne({
+      "auth.accessToken": bearerToken,
+    });
+
     let dateISOString = new Date().toISOString();
     let isBodyValid = () => {
       return body.businessId && body.status && body.name && body.address;
@@ -145,7 +153,14 @@ module.exports = {
     });
   },
 
-  updateOutlet: async (body) => {
+  updateOutlet: async (req) => {
+    let body = req.body;
+    const bearerHeader = req.headers["authorization"];
+    const bearerToken = bearerHeader.split(" ")[1];
+
+    let userByToken = await User.findOne({
+      "auth.accessToken": bearerToken,
+    });
     let dateISOString = new Date().toISOString();
     let nameIsExist = await dataController.isExist(
       { businessId: body.data.businessId, name: body.data.name },

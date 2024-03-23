@@ -1,4 +1,6 @@
 const User = require("../models/userModel");
+const Item = require("../models/itemModel");
+const Inventory = require("../models/inventoryModel");
 const Transaction = require("../models/transactionModel");
 const pageController = require("./utils/pageController");
 const itemController = require("./itemController");
@@ -90,40 +92,109 @@ module.exports = {
         };
 
     if (isBodyValid()) {
-      return new Promise((resolve, reject) => {
-        new Transaction(payload)
-          .save()
-          .then((result) => {
-            logController.createLog({
-              createdAt: dateISOString,
-              title: "Create Transaction",
-              note: "",
-              type: "transaction",
-              from: result._id,
-              by: userByToken._id,
-              data: result,
-            });
+      return new Promise(async (resolve, reject) => {
+        let outOfStockList = [];
+        let almostOutList = [];
+        let availableList = [];
 
-            // connect transaction to inventory
-            body.details.map((e) => {
-              let payload = {
-                inventoryId: "",
-                qty: {
-                  // change inventory qty
-                },
-              };
-              inventoryController.updateInventory();
-            });
+        const promises = body.details
+          .map(async (detail) => {
+            try {
+              const item = await Item().findOne({
+                _id: detail.itemId,
+              });
 
-            resolve({
-              error: false,
-              data: result,
-              message: successMessages.TRANSACTION_CREATED_SUCCESS,
-            });
+              Inventory.populate(item, {
+                path: "ingredients.inventoryId",
+              })
+                .then((item) => {
+                  item.ingredients.forEach((e) => {
+                    if (e.inventoryId.qty.last - e.qty * detail.qty <= 0) {
+                      outOfStockList.push(e);
+                    } else if (
+                      e.inventoryId.qty.last - e.qty * detail.qty <=
+                      e.inventoryId.qty.min
+                    ) {
+                      almostOutList.push(e);
+                    } else {
+                      availableList.push(e);
+                    }
+                  });
+                })
+                .catch((err) => {
+                  reject({ error: true, message: err });
+                });
+            } catch (error) {
+              reject({
+                error: true,
+                message: errorMessages.FAILED_SAVED_DATA,
+              });
+            }
           })
           .catch((err) => {
             reject({ error: true, message: err });
           });
+
+        await Promise.all(promises);
+
+        if (outOfStockList.length > 0) {
+          reject({
+            error: true,
+            message: errorMessages.TRANSACTION_FAILED_OUT_OF_STOCK,
+          });
+        }
+
+        if (almostOutList.length > 0) {
+          almostOutList.forEach((e) => {
+            inventoryController.updateInventory({
+              inventoryId: e.inventoryId._id,
+              data: {
+                qty: {
+                  status: "almostOut",
+                  last: e.inventoryId.qty.last - e.qty * detail.qty,
+                  early: e.inventoryId.qty.early,
+                  min: e.inventoryId.qty.min,
+                  max: e.inventoryId.qty.max,
+                },
+              },
+            });
+          });
+        }
+
+        if (availableList.length > 0) {
+          availableList.forEach((e) => {
+            inventoryController.updateInventory({
+              inventoryId: e.inventoryId._id,
+              data: {
+                qty: {
+                  status: "available",
+                  last: e.inventoryId.qty.last - e.qty * detail.qty,
+                  early: e.inventoryId.qty.early,
+                  min: e.inventoryId.qty.min,
+                  max: e.inventoryId.qty.max,
+                },
+              },
+            });
+          });
+        }
+
+        new Transaction(payload).save().then((result) => {
+          logController.createLog({
+            createdAt: dateISOString,
+            title: "Create Transaction",
+            note: "",
+            type: "transaction",
+            from: result._id,
+            by: userByToken._id,
+            data: result,
+          });
+
+          resolve({
+            error: false,
+            data: result,
+            message: successMessages.TRANSACTION_CREATED_SUCCESS,
+          });
+        });
       });
     } else {
       return Promise.reject(payload);
@@ -300,22 +371,25 @@ module.exports = {
       //     data: body.data,
       //   },
       // };
-      logController.createLog({
-        createdAt: dateISOString,
-        title: "Update Transaction",
-        note: body.note ? body.note : "",
-        type: "transaction",
-        from: body.transactionId,
-        by: userByToken._id,
-        data: body.data,
-      });
       return new Promise((resolve, reject) => {
+        if (body.data.status && body.data.status === "canceled") {
+        }
         Transaction.findByIdAndUpdate(body.transactionId, body.data, {
           new: true,
         })
-          .then(() => {
+          .then((result) => {
+            logController.createLog({
+              createdAt: dateISOString,
+              title: "Update Transaction",
+              note: body.note ? body.note : "",
+              type: "transaction",
+              from: body.transactionId,
+              by: userByToken._id,
+              data: body.data,
+            });
             resolve({
               error: false,
+              data: result,
               message: successMessages.DATA_SUCCESS_UPDATED,
             });
           })

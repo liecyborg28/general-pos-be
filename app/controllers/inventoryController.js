@@ -173,10 +173,11 @@ module.exports = {
       return (
         body.businessId &&
         body.status &&
-        body.category &&
+        body.categoryId &&
         body.name &&
         body.early &&
-        body.min
+        body.min &&
+        body.denomination
       );
     };
 
@@ -201,6 +202,7 @@ module.exports = {
             min: body.min,
             max: 0,
           },
+          denomination: body.denomination,
           changedBy: userByToken._id,
           createdAt: dateISOString,
           updatedAt: dateISOString,
@@ -237,7 +239,7 @@ module.exports = {
           resolve({
             error: false,
             data: result,
-            message: successMessages.ITEM_CREATED_SUCCESS,
+            message: successMessages.INVENTORY_CREATED_SUCCESS,
           });
         });
       });
