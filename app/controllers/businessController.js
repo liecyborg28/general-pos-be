@@ -18,14 +18,14 @@ module.exports = {
     });
 
     let isBodyValid = () => {
-      return body.status && body.imageUrl && body.name;
+      return body.status && body.imageUrl && body.title;
     };
 
     let payload = isBodyValid()
       ? {
           status: body.status,
           imageUrl: body.imageUrl,
-          name: body.name,
+          title: body.title,
           createdAt: dateISOString,
           updatedAt: dateISOString,
           userIds: [],
@@ -37,7 +37,7 @@ module.exports = {
 
     if (isBodyValid()) {
       let nameIsExist = await dataController.isExist(
-        { name: body.name },
+        { title: body.title },
         Business
       );
 

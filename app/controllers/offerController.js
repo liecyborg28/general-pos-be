@@ -24,7 +24,7 @@ module.exports = {
     let payload = isBodyValid()
       ? {
           title: body.title,
-          businessId: body.businesssId,
+          businessId: body.businessId,
           amount: body.amount,
           type: body.type,
         }

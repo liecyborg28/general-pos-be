@@ -97,86 +97,90 @@ module.exports = {
         let almostOutList = [];
         let availableList = [];
 
-        const promises = body.details
-          .map(async (detail) => {
-            try {
-              const item = await Item().findOne({
-                _id: detail.itemId,
+        const promises = body.details.map(async (detail) => {
+          try {
+            const item = await Item.findOne({
+              _id: detail.itemId,
+            });
+
+            await Inventory.populate(item, {
+              path: "ingredients.inventoryId",
+            })
+              .then((item) => {
+                item.ingredients.forEach((e) => {
+                  if (e.inventoryId.qty.last - e.qty * detail.qty < 0) {
+                    outOfStockList.push(e);
+                  } else if (
+                    e.inventoryId.qty.last - e.qty * detail.qty <=
+                    e.inventoryId.qty.min
+                  ) {
+                    almostOutList.push(e);
+                  } else {
+                    availableList.push(e);
+                  }
+                });
+              })
+              .catch((err) => {
+                reject({ error: true, message: err });
               });
 
-              Inventory.populate(item, {
-                path: "ingredients.inventoryId",
-              })
-                .then((item) => {
-                  item.ingredients.forEach((e) => {
-                    if (e.inventoryId.qty.last - e.qty * detail.qty <= 0) {
-                      outOfStockList.push(e);
-                    } else if (
-                      e.inventoryId.qty.last - e.qty * detail.qty <=
-                      e.inventoryId.qty.min
-                    ) {
-                      almostOutList.push(e);
-                    } else {
-                      availableList.push(e);
-                    }
-                  });
-                })
-                .catch((err) => {
-                  reject({ error: true, message: err });
-                });
-            } catch (error) {
+            if (outOfStockList.length > 0) {
               reject({
                 error: true,
-                message: errorMessages.FAILED_SAVED_DATA,
+                message: errorMessages.TRANSACTION_FAILED_OUT_OF_STOCK,
               });
             }
-          })
-          .catch((err) => {
-            reject({ error: true, message: err });
-          });
+
+            if (almostOutList.length > 0) {
+              almostOutList.forEach((e) => {
+                inventoryController.updateInventory({
+                  headers: req.headers,
+                  body: {
+                    inventoryId: e.inventoryId._id,
+                    note: "[Create Transaction]",
+                    data: {
+                      qty: {
+                        status: "almostOut",
+                        last: e.inventoryId.qty.last - e.qty * detail.qty,
+                        early: e.inventoryId.qty.early,
+                        min: e.inventoryId.qty.min,
+                        max: e.inventoryId.qty.max,
+                      },
+                    },
+                  },
+                });
+              });
+            }
+
+            if (availableList.length > 0) {
+              availableList.forEach((e) => {
+                inventoryController.updateInventory({
+                  headers: req.headers,
+                  body: {
+                    inventoryId: e.inventoryId._id,
+                    note: "[Create Transaction]",
+                    data: {
+                      qty: {
+                        status: "available",
+                        last: e.inventoryId.qty.last - e.qty * detail.qty,
+                        early: e.inventoryId.qty.early,
+                        min: e.inventoryId.qty.min,
+                        max: e.inventoryId.qty.max,
+                      },
+                    },
+                  },
+                });
+              });
+            }
+          } catch (error) {
+            reject({
+              error: true,
+              message: errorMessages.FAILED_SAVED_DATA,
+            });
+          }
+        });
 
         await Promise.all(promises);
-
-        if (outOfStockList.length > 0) {
-          reject({
-            error: true,
-            message: errorMessages.TRANSACTION_FAILED_OUT_OF_STOCK,
-          });
-        }
-
-        if (almostOutList.length > 0) {
-          almostOutList.forEach((e) => {
-            inventoryController.updateInventory({
-              inventoryId: e.inventoryId._id,
-              data: {
-                qty: {
-                  status: "almostOut",
-                  last: e.inventoryId.qty.last - e.qty * detail.qty,
-                  early: e.inventoryId.qty.early,
-                  min: e.inventoryId.qty.min,
-                  max: e.inventoryId.qty.max,
-                },
-              },
-            });
-          });
-        }
-
-        if (availableList.length > 0) {
-          availableList.forEach((e) => {
-            inventoryController.updateInventory({
-              inventoryId: e.inventoryId._id,
-              data: {
-                qty: {
-                  status: "available",
-                  last: e.inventoryId.qty.last - e.qty * detail.qty,
-                  early: e.inventoryId.qty.early,
-                  min: e.inventoryId.qty.min,
-                  max: e.inventoryId.qty.max,
-                },
-              },
-            });
-          });
-        }
 
         new Transaction(payload).save().then((result) => {
           logController.createLog({
@@ -347,6 +351,7 @@ module.exports = {
 
   updateTransaction: async (req) => {
     let dateISOString = new Date().toISOString();
+
     const bearerHeader = req.headers["authorization"];
     const bearerToken = bearerHeader.split(" ")[1];
 
@@ -364,16 +369,52 @@ module.exports = {
     } else {
       body.data["updatedAt"] = dateISOString;
       body.data["changedBy"] = userByToken._id;
-      // body.data["$push"] = {
-      //   changeLog: {
-      //     date: dateISOString,
-      //     by: userByToken._id,
-      //     data: body.data,
-      //   },
-      // };
-      return new Promise((resolve, reject) => {
+      return new Promise(async (resolve, reject) => {
         if (body.data.status && body.data.status === "canceled") {
+          let transaction = await Transaction.findOne({
+            _id: body.transactionId,
+          });
+
+          const promises = transaction.details.map(async (detail) => {
+            try {
+              const item = await Item.findOne({ _id: detail.itemId });
+
+              await Inventory.populate(item, {
+                path: "ingredients.inventoryId",
+              })
+                .then((item) => {
+                  item.ingredients.forEach((e) => {
+                    inventoryController.updateInventory({
+                      headers: req.headers,
+                      body: {
+                        inventoryId: e.inventoryId._id,
+                        note: "[Update Transaction]",
+                        data: {
+                          qty: {
+                            last: e.inventoryId.qty.last + e.qty * detail.qty,
+                            early: e.inventoryId.qty.early,
+                            min: e.inventoryId.qty.min,
+                            max: e.inventoryId.qty.max,
+                          },
+                        },
+                      },
+                    });
+                  });
+                })
+                .catch((err) => {
+                  reject({ error: true, message: err });
+                });
+            } catch (err) {
+              reject({
+                error: true,
+                message: errorMessages.FAILED_SAVED_DATA,
+              });
+            }
+          });
+
+          await Promise.all(promises);
         }
+
         Transaction.findByIdAndUpdate(body.transactionId, body.data, {
           new: true,
         })

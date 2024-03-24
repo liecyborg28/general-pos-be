@@ -1,7 +1,7 @@
 const router = require("express").Router();
 
 const authController = require("../../controllers/authController");
-const advancementController = require("../../controllers/offerController");
+const offerController = require("../../controllers/offerController");
 
 router
   .route("/offers")
@@ -9,7 +9,7 @@ router
     authController
       .checkAccessToken(req)
       .then(() => {
-        advancementController
+        offerController
           .getOffers(req)
           .then((value) => {
             res.status(200).send(value);
@@ -26,7 +26,7 @@ router
     authController
       .checkAccessToken(req)
       .then(() => {
-        advancementController
+        offerController
           .createOffer(req)
           .then((value) => {
             res.status(200).send(value);
@@ -43,7 +43,7 @@ router
     authController
       .checkAccessToken(req)
       .then(() => {
-        advancementController
+        offerController
           .updateOffer(req)
           .then((value) => {
             res.status(200).send(value);
