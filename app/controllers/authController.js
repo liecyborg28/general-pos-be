@@ -2,6 +2,8 @@ const errorMessages = require("../repository/messages/errorMessages");
 const successMessages = require("../repository/messages/successMessages");
 const crypto = require("crypto");
 const User = require("../models/userModel");
+const Business = require("../models/businessModel");
+const pageController = require("./utils/pageController");
 const authUtils = require("../utility/authUtils");
 
 function generateHash(data) {
@@ -53,23 +55,35 @@ module.exports = {
         })
         .then((data) => {
           if (data) {
-            resolve({
-              error: false,
-              userData: {
-                type: data.type,
-                name: data.name,
-                gender: data.gender,
-                imageUrl: data.imageUrl,
-                userId: data._id,
-                access: [],
-                businessIds: [],
-                outletIds: [],
-                auth: {
-                  accessToken: data.auth.accessToken,
-                  expiredAt: authUtils.generateTokenExpirateAt(7),
-                },
-              },
-            });
+            pageController
+              .paginate(1, null, {}, Business)
+              .then((businesses) => {
+                resolve({
+                  error: false,
+                  userData: {
+                    type: data.type,
+                    name: data.name,
+                    gender: data.gender,
+                    imageUrl: data.imageUrl,
+                    userId: data._id,
+                    access: [],
+                    businessIds: [],
+                    outletIds: [],
+                    auth: {
+                      accessToken: data.auth.accessToken,
+                      expiredAt: authUtils.generateTokenExpirateAt(7),
+                    },
+                  },
+                  businessData: businesses.data.map((e) => ({
+                    id: e._id,
+                    name: e.name,
+                    imageUrl: e.imageUrl,
+                  })),
+                });
+              })
+              .catch((err) => {
+                reject({ error: true, message: err });
+              });
           } else {
             reject({
               error: false,

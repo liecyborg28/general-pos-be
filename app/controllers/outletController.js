@@ -77,7 +77,7 @@ module.exports = {
 
   getOutlets: (req) => {
     let pageKey = req.query.pageKey ? req.query.pageKey : 1;
-    let pageSize = req.query.pageSize ? req.query.pageSize : 1000;
+    let pageSize = req.query.pageSize ? req.query.pageSize : null;
 
     isNotEveryQueryNull = () => {
       return req.query.keyword || req.query.name || req.query.businessId;
