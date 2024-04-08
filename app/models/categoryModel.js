@@ -12,6 +12,7 @@ const Category = mongoose.Schema({
   type: String,
   subtype: String,
   name: String,
+  status: String,
 });
 
 module.exports = mongoose.model("Category", Category);

@@ -18,14 +18,14 @@ module.exports = {
     });
 
     let isBodyValid = () => {
-      return body.status && body.imageUrl && body.title;
+      return body.status && body.imageUrl && body.name;
     };
 
     let payload = isBodyValid()
       ? {
           status: body.status,
           imageUrl: body.imageUrl,
-          title: body.title,
+          name: body.name,
           createdAt: dateISOString,
           updatedAt: dateISOString,
           userIds: [],
@@ -37,7 +37,7 @@ module.exports = {
 
     if (isBodyValid()) {
       let nameIsExist = await dataController.isExist(
-        { title: body.title },
+        { name: body.name },
         Business
       );
 
@@ -54,7 +54,7 @@ module.exports = {
           .then((result) => {
             logController.createLog({
               createdAt: dateISOString,
-              title: "Create Business",
+              name: "Create Business",
               note: "",
               type: "business",
               from: result._id,
@@ -87,6 +87,7 @@ module.exports = {
     return new Promise((resolve, reject) => {
       let pipeline = isNotEveryQueryNull()
         ? {
+            status: { $ne: "deleted" },
             $or: [
               {
                 name: req.query.keyword
@@ -100,7 +101,7 @@ module.exports = {
               },
             ],
           }
-        : {};
+        : { status: { $ne: "deleted" } };
 
       pageController
         .paginate(pageKey, pageSize, pipeline, Business)
@@ -139,7 +140,7 @@ module.exports = {
           .then((result) => {
             logController.createLog({
               createdAt: dateISOString,
-              title: "Update Business",
+              name: "Update Business",
               note: body.note ? body.note : "",
               type: "business",
               from: body.businessId,

@@ -27,6 +27,7 @@ module.exports = {
           businessId: body.businessId,
           type: body.type,
           subtype: body.subtype,
+          status: "active",
         }
       : {
           error: true,
@@ -35,7 +36,11 @@ module.exports = {
 
     if (isBodyValid()) {
       let nameIsExist = await dataController.isExist(
-        { name: body.name },
+        {
+          businessId: body.businessId,
+          name: body.name,
+          status: { $ne: "deleted" },
+        },
         Category
       );
 
@@ -90,6 +95,7 @@ module.exports = {
     return new Promise((resolve, reject) => {
       let pipeline = isNotEveryQueryNull()
         ? {
+            status: { $ne: "deleted" },
             $or: [
               {
                 name: req.query.keyword
@@ -102,9 +108,7 @@ module.exports = {
                   : null,
               },
               {
-                businessId: req.query.businessId
-                  ? { $regex: req.query.businessId, $options: "i" }
-                  : null,
+                businessId: req.query.businessId ? req.query.businessId : null,
               },
               {
                 type: req.query.type
@@ -113,7 +117,9 @@ module.exports = {
               },
             ],
           }
-        : {};
+        : {
+            status: { $ne: "deleted" },
+          };
 
       pageController
         .paginate(pageKey, pageSize, pipeline, Category)

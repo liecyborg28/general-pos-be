@@ -198,7 +198,11 @@ module.exports = {
 
     if (isBodyValid()) {
       let nameIsExist = await dataController.isExist(
-        { businessId: body.businessId, name: body.name },
+        {
+          businessId: body.businessId,
+          name: body.name,
+          status: { $ne: "deleted" },
+        },
         Item
       );
 
