@@ -26,6 +26,7 @@ const Inventory = mongoose.Schema({
     min: Number,
     max: Number,
   },
+  imageUrl: String,
   denomination: String,
   changedBy: {
     type: mongoose.Schema.Types.ObjectId,

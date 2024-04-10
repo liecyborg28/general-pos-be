@@ -172,7 +172,6 @@ module.exports = {
     let isBodyValid = () => {
       return (
         body.businessId &&
-        body.status &&
         body.categoryId &&
         body.name &&
         body.early &&
@@ -190,9 +189,10 @@ module.exports = {
 
     let payload = isBodyValid()
       ? {
-          status: body.status,
+          status: "active",
           businessId: body.businessId,
           categoryId: body.categoryId,
+          outletId: body.outletId ? body.outletId : null,
           name: body.name,
           imageUrl: body.imageUrl ? body.imageUrl : null,
           qty: {
@@ -214,7 +214,11 @@ module.exports = {
 
     if (isBodyValid()) {
       let nameIsExist = await dataController.isExist(
-        { businessId: body.businessId, name: body.name },
+        {
+          businessId: body.businessId,
+          name: body.name,
+          status: { $ne: "deleted" },
+        },
         Inventory
       );
 
@@ -257,7 +261,7 @@ module.exports = {
         req.query.keyword ||
         req.query.name ||
         req.query.businessId ||
-        req.query.category
+        req.query.categoryId
       );
     };
 

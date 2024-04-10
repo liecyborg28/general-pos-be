@@ -1,10 +1,10 @@
 module.exports = {
-  STATUS: {
-    FULL: { value: "full", en: "Full", id: "Penuh" },
-    AVAILABLE: { value: "available", en: "Available", id: "Tersedia" },
-    ALMOST_OUT: { value: "almostOut", en: "Almost Out", id: "Hampir Habis" },
-    OUT_OF_STOCK: { value: "outOfStock", en: "Out of Stock", id: "Habis" },
-  },
+  STATUS: [
+    { value: "full", en: "Full", id: "Penuh" },
+    { value: "available", en: "Available", id: "Tersedia" },
+    { value: "almostOut", en: "Almost Out", id: "Hampir Habis" },
+    { value: "outOfStock", en: "Out of Stock", id: "Habis" },
+  ],
   DENOMINATION: [
     { value: "gr", en: "Gram", id: "Gram" },
     { value: "kg", en: "Kilogram", id: "Kilogram" },
