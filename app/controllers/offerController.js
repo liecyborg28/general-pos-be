@@ -138,7 +138,7 @@ module.exports = {
     } else {
       body.data["updatedAt"] = dateISOString;
       return new Promise((resolve, reject) => {
-        Offer.findByIdAndUpdate(body.businessId, body.data, { new: true })
+        Offer.findByIdAndUpdate(body.offerId, body.data, { new: true })
           .then(() => {
             logController.createLog({
               createdAt: dateISOString,

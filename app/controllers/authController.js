@@ -45,6 +45,7 @@ module.exports = {
   login: (req) => {
     return new Promise((resolve, reject) => {
       User.findOne({
+        status: { $ne: "deleted" },
         $or: [
           { username: req.body.loginMethod, password: req.body.password },
           // { phonenumber: req.body.loginMethod, password: req.body.password },
@@ -55,6 +56,13 @@ module.exports = {
         })
         .then((data) => {
           if (data) {
+            if (data.status === "inactive") {
+              reject({
+                error: true,
+                message: errorMessages.ACCOUNT_INACTIVE,
+              });
+            }
+
             pageController
               .paginate(1, null, {}, Business)
               .then((businesses) => {

@@ -4,6 +4,14 @@ module.exports = {
     en: "All data is not saved because it is duplicate!",
     id: "Semua data tidak tersimpan karena duplikat!",
   },
+  ACCOUNT_INACTIVE: {
+    en: "Login failed, your account status is inactive!",
+    id: "Login gagal, status akun Anda tidak aktif!",
+  },
+  ACCOUNT_REMOVED: {
+    en: "Login failed, your account access has been removed!",
+    id: "Login gagal, akses akun Anda telah dihapus!",
+  },
   // B
   BUSINESS_ID_NOT_FOUND: {
     en: "Business ID not found!",
