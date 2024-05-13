@@ -59,8 +59,8 @@ module.exports = {
         body.orderStatus &&
         body.details &&
         body.tax &&
-        body.paymentAmount &&
-        body.paymentMethod &&
+        // body.paymentAmount &&
+        // body.paymentMethod &&
         body.details.length > 0
       );
     };

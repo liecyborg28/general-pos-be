@@ -198,10 +198,8 @@ function getClosingTransactions(transactions) {
 
 module.exports = {
   getItemSalesReport: async (req) => {
-    let defaultFrom = new Date(new Date().setHours(0, 0, 0, 0)).toISOString();
-    let defaultTo = new Date(
-      new Date().setHours(23, 59, 59, 999)
-    ).toISOString();
+    let defaultFrom = convertToLocaleISOString(new Date(), "start");
+    let defaultTo = convertToLocaleISOString(new Date(), "end");
 
     let pageKey = req.query.pageKey ? req.query.pageKey : 1;
     let pageSize = req.query.pageSize ? req.query.pageSize : null;
@@ -310,10 +308,8 @@ module.exports = {
   },
 
   getTransactionSalesReport: async (req) => {
-    let defaultFrom = new Date(new Date().setHours(0, 0, 0, 0)).toISOString();
-    let defaultTo = new Date(
-      new Date().setHours(23, 59, 59, 999)
-    ).toISOString();
+    let defaultFrom = convertToLocaleISOString(new Date(), "start");
+    let defaultTo = convertToLocaleISOString(new Date(), "end");
 
     let pageKey = req.query.pageKey ? req.query.pageKey : 1;
     let pageSize = req.query.pageSize ? req.query.pageSize : null;
@@ -427,10 +423,8 @@ module.exports = {
   },
 
   getClosingReport: async (req) => {
-    let defaultFrom = new Date(new Date().setHours(0, 0, 0, 0)).toISOString();
-    let defaultTo = new Date(
-      new Date().setHours(23, 59, 59, 999)
-    ).toISOString();
+    let defaultFrom = convertToLocaleISOString(new Date(), "start");
+    let defaultTo = convertToLocaleISOString(new Date(), "end");
 
     let pageKey = req.query.pageKey ? req.query.pageKey : 1;
     let pageSize = req.query.pageSize ? req.query.pageSize : null;

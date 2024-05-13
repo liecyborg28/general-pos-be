@@ -336,6 +336,24 @@ module.exports = {
     body.data["updatedAt"] = dateISOString;
     body.data["changedBy"] = userByToken._id;
 
+    if (body.data.qty) {
+      let inventory = await Inventory.findOne({ _id: body.inventoryId });
+
+      let qtyData = body.data.qty;
+
+      let qtyStatusData = "";
+
+      if (qtyData.last < 0) {
+        qtyStatusData = "outOfStock";
+      } else if (qtyData.last <= inventory.qty.min) {
+        qtyStatusData = "almostOut";
+      } else {
+        qtyStatusData = "available";
+      }
+
+      body.data["qty"]["status"] = qtyStatusData;
+    }
+
     return new Promise((resolve, reject) => {
       Inventory.findByIdAndUpdate(body.inventoryId, body.data, { new: true })
         .then((result) => {
