@@ -5,6 +5,7 @@ const fs = require("fs");
 
 module.exports = {
   generateExcelTemplate: (properties) => {
+    console.log("masuk function excel");
     const { title, worksheet, workbook, data, hiddenSheets } = properties;
 
     const workbookObj = new ExcelJS.Workbook();

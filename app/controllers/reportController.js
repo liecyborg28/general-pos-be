@@ -9,6 +9,27 @@ const itemResource = require("../repository/resources/itemResource");
 const transactionResource = require("../repository/resources/transactionResource");
 const dataController = require("./utils/dataController");
 
+function convertToLocaleISOString(date, type) {
+  let isoString = new Date(date).toISOString();
+  let convertDate = new Date(isoString);
+  if (type !== "start" && type !== "end") {
+    throw new Error('Parameter "type" harus "start" atau "end"');
+  }
+
+  convertDate.setHours(date.getHours() + 7);
+
+  let fixDate = convertDate
+    .toISOString()
+    .replace(
+      /T\d{2}:\d{2}:\d{2}.\d{3}Z/,
+      type === "start" ? "T00:00:00.000Z" : "T23:59:59.999Z"
+    );
+
+  // console.log("fixDate", fixDate);
+
+  return fixDate;
+}
+
 function countItemSales(transactions) {
   const groupedItems = {};
 
@@ -198,8 +219,15 @@ function getClosingTransactions(transactions) {
 
 module.exports = {
   getItemSalesReport: async (req) => {
-    let defaultFrom = convertToLocaleISOString(new Date(), "start");
-    let defaultTo = convertToLocaleISOString(new Date(), "end");
+    let defaultFrom = convertToLocaleISOString(
+      new Date(req.query.from),
+      "start"
+    );
+
+    let defaultTo =
+      req.query.to !== new Date(req.query.to).toISOString()
+        ? convertToLocaleISOString(new Date(req.query.to), "end")
+        : req.query.to;
 
     let pageKey = req.query.pageKey ? req.query.pageKey : 1;
     let pageSize = req.query.pageSize ? req.query.pageSize : null;
@@ -308,8 +336,15 @@ module.exports = {
   },
 
   getTransactionSalesReport: async (req) => {
-    let defaultFrom = convertToLocaleISOString(new Date(), "start");
-    let defaultTo = convertToLocaleISOString(new Date(), "end");
+    let defaultFrom = convertToLocaleISOString(
+      new Date(req.query.from),
+      "start"
+    );
+
+    let defaultTo =
+      req.query.to !== new Date(req.query.to).toISOString()
+        ? convertToLocaleISOString(new Date(req.query.to), "end")
+        : req.query.to;
 
     let pageKey = req.query.pageKey ? req.query.pageKey : 1;
     let pageSize = req.query.pageSize ? req.query.pageSize : null;
@@ -333,6 +368,7 @@ module.exports = {
       { businessId: req.query.businessId },
       Transaction
     );
+
     let outletIdIsExist = await dataController.isExist(
       { outletId: req.query.outletId },
       Transaction
@@ -359,11 +395,13 @@ module.exports = {
             outletId: req.query.outletId,
             status: transactionResource.STATUS.COMPLETED.value,
             createdAt: {
-              $gte: req.query.from || defaultFrom,
-              $lte: req.query.to || defaultTo,
+              $gte: defaultFrom,
+              $lte: defaultTo,
             },
           }
         : {};
+
+      console.log("pipeline", pipeline);
 
       pageController
         .paginate(pageKey, pageSize, pipeline, Transaction)
@@ -390,6 +428,8 @@ module.exports = {
                 })
               );
 
+              console.log("transformed data", data);
+
               const properties = {
                 workbook: "Laporan_Transaksi_Penjualan",
                 worksheet: "Laporan Transaksi Penjualan",
@@ -397,9 +437,12 @@ module.exports = {
                 data: transformedData,
               };
 
+              console.log("excel properties", properties);
+
               excelController
                 .generateExcelTemplate(properties)
                 .then((result) => {
+                  console.log("excel result", result);
                   resolve({
                     error: false,
                     data: {
@@ -409,10 +452,12 @@ module.exports = {
                   });
                 })
                 .catch((error) => {
+                  console.log("error ini excel");
                   reject(error);
                 });
             })
             .catch((err) => {
+              console.log("woi ini error ya");
               reject({ error: true, message: err });
             });
         })
@@ -423,8 +468,15 @@ module.exports = {
   },
 
   getClosingReport: async (req) => {
-    let defaultFrom = convertToLocaleISOString(new Date(), "start");
-    let defaultTo = convertToLocaleISOString(new Date(), "end");
+    let defaultFrom = convertToLocaleISOString(
+      new Date(req.query.from),
+      "start"
+    );
+
+    let defaultTo =
+      req.query.to !== new Date(req.query.to).toISOString()
+        ? convertToLocaleISOString(new Date(req.query.to), "end")
+        : req.query.to;
 
     let pageKey = req.query.pageKey ? req.query.pageKey : 1;
     let pageSize = req.query.pageSize ? req.query.pageSize : null;
