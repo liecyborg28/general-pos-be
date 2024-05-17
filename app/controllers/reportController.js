@@ -1,6 +1,7 @@
 const ExcelJS = require("exceljs");
 const excelController = require("./utils/excelController");
 const Transaction = require("../models/transactionModel");
+const Item = require("../models/itemModel");
 const pageController = require("./utils/pageController");
 const errorMessages = require("../repository/messages/errorMessages");
 const successMessages = require("../repository/messages/successMessages");
@@ -42,7 +43,7 @@ function countItemSales(transactions) {
         );
 
         groupedItems[key] = {
-          category: detail.itemId.category,
+          category: detail.itemId.categoryId.name,
           date: date,
           name: detail.itemId.name,
           totalQty: detail.qty,
@@ -59,16 +60,16 @@ function countItemSales(transactions) {
   return result;
 }
 
-function getConstId(categoryName, language, constant) {
-  const lowerCaseCategoryName = categoryName.toLowerCase();
-  for (const item of constant) {
-    if (item[language] && item.value.toLowerCase() === lowerCaseCategoryName) {
-      return item[language];
-    }
-  }
+// function getConstId(categoryName, language, constant) {
+//   const lowerCaseCategoryName = categoryName.toLowerCase();
+//   for (const item of constant) {
+//     if (item[language] && item.value.toLowerCase() === lowerCaseCategoryName) {
+//       return item[language];
+//     }
+//   }
 
-  return "Not found";
-}
+//   return "Not found";
+// }
 
 function getAccumulateEachTransaction(transactions) {
   const result = [];
@@ -278,8 +279,8 @@ module.exports = {
             outletId: req.query.outletId,
             status: transactionResource.STATUS.COMPLETED.value,
             createdAt: {
-              $gte: req.query.from || defaultFrom,
-              $lte: req.query.to || defaultTo,
+              $gte: defaultFrom,
+              $lte: defaultTo,
             },
           }
         : {};
@@ -291,38 +292,46 @@ module.exports = {
             path: "businessId outletId userId details.itemId",
           })
             .then((data) => {
-              let categoryItem = itemResource.CATEGORY;
-              let transformedData = countItemSales(data)
-                .sort((a, b) => b.totalQty - a.totalQty)
-                .map((e, i) => ({
-                  "No.": i + 1,
-                  Tanggal: e.date,
-                  "Nama Menu": e.name,
-                  Kategori: getConstId(e.category, "id", categoryItem),
-                  "Total Item Terjual": e.totalQty,
-                  "Total Penjualan Kotor": e.grossSales,
-                }));
-
-              const properties = {
-                workbook: "Laporan_Penjualan_Item",
-                worksheet: "Laporan Penjualan Item",
-                title: "Laporan Penjualan Item",
-                data: transformedData,
-              };
-
-              excelController
-                .generateExcelTemplate(properties)
+              Transaction.populate(data, {
+                path: "details.itemId.categoryId",
+              })
                 .then((result) => {
-                  resolve({
-                    error: false,
-                    data: {
-                      obj: countItemSales(data),
-                      excel: result.data.excel,
-                    },
-                  });
+                  let transformedData = countItemSales(result)
+                    .sort((a, b) => b.totalQty - a.totalQty)
+                    .map((e, i) => ({
+                      "No.": i + 1,
+                      Tanggal: e.date,
+                      "Nama Menu": e.name,
+                      Kategori: e.category,
+                      "Total Item Terjual": e.totalQty,
+                      "Total Penjualan Kotor": e.grossSales,
+                    }));
+
+                  const properties = {
+                    workbook: "Laporan_Penjualan_Item",
+                    worksheet: "Laporan Penjualan Item",
+                    title: "Laporan Penjualan Item",
+                    data: transformedData,
+                    hiddenSheets: [],
+                  };
+
+                  excelController
+                    .generateExcelTemplate(properties)
+                    .then((result) => {
+                      resolve({
+                        error: false,
+                        data: {
+                          obj: countItemSales(data),
+                          excel: result.data.excel,
+                        },
+                      });
+                    })
+                    .catch((error) => {
+                      reject(error);
+                    });
                 })
-                .catch((error) => {
-                  reject(error);
+                .catch((err) => {
+                  reject({ error: true, message: err });
                 });
             })
             .catch((err) => {
@@ -401,8 +410,6 @@ module.exports = {
           }
         : {};
 
-      console.log("pipeline", pipeline);
-
       pageController
         .paginate(pageKey, pageSize, pipeline, Transaction)
         .then((transactions) => {
@@ -428,21 +435,17 @@ module.exports = {
                 })
               );
 
-              console.log("transformed data", data);
-
               const properties = {
                 workbook: "Laporan_Transaksi_Penjualan",
                 worksheet: "Laporan Transaksi Penjualan",
                 title: "Laporan Transaksi Penjualan",
                 data: transformedData,
+                hiddenSheets: [],
               };
-
-              console.log("excel properties", properties);
 
               excelController
                 .generateExcelTemplate(properties)
                 .then((result) => {
-                  console.log("excel result", result);
                   resolve({
                     error: false,
                     data: {
@@ -452,12 +455,10 @@ module.exports = {
                   });
                 })
                 .catch((error) => {
-                  console.log("error ini excel");
                   reject(error);
                 });
             })
             .catch((err) => {
-              console.log("woi ini error ya");
               reject({ error: true, message: err });
             });
         })
@@ -525,8 +526,8 @@ module.exports = {
             businessId: req.query.businessId,
             outletId: req.query.outletId,
             createdAt: {
-              $gte: req.query.from || defaultFrom,
-              $lte: req.query.to || defaultTo,
+              $gte: defaultFrom,
+              $lte: defaultTo,
             },
           }
         : {};
@@ -565,6 +566,7 @@ module.exports = {
                 worksheet: "Laporan Closing",
                 title: "Laporan Closing",
                 data: transformedData,
+                hiddenSheets: [],
               };
 
               excelController
