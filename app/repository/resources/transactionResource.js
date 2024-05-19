@@ -51,7 +51,7 @@ module.exports = {
       id: "Mesin EDC",
     },
   ],
-  ADVANCEMENT: [
+  OFFERS: [
     {
       type: "fixAmount",
       title: {

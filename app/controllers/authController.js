@@ -64,7 +64,7 @@ module.exports = {
             }
 
             pageController
-              .paginate(1, null, {}, Business)
+              .paginate(1, null, { status: { $ne: "deleted" } }, Business)
               .then((businesses) => {
                 resolve({
                   error: false,

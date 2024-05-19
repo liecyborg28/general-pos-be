@@ -37,7 +37,7 @@ module.exports = {
 
     if (isBodyValid()) {
       let nameIsExist = await dataController.isExist(
-        { name: body.name },
+        { name: body.name, status: { $ne: "deleted" } },
         Business
       );
 
@@ -61,6 +61,7 @@ module.exports = {
               by: userByToken._id,
               data: result,
             });
+
             resolve({
               error: false,
               data: result,

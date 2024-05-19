@@ -10,9 +10,10 @@ const logController = require("./logController");
 
 module.exports = {
   getBulkInventoryTemplate: async (req) => {
-    let businessId = req.query.id || null;
+    let businessId = req.query.businessId || null;
+    let categoryId = req.query.categoryId || null;
 
-    if (!businessId) {
+    if (!businessId || !categoryId || !denomination) {
       return Promise.reject({
         error: true,
         message: errorMessages.INVALID_DATA,
