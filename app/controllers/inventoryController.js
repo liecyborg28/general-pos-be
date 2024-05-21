@@ -12,6 +12,7 @@ module.exports = {
   getBulkInventoryTemplate: async (req) => {
     let businessId = req.query.businessId || null;
     let categoryId = req.query.categoryId || null;
+    let denomination = req.query.denomination || null;
 
     if (!businessId || !categoryId || !denomination) {
       return Promise.reject({
@@ -37,7 +38,7 @@ module.exports = {
         hiddenSheets: [
           {
             name: "denomination",
-            value: req.query.denomination,
+            value: denomination,
           },
           {
             name: "businessId",
@@ -62,6 +63,7 @@ module.exports = {
   },
 
   createBulkInventory: async (req) => {
+    console.log("req", req);
     let dateISOString = new Date().toISOString();
 
     const bearerHeader = req.headers["authorization"];
