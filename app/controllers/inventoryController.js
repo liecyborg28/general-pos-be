@@ -23,9 +23,9 @@ module.exports = {
 
     return new Promise(async (resolve, reject) => {
       const properties = {
-        workbook: "Template_Upload_Daftar_Inventory",
-        worksheet: "Daftar Inventory",
-        title: "Daftar Inventory",
+        workbook: "Template_Upload_Daftar_Persediaan",
+        worksheet: "Daftar Persediaan",
+        title: "Daftar Persediaan",
         data: [
           {
             no: 1,
@@ -63,7 +63,6 @@ module.exports = {
   },
 
   createBulkInventory: async (req) => {
-    console.log("req", req);
     let dateISOString = new Date().toISOString();
 
     const bearerHeader = req.headers["authorization"];

@@ -17,9 +17,9 @@ module.exports = {
     if (businessId && categoryId) {
       return new Promise(async (resolve, reject) => {
         const properties = {
-          workbook: "Template_Upload_Daftar_Item",
-          worksheet: "Daftar Item",
-          title: "Daftar Item",
+          workbook: "Template_Upload_Daftar_Menu",
+          worksheet: "Daftar Menu",
+          title: "Daftar Menu",
           data: [
             {
               no: 1,

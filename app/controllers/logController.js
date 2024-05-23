@@ -7,11 +7,11 @@ module.exports = {
     new Log(req)
       .save()
       .then((result) => {
-        console.log({
-          error: false,
-          // data: result,
-          message: successMessages.LOG_CREATED_SUCCESS,
-        });
+        // console.log({
+        //   error: false,
+        //   data: result,
+        //   message: successMessages.LOG_CREATED_SUCCESS,
+        // });
       })
       .catch((err) => {
         console.log({ error: true, message: err });
