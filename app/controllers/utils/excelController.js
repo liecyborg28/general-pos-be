@@ -117,7 +117,6 @@ module.exports = {
   convertExcelToObject: (startColumn, endColumn, worksheet) => {
     const data = [];
     const hiddenSheets = [];
-
     let currentRow = 3;
 
     while (true) {
@@ -126,10 +125,14 @@ module.exports = {
 
       for (let colNumber = startColumn; colNumber <= endColumn; colNumber++) {
         const cellValue = worksheet.getRow(currentRow).getCell(colNumber).value;
-        const columnHeader = worksheet
-          .getRow(2)
-          .getCell(colNumber)
-          .value.trim();
+        let columnHeader = worksheet.getRow(2).getCell(colNumber).value;
+
+        // Pastikan columnHeader tidak null atau undefined sebelum trim
+        if (columnHeader != null) {
+          columnHeader = String(columnHeader).trim();
+        } else {
+          columnHeader = `Column${colNumber}`; // Bisa memberikan nama default jika header null atau undefined
+        }
 
         if (cellValue !== null && cellValue !== undefined) {
           rowData[columnHeader] = cellValue;

@@ -77,7 +77,6 @@ module.exports = {
         const workbook = new ExcelJS.Workbook();
         workbook.xlsx.load(req.file.buffer).then(async () => {
           const worksheet = workbook.getWorksheet(1);
-
           const { data, hiddenSheets } = excelController.convertExcelToObject(
             2,
             7,
@@ -97,11 +96,11 @@ module.exports = {
           const transformedData = data.map((e) => {
             return {
               status: "active",
-              businessId,
-              categoryId,
-              denomination,
+              businessId: businessId.value,
+              categoryId: categoryId.value,
+              denomination: denomination.value,
               name: e.name,
-              imageUrl: e.imageUrl,
+              imageUrl: e.imageUrl ? e.imageUrl : "",
               qty: {
                 status: "available",
                 early: e.early,

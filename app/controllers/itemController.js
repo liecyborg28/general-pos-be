@@ -87,11 +87,11 @@ module.exports = {
           const transformedData = data.map((e) => {
             return {
               status: "active",
-              businessId,
-              categoryId,
+              businessId: businessId.value,
+              categoryId: categoryId.value,
               name: e.name,
               price: e.price,
-              imageUrl: e.imageUrl ? e.imageUrl.text : null,
+              imageUrl: e.imageUrl ? e.imageUrl : "",
               taxed: true,
               charged: true,
               changedBy: userByToken._id,

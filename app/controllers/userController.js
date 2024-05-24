@@ -81,8 +81,8 @@ const UserController = {
               status: "active",
               username: e.username,
               password: e.password,
-              email: e.email || null,
-              imageUrl: e.imageUrl.text,
+              email: e.email ? e.email : "",
+              imageUrl: e.imageUrl ? e.imageUrl : "",
               // generate by BE
               createdAt: dateISOString,
               updatedAt: dateISOString,
