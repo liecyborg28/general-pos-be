@@ -21,7 +21,7 @@ const UserController = {
     if (type) {
       return new Promise((resolve, reject) => {
         const properties = {
-          workbook: `Template_Upload_Daftar_Pengguna ${type}`,
+          workbook: `Template_Upload_Daftar_Pengguna`,
           worksheet: "Daftar Pengguna",
           title: "Daftar Pengguna",
           data: [

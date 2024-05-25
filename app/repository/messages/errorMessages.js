@@ -88,6 +88,10 @@ module.exports = {
     en: "Some data is not saved because it is duplicate!",
     id: "Sebagian data tidak tersimpan karena duplikat",
   },
+  SOMETHING_WENT_WRONG: {
+    en: "Something went wrong!",
+    id: "Terjadi kesalahan pada sistem!",
+  },
   // T
   TOKEN_IS_REQUIRED: {
     en: "Token is required!",
