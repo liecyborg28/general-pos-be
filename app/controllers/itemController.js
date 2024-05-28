@@ -103,7 +103,11 @@ module.exports = {
           const promises = transformedData.map(async (item) => {
             try {
               let existingItem = await dataController.isExist(
-                { businessId: item.businessId, name: item.name },
+                {
+                  businessId: item.businessId,
+                  name: item.name,
+                  status: { $ne: "deleted" },
+                },
                 Item
               );
 
