@@ -13,6 +13,7 @@ const PoolTable = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
+  type: String,
   taxed: Boolean,
   charged: Boolean,
   status: String,
