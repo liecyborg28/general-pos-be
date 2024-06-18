@@ -19,6 +19,7 @@ const User = mongoose.Schema({
   ],
   access: [],
   auth: {},
+  balance: Number,
   type: String,
   status: String,
   imageUrl: String,

@@ -1,0 +1,21 @@
+const mongoose = require("mongoose");
+
+const dbConfig = require("./../../config/dbConfig");
+
+mongoose.connect(dbConfig.url);
+
+const BalanceTransaction = mongoose.Schema({
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
+  type: String,
+  status: String,
+  amount: Number,
+  fee: Number,
+  paymentMethod: String,
+  createdAt: String,
+  updatedAt: String,
+});
+
+module.exports = mongoose.model("BalanceTransaction", BalanceTransaction);
