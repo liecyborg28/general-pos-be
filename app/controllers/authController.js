@@ -42,6 +42,62 @@ module.exports = {
       }
     });
   },
+  customerLogin: (req) => {
+    return new Promise((resolve, reject) => {
+      User.findOne({
+        status: { $ne: "deleted" },
+        $or: [{ username: req.body.email, password: req.body.password }],
+      })
+        .catch((err) => {
+          return Promise.reject({ error: true, message: err });
+        })
+        .then((data) => {
+          if (data) {
+            if (data.status === "inactive") {
+              reject({
+                error: true,
+                message: errorMessages.ACCOUNT_INACTIVE,
+              });
+            }
+
+            pageController
+              .paginate(1, null, { status: { $ne: "deleted" } }, Business)
+              .then((businesses) => {
+                resolve({
+                  error: false,
+                  userData: {
+                    type: data.type,
+                    name: data.name,
+                    gender: data.gender,
+                    imageUrl: data.imageUrl,
+                    userId: data._id,
+                    access: [],
+                    businessIds: [],
+                    outletIds: [],
+                    auth: {
+                      accessToken: data.auth.accessToken,
+                      expiredAt: authUtils.generateTokenExpirateAt(7),
+                    },
+                  },
+                  businessData: businesses.data.map((e) => ({
+                    id: e._id,
+                    name: e.name,
+                    imageUrl: e.imageUrl,
+                  })),
+                });
+              })
+              .catch((err) => {
+                reject({ error: true, message: err });
+              });
+          } else {
+            reject({
+              error: false,
+              message: errorMessages.LOGIN_FAILED,
+            });
+          }
+        });
+    });
+  },
   login: (req) => {
     return new Promise((resolve, reject) => {
       User.findOne({

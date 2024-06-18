@@ -22,6 +22,10 @@ module.exports = {
   // D
 
   // E
+  EMAIL_ALREADY_EXIST: {
+    en: "Email already exists",
+    id: "Email sudah terdaftar!",
+  },
   EXCEL_UPLOAD_ERROR: {
     en: "An error occurred while uploading and converting the Excel file",
     id: "Terjadi kesalahan saat mengunggah dan mengonversi file Excel",

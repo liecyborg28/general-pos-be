@@ -9,6 +9,10 @@ const PoolTable = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Business",
   },
+  categoryId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Category",
+  },
   changedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",

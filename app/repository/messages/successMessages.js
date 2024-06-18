@@ -67,7 +67,10 @@ module.exports = {
     id: "Outlet berhasil dibuat!",
   },
   // P
-
+  POOL_TABLE_SUCCESS: {
+    en: "Pool table created successfully!",
+    id: "Meja billiard berhasil dibuat!",
+  },
   // Q
 
   // R

@@ -140,6 +140,72 @@ const UserController = {
     });
   },
 
+  registerUser: async (body) => {
+    let dateISOString = new Date().toISOString();
+    let isBodyValid = () => {
+      return (
+        body.gender &&
+        body.name &&
+        body.phonenumber &&
+        body.email &&
+        body.password
+      );
+    };
+
+    let payload = isBodyValid()
+      ? {
+          type: "customer",
+          status: "active",
+          imageUrl: "",
+          gender: body.gender,
+          name: body.name,
+          phonenumber: body.phonenumber,
+          email: body.email,
+          password: body.password,
+          createdAt: dateISOString,
+          updatedAt: dateISOString,
+          auth: authController.generateAuth(),
+        }
+      : {
+          error: true,
+          message: errorMessages.INVALID_DATA,
+        };
+
+    if (isBodyValid()) {
+      let emailIsExist = await dataController.isExist(
+        {
+          username: body.email,
+          status: { $ne: "deleted" },
+        },
+        User
+      );
+
+      if (emailIsExist) {
+        return Promise.reject({
+          error: true,
+          message: errorMessages.EMAIL_ALREADY_EXIST,
+        });
+      }
+
+      return new Promise((resolve, reject) => {
+        new User(payload)
+          .save()
+          .then((result) => {
+            resolve({
+              error: false,
+              data: result,
+              message: successMessages.USER_CREATED_SUCCESS,
+            });
+          })
+          .catch((err) => {
+            reject({ error: true, message: err });
+          });
+      });
+    } else {
+      return Promise.reject(payload);
+    }
+  },
+
   createUser: async (body) => {
     let dateISOString = new Date().toISOString();
     let isBodyValid = () => {
@@ -148,7 +214,7 @@ const UserController = {
         body.gender &&
         body.name &&
         body.phonenumber &&
-        body.username &&
+        body.email &&
         body.password &&
         body.businessIds &&
         body.status &&
