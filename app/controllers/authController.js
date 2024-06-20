@@ -45,8 +45,9 @@ module.exports = {
   customerLogin: (req) => {
     return new Promise((resolve, reject) => {
       User.findOne({
+        type: "customer",
         status: { $ne: "deleted" },
-        $or: [{ username: req.body.email, password: req.body.password }],
+        $or: [{ email: req.body.email, password: req.body.password }],
       })
         .catch((err) => {
           return Promise.reject({ error: true, message: err });
@@ -66,6 +67,8 @@ module.exports = {
                 resolve({
                   error: false,
                   userData: {
+                    email: data.email,
+                    phonenumber: data.phonenumber,
                     type: data.type,
                     name: data.name,
                     gender: data.gender,

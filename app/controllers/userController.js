@@ -174,7 +174,7 @@ const UserController = {
     if (isBodyValid()) {
       let emailIsExist = await dataController.isExist(
         {
-          username: body.email,
+          email: body.email,
           status: { $ne: "deleted" },
         },
         User
@@ -203,80 +203,6 @@ const UserController = {
       });
     } else {
       return Promise.reject(payload);
-    }
-  },
-
-  updateProfileUser: async (body) => {
-    let dateISOString = new Date().toISOString();
-    let phonenumberIsExist = await dataController.isExist(
-      {
-        phonenumber: body.data.phonenumber,
-        _id: { $ne: body.userId },
-        status: { $ne: "deleted" },
-      },
-      User
-    );
-
-    let usernameIsExist = await dataController.isExist(
-      {
-        username: body.data.username,
-        _id: { $ne: body.userId },
-        status: { $ne: "deleted" },
-      },
-      User
-    );
-
-    let emailIsExist = await dataController.isExist(
-      {
-        username: body.data.username,
-        _id: { $ne: body.userId },
-        status: { $ne: "deleted" },
-      },
-      User
-    );
-
-    if (phonenumberIsExist) {
-      return Promise.reject({
-        error: true,
-        message: errorMessages.PHONE_ALREADY_EXISTS,
-      });
-    }
-
-    if (usernameIsExist) {
-      return Promise.reject({
-        error: true,
-        message: errorMessages.USERNAME_ALREADY_EXISTS,
-      });
-    }
-
-    if (emailIsExist) {
-      return Promise.reject({
-        error: true,
-        message: errorMessages.EMAIL_ALREADY_EXIST,
-      });
-    }
-
-    if (!body.userId) {
-      return Promise.reject({
-        error: true,
-        message: errorMessages.INVALID_DATA,
-      });
-    } else {
-      body.data["updatedAt"] = dateISOString;
-
-      return new Promise((resolve, reject) => {
-        User.findByIdAndUpdate(body.userId, body.data, { new: true })
-          .then((result) => {
-            resolve({
-              error: false,
-              data: result,
-              message: successMessages.DATA_SUCCESS_UPDATED,
-            });
-          })
-          .catch((err) => {
-            reject({ error: true, message: err });
-          });
-      });
     }
   },
 

@@ -43,6 +43,17 @@ router.post("/users/bulk", upload.single("file"), (req, res) => {
     });
 });
 
+router.post("/users/register", (req, res) => {
+  userController
+    .registerUser(req.body)
+    .then((value) => {
+      res.status(200).send(value);
+    })
+    .catch((err) => {
+      res.status(500).send(err);
+    });
+});
+
 router
   .route("/users")
   .get((req, res) => {
