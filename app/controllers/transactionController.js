@@ -68,7 +68,6 @@ module.exports = {
     let payload = isBodyValid()
       ? {
           status: body.status,
-          orderStatus: body.orderStatus,
           businessId: body.businessId,
           outletId: body.outletId,
           userId: body.userId,

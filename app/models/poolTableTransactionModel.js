@@ -25,6 +25,8 @@ const PoolTableTransaction = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "PoolTable",
       },
+      poolTableName: String,
+      poolTableFloor: Number,
       duration: String,
       durationType: String,
       price: Number,

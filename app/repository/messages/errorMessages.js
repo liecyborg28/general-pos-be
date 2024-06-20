@@ -17,6 +17,10 @@ module.exports = {
     en: "Business ID not found!",
     id: "Business ID tidak ditemukan!",
   },
+  BALANCE_NOT_ENOUGH: {
+    en: "Balance is not enough!",
+    id: "Saldo tidak mencukupi!",
+  },
   // C
 
   // D
