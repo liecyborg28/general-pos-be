@@ -17,6 +17,10 @@ const PoolTableTransaction = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
+  customerId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
   discounts: [{ title: String, amount: Number }],
   costs: [{ title: String, amount: Number }],
   details: [

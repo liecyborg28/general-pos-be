@@ -43,12 +43,14 @@ module.exports = {
     let dateISOString = new Date().toISOString();
     let body = req.body;
 
-    const bearerHeader = req.headers["authorization"];
-    const bearerToken = bearerHeader.split(" ")[1];
+    // const bearerHeader = req.headers["authorization"];
+    // const bearerToken = bearerHeader.split(" ")[1];
 
-    let userByToken = await User.findOne({
-      "auth.accessToken": bearerToken,
-    });
+    // let userByToken = await User.findOne({
+    //   "auth.accessToken": bearerToken,
+    // });
+
+    let customer = await User.findOne({ _id: body.customerId });
 
     let isBodyValid = () => {
       return (
@@ -92,6 +94,16 @@ module.exports = {
 
     if (isBodyValid()) {
       return new Promise(async (resolve, reject) => {
+        if (
+          body.paymentMethod === "accountBalance" &&
+          customer.balance < body.paymentAmount
+        ) {
+          reject({
+            error: true,
+            message: errorMessages.BALANCE_NOT_ENOUGH,
+          });
+        }
+
         let outOfStockList = [];
         let almostOutList = [];
         let availableList = [];
@@ -181,7 +193,7 @@ module.exports = {
 
         await Promise.all(promises);
 
-        new Transaction(payload).save().then((result) => {
+        new Transaction(payload).save().then(async (result) => {
           logController.createLog({
             createdAt: dateISOString,
             title: "Create Transaction",
@@ -191,6 +203,15 @@ module.exports = {
             by: userByToken._id,
             data: result,
           });
+
+          if (body.customerId && body.paymentMethod === "accountBalance") {
+            await userController.updateUser({
+              userId: body.customerId,
+              data: {
+                balance: customer.balance - body.paymentAmount,
+              },
+            });
+          }
 
           resolve({
             error: false,
