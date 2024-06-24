@@ -1,6 +1,7 @@
 const ExcelJS = require("exceljs");
 const excelController = require("./utils/excelController");
 const User = require("../models/userModel");
+const Business = require("../models/businessModel");
 const authController = require("./authController");
 const dataController = require("./utils/dataController");
 const pageController = require("./utils/pageController");
@@ -143,13 +144,7 @@ const UserController = {
   registerUser: async (body) => {
     let dateISOString = new Date().toISOString();
     let isBodyValid = () => {
-      return (
-        body.gender &&
-        body.name &&
-        body.phonenumber &&
-        body.email &&
-        body.password
-      );
+      return body.name && body.phonenumber && body.email && body.password;
     };
 
     let payload = isBodyValid()
@@ -157,7 +152,7 @@ const UserController = {
           type: "customer",
           status: "active",
           imageUrl: "",
-          gender: body.gender,
+          gender: "",
           name: body.name,
           phonenumber: body.phonenumber,
           email: body.email,
@@ -191,11 +186,23 @@ const UserController = {
         new User(payload)
           .save()
           .then((result) => {
-            resolve({
-              error: false,
-              data: result,
-              message: successMessages.USER_CREATED_SUCCESS,
-            });
+            pageController
+              .paginate(1, null, { status: { $ne: "deleted" } }, Business)
+              .then((businesses) => {
+                resolve({
+                  error: false,
+                  userData: result,
+                  businessData: businesses.data.map((e) => ({
+                    id: e._id,
+                    name: e.name,
+                    imageUrl: e.imageUrl,
+                  })),
+                  message: successMessages.USER_CREATED_SUCCESS,
+                });
+              })
+              .catch((err) => {
+                reject({ error: true, message: err });
+              });
           })
           .catch((err) => {
             reject({ error: true, message: err });
