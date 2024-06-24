@@ -67,13 +67,15 @@ module.exports = {
                 resolve({
                   error: false,
                   userData: {
+                    balance: data.balance,
                     email: data.email,
                     phonenumber: data.phonenumber,
                     type: data.type,
                     name: data.name,
                     gender: data.gender,
+                    password: data.password,
                     imageUrl: data.imageUrl,
-                    userId: data._id,
+                    _id: data._id,
                     access: [],
                     businessIds: [],
                     outletIds: [],
@@ -128,6 +130,7 @@ module.exports = {
                 resolve({
                   error: false,
                   userData: {
+                    balance: data.balance,
                     type: data.type,
                     name: data.name,
                     gender: data.gender,

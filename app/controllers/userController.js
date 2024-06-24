@@ -153,6 +153,7 @@ const UserController = {
           status: "active",
           imageUrl: "",
           gender: "",
+          username: "",
           name: body.name,
           phonenumber: body.phonenumber,
           email: body.email,
@@ -160,6 +161,10 @@ const UserController = {
           createdAt: dateISOString,
           updatedAt: dateISOString,
           auth: authController.generateAuth(),
+          balance: 0,
+          businessIds: [],
+          outletIds: [],
+          access: [],
         }
       : {
           error: true,
@@ -392,37 +397,37 @@ const UserController = {
 
   updateUser: async (body) => {
     let dateISOString = new Date().toISOString();
-    let phonenumberIsExist = await dataController.isExist(
-      {
-        phonenumber: body.data.phonenumber,
-        _id: { $ne: body.userId },
-        status: { $ne: "deleted" },
-      },
-      User
-    );
+    // let phonenumberIsExist = await dataController.isExist(
+    //   {
+    //     phonenumber: body.data.phonenumber,
+    //     _id: { $ne: body.userId },
+    //     status: { $ne: "deleted" },
+    //   },
+    //   User
+    // );
 
-    let usernameIsExist = await dataController.isExist(
-      {
-        username: body.data.username,
-        _id: { $ne: body.userId },
-        status: { $ne: "deleted" },
-      },
-      User
-    );
+    // let usernameIsExist = await dataController.isExist(
+    //   {
+    //     username: body.data.username,
+    //     _id: { $ne: body.userId },
+    //     status: { $ne: "deleted" },
+    //   },
+    //   User
+    // );
 
-    if (phonenumberIsExist) {
-      return Promise.reject({
-        error: true,
-        message: errorMessages.PHONE_ALREADY_EXISTS,
-      });
-    }
+    // if (phonenumberIsExist) {
+    //   return Promise.reject({
+    //     error: true,
+    //     message: errorMessages.PHONE_ALREADY_EXISTS,
+    //   });
+    // }
 
-    if (usernameIsExist) {
-      return Promise.reject({
-        error: true,
-        message: errorMessages.USERNAME_ALREADY_EXISTS,
-      });
-    }
+    // if (usernameIsExist) {
+    //   return Promise.reject({
+    //     error: true,
+    //     message: errorMessages.USERNAME_ALREADY_EXISTS,
+    //   });
+    // }
 
     if (!body.userId) {
       return Promise.reject({
