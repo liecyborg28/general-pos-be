@@ -4,6 +4,7 @@ const Inventory = require("../models/inventoryModel");
 const Transaction = require("../models/transactionModel");
 const pageController = require("./utils/pageController");
 const itemController = require("./itemController");
+const userController = require("./userController");
 const inventoryController = require("./inventoryController");
 const errorMessages = require("../repository/messages/errorMessages");
 const successMessages = require("../repository/messages/successMessages");
@@ -28,7 +29,17 @@ module.exports = {
     };
 
     if (isBodyValid()) {
-      // Logic saat ingin request transaksi ke payment gateway
+      // Logic saat ingin request transaksi ke payment gateway sampai berhasil simpan di sini
+
+      // update user balance
+      userController.updateUser({
+        body: {
+          userId: userByToken._id,
+          data: {
+            balance: userByToken.balance + body.balance,
+          },
+        },
+      });
     } else {
       return Promise.reject(payload);
     }
