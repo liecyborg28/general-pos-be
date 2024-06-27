@@ -9,6 +9,7 @@ const BalanceTransaction = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
+  tag: String,
   invoiceId: String,
   status: String,
   amount: Number,

@@ -39,6 +39,7 @@ module.exports = {
           amount: body.amount,
           fee: null,
           paymentMethod: null,
+          tag: "in",
           createdAt: dateISOString,
           updatedAt: dateISOString,
         }
@@ -115,12 +116,13 @@ module.exports = {
     });
 
     let isBodyValid = () => {
-      return body.invoiceId && body.status;
+      return body.invoiceId && body.status && body.tag;
     };
 
     let payload = isBodyValid()
       ? {
           status: body.status,
+          tag: body.tag ? body.tag : null,
         }
       : {
           error: true,
