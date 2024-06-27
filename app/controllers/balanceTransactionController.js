@@ -12,6 +12,21 @@ const logController = require("./logController");
 const balanceTransactionModel = require("../models/balanceTransactionModel");
 const transactionController = require("./transactionController");
 
+function convertToLocaleISOString(date, type) {
+  if (type !== "start" && type !== "end") {
+    throw new Error('Parameter "type" harus "start" atau "end"');
+  }
+
+  // if (type === "start") date.setDate(date.getDate() + 1);
+
+  return date
+    .toISOString()
+    .replace(
+      /T\d{2}:\d{2}:\d{2}.\d{3}Z/,
+      type === "start" ? "T00:00:00.000Z" : "T23:59:59.999Z"
+    );
+}
+
 module.exports = {
   createBalanceTransaction: async (req) => {
     let dateISOString = new Date().toISOString();
@@ -100,6 +115,40 @@ module.exports = {
     isNotEveryQueryNull = () => {
       return req.query.from || req.query.to;
     };
+
+    return new Promise((resolve, reject) => {
+      let pipeline = {
+        createdAt: {
+          $gte: req.query.from
+            ? convertToLocaleISOString(new Date(req.query.from), "start")
+            : defaultFrom,
+          $lte: req.query.to
+            ? convertToLocaleISOString(new Date(req.query.to), "end")
+            : defaultTo,
+        },
+      };
+
+      pageController
+        .paginate(pageKey, pageSize, pipeline, Transaction)
+        .then((transactions) => {
+          BalanceTransaction.populate(transactions.data, {
+            path: "userId",
+          })
+            .then((data) => {
+              resolve({
+                error: false,
+                data: data,
+                count: transactions.count,
+              });
+            })
+            .catch((err) => {
+              reject({ error: true, message: err });
+            });
+        })
+        .catch((err) => {
+          reject({ error: true, message: err });
+        });
+    });
   },
 
   // Update balance transaction digunakan oleh API payment gateway saat ingin update status transaksi nanti untuk bagian pengiriman / request body nya mungkin masih harus disesuaikan lagi mengikuti cara kirim payment gateway.
