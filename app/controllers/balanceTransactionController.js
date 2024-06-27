@@ -12,6 +12,8 @@ const logController = require("./logController");
 const balanceTransactionModel = require("../models/balanceTransactionModel");
 const transactionController = require("./transactionController");
 const paymentGatewayController = require("./utils/paymentGatewayController");
+const crypto = require('crypto'); 
+const config = require('../config/config');
 
 function convertToLocaleISOString(date, type) {
   if (type !== "start" && type !== "end") {
@@ -275,4 +277,88 @@ module.exports = {
       res.status(500).json({ message: 'Failed to process top-up', error: error.message });
     }
   },
+
+  // Endpoint untuk menerima notifikasi dari DOKU
+  handleDokuNotification: async (req, res) => {
+    try {
+      // 1. Verifikasi notifikasi dari DOKU
+      if (!await verifyDokuNotification(req)) {
+        console.error('Invalid DOKU notification signature');
+        return res.status(400).json({ message: 'Invalid notification' });
+      }
+
+      // 2. Dapatkan data transaksi dari request body
+      const transactionData = extractTransactionData(req);
+
+      // 3. Update status transaksi di database
+      await updateBalanceTransaction(transactionData);
+
+      // 4. Kirim response success ke DOKU
+      res.status(200).send('OK');
+    } catch (error) {
+      console.error('Error handling DOKU notification:', error);
+      // Kirim response error ke DOKU
+      res.status(500).send('FAILED');
+    }
+  }
 };
+
+// Fungsi untuk verifikasi notifikasi dari DOKU
+async function verifyDokuNotification(req) {
+  try {
+    const serverKey = config.doku.serverKey; // Ambil server key DOKU dari konfigurasi
+    const requestBody = JSON.stringify(req.body);
+    const words = `${requestBody}${serverKey}`;
+    const expectedSignature = crypto.createHash('sha1').update(words).digest('hex');
+
+    return req.headers['x-doku-signature'] === expectedSignature;
+  } catch (error) {
+    console.error('Error verifying DOKU notification:', error);
+    return false;
+  }
+}
+
+// Fungsi untuk mengambil data transaksi dari request body DOKU
+function extractTransactionData(req) {
+  // Implementasikan sesuai dengan struktur response DOKU
+  return {
+    invoiceNumber: req.body.order.invoice_number, 
+    transactionStatus: req.body.order.status,
+    amount: req.body.order.amount,
+    // ...data lainnya yang ingin diambil 
+  };
+}
+
+//Fungsi untuk mengupdate status transaksi di database
+async function updateBalanceTransaction(transactionData) {
+  try {
+    const updatedTransaction = await BalanceTransaction.findOneAndUpdate(
+      { invoiceId: transactionData.invoiceNumber },
+      {
+        status: transactionData.transactionStatus,
+        //Update data lainnya jika diperlukan 
+        updatedAt: new Date()
+      },
+      { new: true } 
+    );
+
+    if (!updatedTransaction) {
+      console.error('Transaction not found:', transactionData.invoiceNumber);
+      throw new Error(`Transaksi tidak ditemukan: ${transactionData.invoiceNumber}`);
+    }
+
+    console.log('Transaction updated:', updatedTransaction);
+
+    //Menambahkan logika lain di sini berdasarkan status transaksi, misalnya:
+    if (transactionData.transactionStatus === 'SUCCESS') {
+      //Tambahkan saldo user
+    } else if (transactionData.transactionStatus === 'FAILED') {
+      //Kirim notifikasi ke user 
+    } 
+
+  } catch (error) {
+    console.error('Error updating balance transaction:', error);
+    throw error;
+  }
+};
+
