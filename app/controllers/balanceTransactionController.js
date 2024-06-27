@@ -11,6 +11,7 @@ const successMessages = require("../repository/messages/successMessages");
 const logController = require("./logController");
 const balanceTransactionModel = require("../models/balanceTransactionModel");
 const transactionController = require("./transactionController");
+const paymentGatewayController = require("./utils/paymentGatewayController");
 
 function convertToLocaleISOString(date, type) {
   if (type !== "start" && type !== "end") {
@@ -209,6 +210,69 @@ module.exports = {
         });
     } else {
       return Promise.reject(payload);
+    }
+  },
+  // Metode untuk top-up menggunakan DOKU
+  topUp: async (req, res) => {
+    const { amount, invoiceNumber, customerName, email, phoneNumber, paymentMethod } = req.body;
+
+    try {
+      const paymentResponse = await paymentGatewayController.requestPaymentDOKU({ amount, invoiceNumber, customerName, email, phoneNumber, paymentMethod });
+
+      // Proses paymentResponse sesuai kebutuhan
+      // Contoh: Update saldo user, simpan transaksi ke database, dll.
+
+      const dateISOString = new Date().toISOString();
+      const bearerHeader = req.headers["authorization"];
+      const bearerToken = bearerHeader.split(" ")[1];
+
+      // Ambil data user dari token
+      const userByToken = await User.findOne({
+        "auth.accessToken": bearerToken,
+      });
+
+      // Payload adalah data yang akan disimpan ke dalam data balanceTransaction
+      const payload = {
+        userId: userByToken._id,
+        invoiceId: paymentResponse.order.invoice_number,
+        status: paymentResponse.order.status,
+        amount: amount,
+        fee: paymentResponse.order.fee,
+        paymentMethod: paymentResponse.order.payment_method,
+        tag: "in",
+        createdAt: dateISOString,
+        updatedAt: dateISOString,
+      };
+
+      new BalanceTransaction(payload).save().then(async (result) => {
+        logController.createLog({
+          createdAt: dateISOString,
+          title: "Create Balance Transaction",
+          note: "Top Up Balance",
+          type: "balanceTransaction",
+          from: result._id,
+          by: userByToken._id,
+          data: result,
+        });
+
+        // update user balance
+        userController.updateUser({
+          body: {
+            userId: userByToken._id,
+            data: {
+              balance: userByToken.balance + amount,
+            },
+          },
+        });
+
+        res.status(200).json(result);
+      }).catch((error) => {
+        console.error('Error saving balance transaction:', error);
+        res.status(500).json({ message: 'Failed to save balance transaction', error: error.message });
+      });
+    } catch (error) {
+      console.error('Error processing top-up:', error);
+      res.status(500).json({ message: 'Failed to process top-up', error: error.message });
     }
   },
 };
