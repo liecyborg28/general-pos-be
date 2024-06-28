@@ -12,15 +12,15 @@ const logController = require("./logController");
 const balanceTransactionModel = require("../models/balanceTransactionModel");
 const transactionController = require("./transactionController");
 const paymentGatewayController = require("./utils/paymentGatewayController");
-const crypto = require('crypto'); 
-const config = require('../config/config');
+const crypto = require("crypto");
+const config = require("../config/config");
+const Joi = require("joi");
+const logger = require("../utils/logger"); // Gunakan modul logging 
 
 function convertToLocaleISOString(date, type) {
   if (type !== "start" && type !== "end") {
     throw new Error('Parameter "type" harus "start" atau "end"');
   }
-
-  // if (type === "start") date.setDate(date.getDate() + 1);
 
   return date
     .toISOString()
@@ -30,96 +30,122 @@ function convertToLocaleISOString(date, type) {
     );
 }
 
+// Skema validasi untuk topUp 
+const topUpSchema = Joi.object({
+  amount: Joi.number().positive().required(),
+  customerName: Joi.string().required(),
+  email: Joi.string().email().required(),
+  phoneNumber: Joi.string().optional(),
+  paymentMethod: Joi.string().valid('credit_card', '008', '009').required(), // Sesuaikan dengan kode channel DOKU
+});
+
 module.exports = {
+  // Middleware untuk validasi token
+  authenticateUser: async (req, res, next) => {
+    try {
+      const bearerHeader = req.headers["authorization"];
+      if (!bearerHeader) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      const bearerToken = bearerHeader.split(" ")[1];
+      const user = await User.findOne({ "auth.accessToken": bearerToken });
+      if (!user) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+      req.user = user;
+      next();
+    } catch (error) {
+      logger.error("Error authenticating user:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  },
+
   createBalanceTransaction: async (req) => {
-    let dateISOString = new Date().toISOString();
-    let body = req.body;
+    try {
+      let dateISOString = new Date().toISOString();
+      let body = req.body;
 
-    const bearerHeader = req.headers["authorization"];
-    const bearerToken = bearerHeader.split(" ")[1];
+      const bearerHeader = req.headers["authorization"];
+      const bearerToken = bearerHeader.split(" ")[1];
 
-    // Ambil data user dari token
-    let userByToken = await User.findOne({
-      "auth.accessToken": bearerToken,
-    });
+      // Ambil data user dari token
+      let userByToken = await User.findOne({
+        "auth.accessToken": bearerToken,
+      });
 
-    let isBodyValid = () => {
-      // Tambahkan data apa saja yang required saat akan request transaksi ke payment gateway
-      return body.amount;
-    };
+      let isBodyValid = () => {
+        return body.amount;
+      };
 
-    // Payload adalah data yang akan disimpan ke dalam data balanceTransaction
-    let payload = isBodyValid()
-      ? {
-          userId: userByToken._id,
-          invoiceId: null,
-          status: null,
-          amount: body.amount,
-          fee: null,
-          paymentMethod: null,
-          tag: "in",
-          createdAt: dateISOString,
-          updatedAt: dateISOString,
-        }
-      : {
-          error: true,
-          message: errorMessages.INVALID_DATA,
-        };
+      // Payload untuk data balanceTransaction
+      let payload = isBodyValid()
+        ? {
+            userId: userByToken._id,
+            invoiceId: null, // Akan diupdate setelah request ke payment gateway
+            status: null,    // Akan diupdate setelah request ke payment gateway
+            amount: body.amount,
+            fee: null,         // Akan diupdate setelah request ke payment gateway
+            paymentMethod: null, // Akan diupdate setelah request ke payment gateway
+            tag: "in",
+            createdAt: dateISOString,
+            updatedAt: dateISOString,
+          }
+        : {
+            error: true,
+            message: errorMessages.INVALID_DATA,
+          };
 
-    if (isBodyValid()) {
-      // Logic saat ingin request transaksi ke payment gateway sampai berhasil simpan di sini
+      if (isBodyValid()) {
+        // ... (Logika untuk request transaksi ke payment gateway)
 
-      // Dapatkan invoiceId dan status setelah invoice telah dibuat saat request transaksi ke payment gateway telah berhasil
-      let invoiceId = null;
+        // Contoh: 
+        // const paymentResponse = await paymentGatewayController.requestPayment(...);
 
-      let status = null;
+        // Update payload dengan data dari payment gateway response
+        payload.invoiceId = paymentResponse.invoiceId; // Sesuaikan properti response
+        payload.status = paymentResponse.status;       // Sesuaikan properti response
+        payload.fee = paymentResponse.fee;             // Sesuaikan properti response
+        payload.paymentMethod = paymentResponse.paymentMethod; // Sesuaikan properti response
 
-      // Isi payload fee dan paymentMethod dengan data dari API
-      payload["fee"] = null;
-      payload["paymentMethod"] = null;
-      payload["status"] = status;
-      payload["invoiceId"] = invoiceId;
+        const newBalanceTransaction = await new BalanceTransaction(payload).save();
 
-      new BalanceTransaction(payload).save().then(async (result) => {
         logController.createLog({
           createdAt: dateISOString,
           title: "Create Balance Transaction",
           note: "Top Up Balance",
           type: "balanceTransaction",
-          from: result._id,
+          from: newBalanceTransaction._id,
           by: userByToken._id,
-          data: result,
+          data: newBalanceTransaction,
         });
 
-        // update user balance
-        userController.updateUser({
+        // Update saldo user
+        await userController.updateUser({
           body: {
             userId: userByToken._id,
             data: {
-              balance: userByToken.balance + body.balance,
+              balance: userByToken.balance + body.amount, // Update saldo dengan amount
             },
           },
         });
-      });
-    } else {
-      return Promise.reject(payload);
+      } else {
+        return Promise.reject(payload);
+      }
+    } catch (error) {
+      // Handle error dengan tepat
+      logger.error('Error creating balance transaction:', error);
+      // Kirim response error 
     }
   },
 
   getBalanceTransactionsByPeriod: (req) => {
-    let pageKey = req.query.pageKey ? req.query.pageKey : 1;
-    let pageSize = req.query.pageSize
-      ? req.query.pageSize
-      : 1 * 1000 * 1000 * 1000;
+    try {
+      let pageKey = req.query.pageKey ? req.query.pageKey : 1;
+      let pageSize = req.query.pageSize ? req.query.pageSize : 1 * 1000 * 1000 * 1000;
 
-    let defaultFrom = convertToLocaleISOString(new Date(), "start");
-    let defaultTo = convertToLocaleISOString(new Date(), "end");
+      let defaultFrom = convertToLocaleISOString(new Date(), "start");
+      let defaultTo = convertToLocaleISOString(new Date(), "end");
 
-    isNotEveryQueryNull = () => {
-      return req.query.from || req.query.to;
-    };
-
-    return new Promise((resolve, reject) => {
       let pipeline = {
         createdAt: {
           $gte: req.query.from
@@ -131,234 +157,233 @@ module.exports = {
         },
       };
 
-      pageController
+      return pageController
         .paginate(pageKey, pageSize, pipeline, Transaction)
         .then((transactions) => {
-          BalanceTransaction.populate(transactions.data, {
+          return BalanceTransaction.populate(transactions.data, {
             path: "userId",
-          })
-            .then((data) => {
-              resolve({
-                error: false,
-                data: data,
-                count: transactions.count,
-              });
-            })
-            .catch((err) => {
-              reject({ error: true, message: err });
-            });
-        })
-        .catch((err) => {
-          reject({ error: true, message: err });
-        });
-    });
-  },
-
-  // Update balance transaction digunakan oleh API payment gateway saat ingin update status transaksi nanti untuk bagian pengiriman / request body nya mungkin masih harus disesuaikan lagi mengikuti cara kirim payment gateway.
-  updateBalanceTransaction: async (req) => {
-    let dateISOString = new Date().toISOString();
-    let body = req.body;
-
-    const bearerHeader = req.headers["authorization"];
-    const bearerToken = bearerHeader.split(" ")[1];
-
-    // Ambil data user dari token
-    let userByToken = await User.findOne({
-      "auth.accessToken": bearerToken,
-    });
-
-    let isBodyValid = () => {
-      return body.invoiceId && body.status && body.tag;
-    };
-
-    let payload = isBodyValid()
-      ? {
-          status: body.status,
-          tag: body.tag ? body.tag : null,
-        }
-      : {
-          error: true,
-          message: errorMessages.INVALID_DATA,
-        };
-
-    if (isBodyValid()) {
-      BalanceTransaction.findOneAndUpdate(
-        {
-          invoiceId: body.invoiceId,
-        },
-        payload,
-        {
-          new: true,
-        }
-      )
-        .then((result) => {
-          logController.createLog({
-            createdAt: dateISOString,
-            title: "Update Balance Transaction",
-            note: body.note ? body.note : "",
-            type: "balanceTransaction",
-            from: body.transactionId,
-            by: userByToken._id,
-            data: body.data,
-          });
-          resolve({
-            error: false,
-            data: result,
-            message: successMessages.DATA_SUCCESS_UPDATED,
+          }).then((data) => {
+            return {
+              error: false,
+              data: data,
+              count: transactions.count,
+            };
           });
         })
-        .catch((err) => {
-          reject({ error: true, message: err });
-        });
-    } else {
-      return Promise.reject(payload);
+    } catch (error) {
+      // Handle error dengan tepat
+      logger.error('Error getting balance transactions:', error);
+      // Kirim response error 
     }
   },
-  // Metode untuk top-up menggunakan DOKU
-  topUp: async (req, res) => {
-    const { amount, invoiceNumber, customerName, email, phoneNumber, paymentMethod } = req.body;
 
+  // Update balance transaction
+  updateBalanceTransaction: async (req) => {
     try {
-      const paymentResponse = await paymentGatewayController.requestPaymentDOKU({ amount, invoiceNumber, customerName, email, phoneNumber, paymentMethod });
+      let dateISOString = new Date().toISOString();
+      let body = req.body;
 
-      // Proses paymentResponse sesuai kebutuhan
-      // Contoh: Update saldo user, simpan transaksi ke database, dll.
-
-      const dateISOString = new Date().toISOString();
       const bearerHeader = req.headers["authorization"];
       const bearerToken = bearerHeader.split(" ")[1];
 
       // Ambil data user dari token
-      const userByToken = await User.findOne({
+      let userByToken = await User.findOne({
         "auth.accessToken": bearerToken,
       });
 
-      // Payload adalah data yang akan disimpan ke dalam data balanceTransaction
-      const payload = {
-        userId: userByToken._id,
-        invoiceId: paymentResponse.order.invoice_number,
-        status: paymentResponse.order.status,
-        amount: amount,
-        fee: paymentResponse.order.fee,
-        paymentMethod: paymentResponse.order.payment_method,
-        tag: "in",
-        createdAt: dateISOString,
-        updatedAt: dateISOString,
+      let isBodyValid = () => {
+        return body.invoiceId && body.status && body.tag;
       };
 
-      new BalanceTransaction(payload).save().then(async (result) => {
+      let payload = isBodyValid()
+        ? {
+            status: body.status,
+            tag: body.tag ? body.tag : null,
+          }
+        : {
+            error: true,
+            message: errorMessages.INVALID_DATA,
+          };
+
+      if (isBodyValid()) {
+        const updatedTransaction = await BalanceTransaction.findOneAndUpdate(
+          {
+            invoiceId: body.invoiceId,
+          },
+          payload,
+          { new: true }
+        );
+
+        if (!updatedTransaction) {
+          throw new Error('Transaksi tidak ditemukan');
+        }
+        
         logController.createLog({
           createdAt: dateISOString,
-          title: "Create Balance Transaction",
-          note: "Top Up Balance",
+          title: "Update Balance Transaction",
+          note: body.note ? body.note : "",
           type: "balanceTransaction",
-          from: result._id,
+          from: body.transactionId,
           by: userByToken._id,
-          data: result,
+          data: body.data,
         });
 
-        // update user balance
-        userController.updateUser({
-          body: {
-            userId: userByToken._id,
-            data: {
-              balance: userByToken.balance + amount,
-            },
+        return {
+          error: false,
+          data: updatedTransaction,
+          message: successMessages.DATA_SUCCESS_UPDATED,
+        };
+      } else {
+        return Promise.reject(payload);
+      }
+    } catch (error) {
+      logger.error("Error updating balance transaction:", error);
+      // Handle error dengan tepat
+      // Kirim response error 
+    }
+  },
+
+  // Metode untuk top-up menggunakan DOKU
+  topUp: async (req, res) => {
+    try {
+      const { error: validationError } = topUpSchema.validate(req.body);
+      if (validationError) {
+        return res
+          .status(400)
+          .json({ message: validationError.details[0].message });
+      }
+
+      const {
+        amount,
+        customerName,
+        email,
+        phoneNumber,
+        paymentMethod,
+      } = req.body;
+      const invoiceNumber = `TOPUP-${Date.now()}`; 
+
+      const paymentResponse = await paymentGatewayController.requestPaymentDOKU({
+        amount,
+        invoiceNumber,
+        customerName,
+        email,
+        phoneNumber,
+        paymentMethod,
+      });
+
+      // Ambil data user dari token
+      const userByToken = await User.findOne({
+        "auth.accessToken": req.headers.authorization.split(" ")[1],
+      });
+
+      const payload = {
+        userId: userByToken._id,
+        invoiceId: paymentResponse.order.invoice_number, 
+        status: paymentResponse.order.transaction_status, 
+        amount: amount,
+        fee: paymentResponse.order.fee,
+        paymentMethod: paymentResponse.order.payment_channel, 
+        tag: "in",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      const result = await new BalanceTransaction(payload).save();
+
+      logController.createLog({
+        createdAt: new Date().toISOString(),
+        title: "Create Balance Transaction",
+        note: "Top Up Balance",
+        type: "balanceTransaction",
+        from: result._id,
+        by: userByToken._id,
+        data: result,
+      });
+
+      // Update balance user 
+      await userController.updateUser({
+        body: {
+          userId: userByToken._id,
+          data: {
+            balance: userByToken.balance + amount,
           },
-        });
+        },
+      });
 
-        res.status(200).json(result);
-      }).catch((error) => {
-        console.error('Error saving balance transaction:', error);
-        res.status(500).json({ message: 'Failed to save balance transaction', error: error.message });
+      logger.info(
+        `Request pembayaran DOKU berhasil. Invoice: ${invoiceNumber}`,
+        { user: req.user._id }
+      );
+      res.status(200).json({
+        paymentUrl: paymentResponse.payment_url, 
+        message: "Request pembayaran berhasil dibuat.",
       });
     } catch (error) {
-      console.error('Error processing top-up:', error);
-      res.status(500).json({ message: 'Failed to process top-up', error: error.message });
+      logger.error("Error processing top-up:", error);
+      res.status(500).json({
+        message: "Gagal memproses top-up",
+        error: error.message,
+      });
     }
   },
 
   // Endpoint untuk menerima notifikasi dari DOKU
   handleDokuNotification: async (req, res) => {
     try {
-      // 1. Verifikasi notifikasi dari DOKU
-      if (!await verifyDokuNotification(req)) {
-        console.error('Invalid DOKU notification signature');
-        return res.status(400).json({ message: 'Invalid notification' });
+      if (!(await verifyDokuNotification(req))) {
+        logger.error("Invalid DOKU notification signature", {
+          requestBody: req.body,
+        });
+        return res.status(400).send("STOP");
       }
 
-      // 2. Dapatkan data transaksi dari request body
       const transactionData = extractTransactionData(req);
-
-      // 3. Update status transaksi di database
       await updateBalanceTransaction(transactionData);
 
-      // 4. Kirim response success ke DOKU
-      res.status(200).send('OK');
+      res.status(200).send("CONTINUE");
     } catch (error) {
-      console.error('Error handling DOKU notification:', error);
-      // Kirim response error ke DOKU
-      res.status(500).send('FAILED');
+      logger.error("Error handling DOKU notification:", error);
+      res.status(500).send("FAILED");
     }
-  }
+  },
 };
 
 // Fungsi untuk verifikasi notifikasi dari DOKU
 async function verifyDokuNotification(req) {
   try {
-    const serverKey = config.doku.serverKey; // Ambil server key DOKU dari konfigurasi
+    const serverKey = config.doku.serverKey;
     const requestBody = JSON.stringify(req.body);
     const words = `${requestBody}${serverKey}`;
-    const expectedSignature = crypto.createHash('sha1').update(words).digest('hex');
+    const expectedSignature = crypto
+      .createHash("sha1")
+      .update(words)
+      .digest("hex");
 
-    return req.headers['x-doku-signature'] === expectedSignature;
+    return (
+      req.headers["x-doku-signature"].toLowerCase() ===
+      expectedSignature.toLowerCase()
+    );
   } catch (error) {
-    console.error('Error verifying DOKU notification:', error);
+    logger.error("Error verifying DOKU notification:", error);
     return false;
   }
 }
 
 // Fungsi untuk mengambil data transaksi dari request body DOKU
 function extractTransactionData(req) {
-  // Implementasikan sesuai dengan struktur response DOKU
+  const {
+    order: {
+      invoice_number,
+      amount,
+      transaction_status,
+      payment_channel,
+    }, 
+  } = req.body;
+
   return {
-    invoiceNumber: req.body.order.invoice_number, 
-    transactionStatus: req.body.order.status,
-    amount: req.body.order.amount,
-    // ...data lainnya yang ingin diambil 
+    invoiceNumber: invoice_number,
+    transactionStatus: transaction_status,
+    amount: amount,
+    paymentMethod: payment_channel, 
   };
 }
-
-//Fungsi untuk mengupdate status transaksi di database
-async function updateBalanceTransaction(transactionData) {
-  try {
-    const updatedTransaction = await BalanceTransaction.findOneAndUpdate(
-      { invoiceId: transactionData.invoiceNumber },
-      {
-        status: transactionData.transactionStatus,
-        //Update data lainnya jika diperlukan 
-        updatedAt: new Date()
-      },
-      { new: true } 
-    );
-
-    if (!updatedTransaction) {
-      console.error('Transaction not found:', transactionData.invoiceNumber);
-      throw new Error(`Transaksi tidak ditemukan: ${transactionData.invoiceNumber}`);
-    }
-
-    console.log('Transaction updated:', updatedTransaction);
-
-    //Menambahkan logika lain di sini berdasarkan status transaksi, misalnya:
-    if (transactionData.transactionStatus === 'SUCCESS') {
-      //Tambahkan saldo user
-    } else if (transactionData.transactionStatus === 'FAILED') {
-      //Kirim notifikasi ke user 
-    } 
-
-  } catch (error) {
-    console.error('Error updating balance transaction:', error);
-    throw error;
-  }
-};
-
