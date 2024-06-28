@@ -15,6 +15,7 @@ const reportRouter = require("./reportRouter/reportRouter");
 const offerRouter = require("./offerRouter/offerRouter");
 const categoryRouter = require("./categoryRouter/categoryRouter");
 const inventoryRouter = require("./inventoryRouter/inventoryRouter");
+const balanceTransactionRouter = require("./balanceTransactionRouter/balanceTransactionRouter");
 
 router.use(authRouter);
 router.use(userRouter);
@@ -28,5 +29,6 @@ router.use(reportRouter);
 router.use(offerRouter);
 router.use(categoryRouter);
 router.use(inventoryRouter);
+router.use(balanceTransactionRouter);
 
 module.exports = router;
