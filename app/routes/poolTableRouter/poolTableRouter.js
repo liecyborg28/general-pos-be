@@ -1,33 +1,15 @@
 const router = require("express").Router();
 const authController = require("../../controllers/authController");
-const poolTableTransactionController = require("../../controllers/poolTableTransactionController");
-
-router.get("/poolTableTransactions/period", (req, res) => {
-  authController
-    .checkAccessToken(req)
-    .then(() => {
-      poolTableTransactionController
-        .getPoolTableTransactionsByPeriod(req)
-        .then((value) => {
-          res.status(200).send(value);
-        })
-        .catch((err) => {
-          res.status(500).send(err);
-        });
-    })
-    .catch((err) => {
-      res.status(500).send(err);
-    });
-});
+const poolTableController = require("../../controllers/poolTableController");
 
 router
-  .route("/poolTableTransactions")
+  .route("/poolTables")
   .get((req, res) => {
     authController
       .checkAccessToken(req)
       .then(() => {
-        poolTableTransactionController
-          .getTransactions(req)
+        poolTableController
+          .getPoolTables(req)
           .then((value) => {
             res.status(200).send(value);
           })
@@ -43,8 +25,8 @@ router
     authController
       .checkAccessToken(req)
       .then(() => {
-        poolTableTransactionController
-          .createTransaction(req)
+        poolTableController
+          .createPoolTable(req)
           .then((value) => {
             res.status(200).send(value);
           })
@@ -60,8 +42,8 @@ router
     authController
       .checkAccessToken(req)
       .then(() => {
-        poolTableTransactionController
-          .updateTransaction(req)
+        poolTableController
+          .updatePoolTable(req)
           .then((value) => {
             res.status(200).send(value);
           })

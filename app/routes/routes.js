@@ -16,6 +16,8 @@ const offerRouter = require("./offerRouter/offerRouter");
 const categoryRouter = require("./categoryRouter/categoryRouter");
 const inventoryRouter = require("./inventoryRouter/inventoryRouter");
 const balanceTransactionRouter = require("./balanceTransactionRouter/balanceTransactionRouter");
+const poolTableRouter = require("./poolTableRouter/poolTableRouter");
+const poolTableTransactionRouter = require("./poolTableTransactionRouter/poolTableTransactionRouter");
 
 router.use(authRouter);
 router.use(userRouter);
@@ -29,6 +31,8 @@ router.use(reportRouter);
 router.use(offerRouter);
 router.use(categoryRouter);
 router.use(inventoryRouter);
+router.use(poolTableRouter);
+router.use(poolTableTransactionRouter);
 router.use(balanceTransactionRouter);
 
 module.exports = router;
