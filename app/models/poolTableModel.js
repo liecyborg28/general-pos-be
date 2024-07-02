@@ -9,20 +9,20 @@ const PoolTable = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Business",
   },
-  categoryId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Category",
-  },
+  // categoryId: {
+  //   type: mongoose.Schema.Types.ObjectId,
+  //   ref: "Category",
+  // },
   changedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
   type: String,
-  taxed: Boolean,
-  charged: Boolean,
   status: String,
   name: String,
   price: Number,
+  taxed: Boolean,
+  charged: Boolean,
   createdAt: String,
   updatedAt: String,
 });

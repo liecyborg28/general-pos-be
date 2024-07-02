@@ -12,7 +12,9 @@ module.exports = {
     let body = req.body;
 
     let isBodyValid = () => {
-      return body.businessId && body.status && body.name && body.price;
+      return (
+        body.businessId && body.status && body.name && body.price && body.type
+      );
     };
 
     const bearerHeader = req.headers["authorization"];
@@ -22,24 +24,29 @@ module.exports = {
       "auth.accessToken": bearerToken,
     });
 
-    let payload = isBodyIsValid()
+    console.log("testttt", body);
+
+    let payload = isBodyValid()
       ? {
-          status: body.status,
           businessId: body.businessId,
+          status: body.status,
+          // categoryId: body.categoryId,
+          type: body.type,
           name: body.name,
           imageUrl: "",
-          categoryId: body.categoryId,
           price: body.price,
           changedBy: userByToken._id,
           createdAt: dateISOString,
           updatedAt: dateISOString,
-          taxed: body.taxed,
-          charged: body.charged,
+          taxed: false,
+          charged: false,
         }
       : {
           error: true,
           message: errorMessages.INVALID_DATA,
         };
+
+    console.log("payload", payload);
 
     if (isBodyValid()) {
       let nameIsExist = await dataController.isExist(
@@ -74,7 +81,7 @@ module.exports = {
             resolve({
               error: false,
               data: result,
-              message: successMessages.ITEM_CREATED_SUCCESS,
+              message: successMessages.POOL_TABLE_SUCCESS,
             });
           })
           .catch((err) => {
@@ -87,6 +94,7 @@ module.exports = {
   },
 
   getPoolTables: (req) => {
+    console.log("req", req.query);
     let pageKey = req.query.pageKey ? req.query.pageKey : 1;
     let pageSize = req.query.pageSize ? req.query.pageSize : null;
 
@@ -114,14 +122,9 @@ module.exports = {
                   ? { $regex: req.query.name, $options: "i" }
                   : null,
               },
-              {
-                price: req.query.price
-                  ? { $regex: req.query.price, $options: "i" }
-                  : null,
-              },
-              {
-                categoryId: req.query.categoryId ? req.query.categoryId : null,
-              },
+              // {
+              //   categoryId: req.query.categoryId ? req.query.categoryId : null,
+              // },
               {
                 businessId: req.query.businessId ? req.query.businessId : null,
               },
@@ -134,12 +137,12 @@ module.exports = {
       pageController
         .paginate(pageKey, pageSize, pipeline, PoolTable)
         .then((poolTables) => {
-          PoolTable.populate(poolTables.data, { path: "businessId categoryId" })
+          PoolTable.populate(poolTables.data, { path: "businessId" })
             .then((data) => {
               resolve({
                 error: false,
                 data: data,
-                count: items.count,
+                count: poolTables.count,
               });
             })
             .catch((err) => {
