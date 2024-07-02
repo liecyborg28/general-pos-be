@@ -254,7 +254,7 @@ module.exports = {
               logController.createLog({
                 createdAt: dateISOString,
                 title: "Create Balance Transaction",
-                note: "Top Up Balance",
+                note: "[Top Up Balance]",
                 type: "balanceTransaction",
                 from: newBalanceTransaction._id,
                 by: userByToken._id,
