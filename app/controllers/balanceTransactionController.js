@@ -60,6 +60,7 @@ module.exports = {
 
   createBalanceTransaction: async (req) => {
     try {
+      console.log("testtt");
       let dateISOString = new Date().toISOString();
       let body = req.body;
 
