@@ -127,11 +127,9 @@ module.exports = {
 
               // Update saldo user
               await userController.updateUser({
-                body: {
-                  userId: userByToken._id,
-                  data: {
-                    balance: userByToken.balance + body.amount, // Update saldo dengan amount
-                  },
+                userId: userByToken._id,
+                data: {
+                  balance: userByToken.balance + body.amount, // Update saldo dengan amount
                 },
               });
 
@@ -140,7 +138,13 @@ module.exports = {
                 data: newBalanceTransaction,
                 message: successMessages.TRANSACTION_CREATED_SUCCESS,
               });
-            });
+            })
+            .catch((err) => [
+              reject({
+                error: false,
+                message: err,
+              }),
+            ]);
         });
       } else {
         return Promise.reject(payload);
