@@ -7,8 +7,6 @@ const userController = require("./userController");
 const errorMessages = require("../repository/messages/errorMessages");
 const successMessages = require("../repository/messages/successMessages");
 const logController = require("./logController");
-const balanceTransactionModel = require("../models/balanceTransactionModel");
-const transactionController = require("./transactionController");
 const paymentGatewayController = require("./utils/paymentGatewayController");
 const crypto = require("crypto");
 const config = require("../../config/dbConfig");
@@ -60,7 +58,6 @@ module.exports = {
 
   createBalanceTransaction: async (req) => {
     try {
-      console.log("testtt");
       let dateISOString = new Date().toISOString();
       let body = req.body;
 
@@ -95,39 +92,55 @@ module.exports = {
           };
 
       if (isBodyValid()) {
-        // ... (Logika untuk request transaksi ke payment gateway)
+        return new Promise(async (resolve, reject) => {
+          // ... (Logika untuk request transaksi ke payment gateway)
 
-        // Contoh:
-        // const paymentResponse = await paymentGatewayController.requestPayment(...);
+          // Contoh:
+          // const paymentResponse = await paymentGatewayController.requestPayment(...);
 
-        // Update payload dengan data dari payment gateway response
-        payload.invoiceId = paymentResponse.invoiceId; // Sesuaikan properti response
-        payload.status = paymentResponse.status; // Sesuaikan properti response
-        payload.fee = paymentResponse.fee; // Sesuaikan properti response
-        payload.paymentMethod = paymentResponse.paymentMethod; // Sesuaikan properti response
+          // test dummmy
+          const paymentResponse = {
+            invoiceId: "",
+            status: "completed",
+            fee: 700,
+            paymentMethod: "QRIS",
+          };
 
-        const newBalanceTransaction = await new BalanceTransaction(
-          payload
-        ).save();
+          // Update payload dengan data dari payment gateway response
+          payload.invoiceId = paymentResponse.invoiceId; // Sesuaikan properti response
+          payload.status = paymentResponse.status; // Sesuaikan properti response
+          payload.fee = paymentResponse.fee; // Sesuaikan properti response
+          payload.paymentMethod = paymentResponse.paymentMethod; // Sesuaikan properti response
 
-        logController.createLog({
-          createdAt: dateISOString,
-          title: "Create Balance Transaction",
-          note: "Top Up Balance",
-          type: "balanceTransaction",
-          from: newBalanceTransaction._id,
-          by: userByToken._id,
-          data: newBalanceTransaction,
-        });
+          new BalanceTransaction(payload)
+            .save()
+            .then(async (newBalanceTransaction) => {
+              logController.createLog({
+                createdAt: dateISOString,
+                title: "Create Balance Transaction",
+                note: "Top Up Balance",
+                type: "balanceTransaction",
+                from: newBalanceTransaction._id,
+                by: userByToken._id,
+                data: newBalanceTransaction,
+              });
 
-        // Update saldo user
-        await userController.updateUser({
-          body: {
-            userId: userByToken._id,
-            data: {
-              balance: userByToken.balance + body.amount, // Update saldo dengan amount
-            },
-          },
+              // Update saldo user
+              await userController.updateUser({
+                body: {
+                  userId: userByToken._id,
+                  data: {
+                    balance: userByToken.balance + body.amount, // Update saldo dengan amount
+                  },
+                },
+              });
+
+              resolve({
+                error: false,
+                data: newBalanceTransaction,
+                message: successMessages.TRANSACTION_CREATED_SUCCESS,
+              });
+            });
         });
       } else {
         return Promise.reject(payload);
