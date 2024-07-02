@@ -11,9 +11,9 @@ const balanceTransactionModel = require("../models/balanceTransactionModel");
 const transactionController = require("./transactionController");
 const paymentGatewayController = require("./utils/paymentGatewayController");
 const crypto = require("crypto");
-const config = require("../config/config");
+const config = require("../../config/dbConfig");
 const Joi = require("joi");
-const logger = require("../utils/logger"); // Gunakan modul logging
+const logger = require("./utils/paymentGatewayController"); // Gunakan modul logging
 
 function convertToLocaleISOString(date, type) {
   if (type !== "start" && type !== "end") {
