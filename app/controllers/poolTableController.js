@@ -24,8 +24,6 @@ module.exports = {
       "auth.accessToken": bearerToken,
     });
 
-    console.log("testttt", body);
-
     let payload = isBodyValid()
       ? {
           businessId: body.businessId,
@@ -94,7 +92,6 @@ module.exports = {
   },
 
   getPoolTables: (req) => {
-    console.log("req", req.query);
     let pageKey = req.query.pageKey ? req.query.pageKey : 1;
     let pageSize = req.query.pageSize ? req.query.pageSize : null;
 
