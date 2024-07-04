@@ -43,14 +43,18 @@ module.exports = {
     let dateISOString = new Date().toISOString();
     let body = req.body;
 
-    // const bearerHeader = req.headers["authorization"];
-    // const bearerToken = bearerHeader.split(" ")[1];
+    const bearerHeader = req.headers["authorization"];
+    const bearerToken = bearerHeader.split(" ")[1];
 
-    // let userByToken = await User.findOne({
-    //   "auth.accessToken": bearerToken,
-    // });
+    let userByToken = await User.findOne({
+      "auth.accessToken": bearerToken,
+    });
 
-    let customer = await User.findOne({ _id: body.customerId });
+    let customer = null;
+
+    if (body.customerId) {
+      customer = await User.findOne({ _id: body.customerId });
+    }
 
     let isBodyValid = () => {
       return (
@@ -71,6 +75,7 @@ module.exports = {
       ? {
           status: body.status,
           businessId: body.businessId,
+          customerId: body.customerId,
           outletId: body.outletId,
           userId: body.userId,
           details: body.details,
@@ -91,6 +96,8 @@ module.exports = {
           error: true,
           message: errorMessages.INVALID_DATA,
         };
+
+    console.log("userId", payload);
 
     if (isBodyValid()) {
       return new Promise(async (resolve, reject) => {

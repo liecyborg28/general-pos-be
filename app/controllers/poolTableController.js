@@ -44,8 +44,6 @@ module.exports = {
           message: errorMessages.INVALID_DATA,
         };
 
-    console.log("payload", payload);
-
     if (isBodyValid()) {
       let nameIsExist = await dataController.isExist(
         {
