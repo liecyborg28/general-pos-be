@@ -13,6 +13,7 @@ const BalanceTransaction = mongoose.Schema({
   invoiceId: String,
   status: String,
   amount: Number,
+  note: String,
   fee: Number,
   paymentMethod: String,
   createdAt: String,

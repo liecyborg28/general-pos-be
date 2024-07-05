@@ -11,7 +11,7 @@
 */
 const axios = require("axios");
 const crypto = require("crypto");
-const config = require("../../../config/dbConfig");
+const config = require("../../../config/config");
 
 class PaymentGatewayController {
   /**
@@ -26,6 +26,7 @@ class PaymentGatewayController {
    * @returns {Promise<Object>} - Response dari DOKU.
    * @throws {Error} - Jika terjadi error saat request ke DOKU.
    */
+
   static async requestPaymentDOKU(paymentData) {
     try {
       const dokuConfig = {

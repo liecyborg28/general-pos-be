@@ -8,7 +8,7 @@ const errorMessages = require("../repository/messages/errorMessages");
 const successMessages = require("../repository/messages/successMessages");
 const logController = require("./logController");
 const paymentGatewayController = require("./utils/paymentGatewayController");
-const config = require("../../config/dbConfig");
+const config = require("../../config/config");
 const crypto = require("crypto");
 const Joi = require("joi");
 const logger = require("./utils/paymentGatewayController"); // Gunakan modul logging
@@ -206,7 +206,7 @@ module.exports = {
       });
 
       let isBodyValid = () => {
-        return body.amount;
+        return body.amount && body.note;
       };
 
       // Payload untuk data balanceTransaction
@@ -216,6 +216,7 @@ module.exports = {
             invoiceId: null, // Akan diupdate setelah request ke payment gateway
             status: null, // Akan diupdate setelah request ke payment gateway
             amount: body.amount,
+            note: body.note,
             fee: null, // Akan diupdate setelah request ke payment gateway
             paymentMethod: null, // Akan diupdate setelah request ke payment gateway
             tag: "in",
@@ -323,7 +324,7 @@ module.exports = {
       };
 
       return pageController
-        .paginate(pageKey, pageSize, pipeline, BalanceTransaction)
+        .paginate(pageKey, pageSize, pipeline, BalanceTransaction, -1)
         .then((transactions) => {
           return BalanceTransaction.populate(transactions.data, {
             path: "userId",

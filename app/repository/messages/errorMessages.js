@@ -100,6 +100,10 @@ module.exports = {
     en: "Something went wrong!",
     id: "Terjadi kesalahan pada sistem!",
   },
+  SORTING_DATA: {
+    en: "Error when sorting data!",
+    id: "Terjadi kesalahan saat mengurutkan data!",
+  },
   // T
   TOKEN_IS_REQUIRED: {
     en: "Token is required!",
