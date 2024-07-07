@@ -321,7 +321,8 @@ const UserController = {
         req.query.name ||
         req.query.username ||
         req.query.gender ||
-        req.query.phonenumber
+        req.query.phonenumber ||
+        req.query.type
       );
     };
 
@@ -349,10 +350,10 @@ const UserController = {
                   : null,
               },
               {
-                phonenumber: req.query.keyword ? req.query.keyword : null,
+                type: req.query.type ? req.query.type : null,
               },
               {
-                type: req.query.type ? { $regex: req.query.type } : null,
+                phonenumber: req.query.keyword ? req.query.keyword : null,
               },
               {
                 name: req.query.name
