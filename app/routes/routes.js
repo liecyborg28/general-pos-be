@@ -9,6 +9,9 @@ const outletRouter = require("./outletRouter/outletRouter");
 const itemRouter = require("./itemRouter/itemRouter");
 const transactionRouter = require("./transactionRouter/transactionRouter");
 const reportRouter = require("./reportRouter/reportRouter");
+//Aldil
+const balanceTransactionController = require('../controllers/balanceTransactionController');
+
 // const receiptRouter = require("./receiptRouter/receiptRouter");
 
 // new routes
@@ -28,5 +31,11 @@ router.use(reportRouter);
 router.use(offerRouter);
 router.use(categoryRouter);
 router.use(inventoryRouter);
+//Aldil
+router.post('/topUp', balanceTransactionController.topUp);
+router.post('/handleMidtransNotification', balanceTransactionController.handleMidtransNotification);
+router.get('/balanceTransactions', balanceTransactionController.getBalanceTransactionsByPeriod);
+router.put('/balanceTransactions/:transactionId', balanceTransactionController.updateBalanceTransaction);
+
 
 module.exports = router;

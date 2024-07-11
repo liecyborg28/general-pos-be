@@ -31,6 +31,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Rute aplikasi
 app.use(routes);
+app.use('/api', routes); // Tambahkan path prefix /api
 
 // Middleware untuk menangani error
 app.use((err, req, res, next) => {

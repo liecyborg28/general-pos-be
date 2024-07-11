@@ -5,7 +5,7 @@ const PaymentGatewayController = require('./utils/paymentGatewayController');
 const midtransClient = require('midtrans-client');
 const Joi = require("joi");
 const authenticateUser = require('../middleware/authMiddleware'); // Path ke authMiddleware
-const config = require('../config/config');
+const config = require('../../config/config');
 
 // Inisialisasi Midtrans
 let snap = new midtransClient.Snap({

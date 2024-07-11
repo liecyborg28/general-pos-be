@@ -1,5 +1,5 @@
 const midtransClient = require('midtrans-client');
-const config = require('../../config/config');
+const config = require('../../../config/config');
 
 // Inisialisasi Midtrans Client
 let snap = new midtransClient.Snap({
