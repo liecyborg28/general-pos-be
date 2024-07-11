@@ -4,16 +4,14 @@ const BalanceTransaction = require("../models/balanceTransactionModel");
 const PaymentGatewayController = require('./utils/paymentGatewayController');
 const midtransClient = require('midtrans-client');
 const Joi = require("joi");
-const authenticateUser = require('./authMiddleware');
+const authenticateUser = require('../middleware/authMiddleware'); // Path ke authMiddleware
 const config = require('../config/config');
 
 // Inisialisasi Midtrans
-// Ambil konfigurasi dari config.js
 let snap = new midtransClient.Snap({
-  isProduction: config.midtrans.isProduction, 
-  serverKey: config.midtrans.serverKey       
+  isProduction: config.midtrans.isProduction,
+  serverKey: config.midtrans.serverKey
 });
-
 // Fungsi untuk konversi tanggal ke format ISO lokal
 function convertToLocaleISOString(date, type) {
   // Validasi parameter type
@@ -62,153 +60,138 @@ const updateTransactionSchema = Joi.object({
 });
 
 module.exports = {
-  // Metode untuk top-up saldo menggunakan Midtrans
-  topUp: [authenticateUser, async (request, response) => { // Menggunakan authenticateUser sebagai middleware
+  topUp: [authenticateUser, async (req, res) => {
     try {
-      const { error: validationError } = topUpSchema.validate(request.body);
+      // 1. Validasi data input
+      const { error: validationError } = topUpSchema.validate(req.body);
       if (validationError) {
-         return response.status(400).json({ message: validationError.details[0].message });
+        return res.status(400).json({ message: validationError.details[0].message });
       }
 
-     
-      const { amount, customerName, email, phoneNumber } = request.body;
+      const { amount, customerName, email, phoneNumber } = req.body;
 
-      // Meminta token dan URL pembayaran dari Midtrans
+      // 2. Request pembayaran ke Midtrans
       const paymentResponse = await PaymentGatewayController.requestPaymentMidtrans({
-        amount: amount,
-        invoiceNumber: `TOPUP-${Date.now()}`, // Generate nomor invoice unik
-        customerName: customerName,
-        email: email,
-        phoneNumber: phoneNumber,
+        amount,
+        invoiceNumber: `TOPUP-${Date.now()}`,
+        customerName,
+        email,
+        phoneNumber,
       });
 
-      // Ambil data user dari request object (sudah di-set oleh middleware authenticateUser)
-      const userByToken = request.user;
+      // 3. Ambil data user dari req.user (di-set oleh middleware)
+      const user = req.user;
 
-      // Buat objek transaksi baru
+      // 4. Buat transaksi baru
       const newBalanceTransaction = new BalanceTransaction({
-        userId: userByToken._id,             // ID user
-        invoiceId: paymentResponse.orderId,  // ID order dari Midtrans
-        status: "pending",                  // Status awal transaksi
-        amount: amount,                    // Jumlah top-up
-        fee: 0,                            // Fee akan diupdate setelah pembayaran berhasil
-        paymentMethod: null,                // Metode pembayaran akan diupdate setelah pembayaran berhasil
-        tag: "in",                         // Tag transaksi
-        createdAt: new Date().toISOString(), // Tanggal pembuatan transaksi
-        updatedAt: new Date().toISOString(), // Tanggal update transaksi
+        userId: user._id,
+        invoiceId: paymentResponse.orderId,
+        status: "pending",
+        amount,
+        fee: 0,
+        paymentMethod: null,
+        tag: "in",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       });
 
-      // Simpan transaksi ke database
       await newBalanceTransaction.save();
-      // Redirect user ke halaman pembayaran Midtrans
-      response.redirect(paymentResponse.paymentUrl);
+
+      // 5. Redirect ke halaman pembayaran Midtrans
+      res.redirect(paymentResponse.paymentUrl);
 
     } catch (error) {
-      console.error("Error saat memproses top-up:", error); // Log error ke console
-      // Kembalikan response error 500 dengan pesan error
-      response.status(500).json({ 
-        message: 'Gagal memproses top-up', 
-        details: error.message 
+      console.error("Error during top-up:", error);
+      res.status(500).json({
+        message: 'Gagal memproses top-up',
+        details: error.message
       });
     }
   }],
 
-  // Endpoint untuk menerima notifikasi dari Midtrans
-  handleMidtransNotification: [authenticateUser, async (request, response) => { 
+  handleMidtransNotification: [authenticateUser, async (req, res) => {
     try {
-      const notification = request.body;
+      const notification = req.body;
+
       snap.transaction.notification(notification)
         .then(async (statusResponse) => {
-          // Ambil data dari response Midtrans
           const orderId = statusResponse.order_id;
           const transactionStatus = statusResponse.transaction_status;
           const fraudStatus = statusResponse.fraud_status;
 
-          // Cari transaksi di database berdasarkan orderId
           let balanceTransaction = await BalanceTransaction.findOne({ invoiceId: orderId });
-          // Jika transaksi tidak ditemukan, kembalikan response error 404
           if (!balanceTransaction) {
             console.error("Transaksi tidak ditemukan:", orderId);
-            return response.status(404).send("Transaksi tidak ditemukan");
+            return res.status(404).send("Transaksi tidak ditemukan");
           }
 
-          // Update status transaksi berdasarkan response Midtrans
+          // Update status dan informasi transaksi
           if (transactionStatus === 'capture') {
             if (fraudStatus === 'challenge') {
-              balanceTransaction.status = 'challenge'; // Status challenge
+              balanceTransaction.status = 'challenge';
             } else if (fraudStatus === 'accept') {
-              balanceTransaction.status = 'success';   // Status sukses
+              balanceTransaction.status = 'success';
             }
           } else if (transactionStatus === 'settlement') {
-            balanceTransaction.status = 'success'; // Status sukses
-            balanceTransaction.paymentMethod = statusResponse.payment_type; // Update metode pembayaran
-            // Update fee jika ada
+            balanceTransaction.status = 'success';
+            balanceTransaction.paymentMethod = statusResponse.payment_type;
             balanceTransaction.fee = statusResponse.va_numbers
               ? statusResponse.va_numbers[0].bank_fee
               : 0;
 
-            // Jika status transaksi sukses, update saldo user
-            if (balanceTransaction.status === 'success') {
-              // Panggil fungsi helper untuk update saldo user
-              await updateUserBalance(balanceTransaction.userId, balanceTransaction.amount);
-            }
+            // Update saldo user
+            await updateUserBalance(balanceTransaction.userId, balanceTransaction.amount);
           } else if (transactionStatus === 'pending') {
-            balanceTransaction.status = 'pending'; // Status pending
-          } else if (transactionStatus === 'deny' || transactionStatus === 'expire' || transactionStatus === 'cancel') {
-            balanceTransaction.status = 'failed'; // Status gagal
+            balanceTransaction.status = 'pending';
+          } else if (
+            transactionStatus === 'deny' ||
+            transactionStatus === 'expire' ||
+            transactionStatus === 'cancel'
+          ) {
+            balanceTransaction.status = 'failed';
           }
 
-          // Simpan update transaksi ke database
           await balanceTransaction.save();
 
-          // Kirim response sukses ke Midtrans
-          response.status(200).send('Notification received');
+          res.status(200).send('Notification received');
         })
         .catch((error) => {
-          // Tangani error dari Midtrans
-          console.log('Error saat memproses notifikasi:', error);
-          response.status(400).send('Invalid notification');
+          console.log('Error processing notification:', error);
+          res.status(400).send('Invalid notification');
         });
     } catch (error) {
-      // Tangani error server
-      console.error("Error saat menangani notifikasi Midtrans:", error);
-      response.status(500).send("Error processing notification");
+      console.error("Error handling Midtrans notification:", error);
+      res.status(500).send("Error processing notification");
     }
   }],
 
-  // Mendapatkan data transaksi berdasarkan periode waktu
-  getBalanceTransactionsByPeriod: [authenticateUser, async (request, response) => {
+  getBalanceTransactionsByPeriod: [authenticateUser, async (req, res) => {
     try {
-      // Ambil data user dari request object (sudah di-set oleh middleware)
-      const userByToken = request.user;
-      // Ambil parameter pagination dari query string
-      let pageKey = request.query.pageKey ? parseInt(request.query.pageKey) : 1;
-      let pageSize = request.query.pageSize ? parseInt(request.query.pageSize) : 10;
-      // Tentukan tanggal default (awal dan akhir hari ini)
-      let defaultFrom = new Date();
-      defaultFrom.setHours(0, 0, 0, 0); // Awal hari
-      let defaultTo = new Date();
-      defaultTo.setHours(23, 59, 59, 999); // Akhir hari
+      const user = req.user; // Ambil data user dari req.user
+      let pageKey = req.query.pageKey ? parseInt(req.query.pageKey) : 1;
+      let pageSize = req.query.pageSize ? parseInt(req.query.pageSize) : 10;
 
-      // Buat filter untuk query database
+      let defaultFrom = new Date();
+      defaultFrom.setHours(0, 0, 0, 0);
+      let defaultTo = new Date();
+      defaultTo.setHours(23, 59, 59, 999);
+
       let pipeline = {
-        userId: userByToken._id, // Filter berdasarkan userId
+        userId: user._id, // Gunakan user._id dari req.user
         createdAt: {
-          $gte: request.query.from ? new Date(request.query.from) : defaultFrom, // Tanggal awal
-          $lte: request.query.to ? new Date(request.query.to) : defaultTo,       // Tanggal akhir
+          $gte: req.query.from ? new Date(req.query.from) : defaultFrom,
+          $lte: req.query.to ? new Date(req.query.to) : defaultTo,
         },
       };
 
-      // Query database untuk mendapatkan transaksi dengan pagination
       const transactions = await BalanceTransaction.find(pipeline)
         .sort({ createdAt: -1 })
         .skip((pageKey - 1) * pageSize)
-        .limit(pageSize); 
+        .limit(pageSize);
 
-      // Hitung total transaksi yang sesuai filter
       const totalCount = await BalanceTransaction.countDocuments(pipeline);
-      // Kembalikan response dengan data transaksi, pagination, dan total data
-      response.status(200).json({
+
+      res.status(200).json({
         error: false,
         data: transactions,
         count: totalCount,
@@ -216,55 +199,49 @@ module.exports = {
         totalPages: Math.ceil(totalCount / pageSize),
       });
     } catch (error) {
-      // Tangani error jika terjadi kesalahan
-      console.error("Error saat mengambil transaksi berdasarkan periode:", error);
-      response.status(500).json({ message: "Gagal mengambil data transaksi" });
+      console.error("Error getting transactions by period:", error);
+      res.status(500).json({ message: "Gagal mengambil data transaksi" });
     }
   }],
 
-  // Mengupdate data transaksi
-  updateBalanceTransaction: [authenticateUser, async (request, response) => {
+  updateBalanceTransaction: [authenticateUser, async (req, res) => {
     try {
-      const { transactionId } = request.params;
-      const { status, tag } = request.body;
+      const { transactionId } = req.params;
+      const { status, tag } = req.body;
 
-      // Validasi data input
+      // 1. Validasi data input
       const { error: joiValidationError } = updateTransactionSchema.validate({ status, tag });
       if (joiValidationError) {
-        // Jika validasi gagal, kembalikan response error 400
-        return response.status(400).json({ message: joiValidationError.details[0].message });
+        return res.status(400).json({ message: joiValidationError.details[0].message });
       }
 
-      // Cari transaksi berdasarkan ID
+      // 2. Cari transaksi berdasarkan ID
       let balanceTransaction = await BalanceTransaction.findById(transactionId);
       if (!balanceTransaction) {
-        console.error("Transaksi tidak ditemukan:", transactionId);
-        return response.status(404).send("Transaksi tidak ditemukan");
+        return res.status(404).send("Transaksi tidak ditemukan");
       }
 
-      // Validasi tambahan: Pastikan metode pembayaran tercatat sebelum mengubah status ke 'success'
+      // 3. Validasi tambahan
       if (status === 'success' && !balanceTransaction.paymentMethod) {
-        return response.status(400).json({
+        return res.status(400).json({
           message: "Tidak bisa mengubah status ke 'success' karena metode pembayaran belum tercatat."
         });
       }
 
-      // Update data transaksi
+      // 4. Update data transaksi
       balanceTransaction.status = status;
       balanceTransaction.tag = tag;
       await balanceTransaction.save();
 
-      // Kembalikan response sukses
-      response.status(200).json({
+      res.status(200).json({
         error: false,
         data: balanceTransaction,
         message: "Data transaksi berhasil diupdate",
       });
 
     } catch (error) {
-      // Tangani error jika terjadi kesalahan
-      console.error("Error saat mengupdate data transaksi:", error);
-      response.status(500).json({ message: "Gagal mengupdate data transaksi" });
+      console.error("Error updating balance transaction:", error);
+      res.status(500).json({ message: "Gagal mengupdate data transaksi" });
     }
   }]
 };

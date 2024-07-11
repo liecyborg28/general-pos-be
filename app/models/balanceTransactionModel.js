@@ -3,12 +3,13 @@ const mongoose = require('mongoose');
 const balanceTransactionSchema = new mongoose.Schema({
   userId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'User', // Referensi ke model User
+    ref: 'User',
     required: true
   },
   invoiceId: {
     type: String,
-    required: true
+    required: true,
+    unique: true // Menambahkan unique index untuk mencegah duplikat invoiceId
   },
   status: {
     type: String,
@@ -24,7 +25,7 @@ const balanceTransactionSchema = new mongoose.Schema({
     default: 0
   },
   paymentMethod: {
-    type: String, // Contoh: 'credit_card', 'bank_transfer', 'gopay', etc. 
+    type: String 
   },
   tag: {
     type: String 

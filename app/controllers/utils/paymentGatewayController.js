@@ -1,6 +1,7 @@
 const midtransClient = require('midtrans-client');
-const config = require('../config/config');
+const config = require('../../config/config');
 
+// Inisialisasi Midtrans Client
 let snap = new midtransClient.Snap({
   isProduction: config.midtrans.isProduction,
   serverKey: config.midtrans.serverKey
@@ -9,6 +10,7 @@ let snap = new midtransClient.Snap({
 class PaymentGatewayController {
   static async requestPaymentMidtrans(paymentData) {
     try {
+      // Buat parameter transaksi Midtrans
       let parameter = {
         "transaction_details": {
           "order_id": paymentData.invoiceNumber,
@@ -24,7 +26,10 @@ class PaymentGatewayController {
         }
       };
 
+      // Kirim request ke Midtrans untuk membuat transaksi
       const transaction = await snap.createTransaction(parameter);
+
+      // Kembalikan URL pembayaran dan order ID
       return {
         paymentUrl: transaction.redirect_url,
         orderId: transaction.order_id
