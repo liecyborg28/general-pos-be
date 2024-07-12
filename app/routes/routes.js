@@ -1,5 +1,5 @@
 const router = require("express").Router();
-
+const userController = require('../controllers/userController'); // Pastikan path controller benar
 // routes
 const authRouter = require("./authRouter/authRouter");
 const userRouter = require("./userRouter/userRouter");
@@ -31,6 +31,9 @@ router.use(reportRouter);
 router.use(offerRouter);
 router.use(categoryRouter);
 router.use(inventoryRouter);
+
+//router.post('/register', userController.register); // Definisikan route register
+
 //Aldil
 router.post('/topUp', balanceTransactionController.topUp);
 router.post('/handleMidtransNotification', balanceTransactionController.handleMidtransNotification);
