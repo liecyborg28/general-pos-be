@@ -27,7 +27,7 @@ router
       .checkAccessToken(req)
       .then(() => {
         poolTableTransactionController
-          .getTransactions(req)
+          .getPoolTableTransactions(req)
           .then((value) => {
             res.status(200).send(value);
           })
@@ -44,7 +44,7 @@ router
       .checkAccessToken(req)
       .then(() => {
         poolTableTransactionController
-          .createTransaction(req)
+          .createPoolTableTransaction(req)
           .then((value) => {
             res.status(200).send(value);
           })
@@ -61,7 +61,7 @@ router
       .checkAccessToken(req)
       .then(() => {
         poolTableTransactionController
-          .updateTransaction(req)
+          .updatePoolTableTransaction(req)
           .then((value) => {
             res.status(200).send(value);
           })

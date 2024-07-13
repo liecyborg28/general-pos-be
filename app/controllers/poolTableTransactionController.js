@@ -1,8 +1,7 @@
 const User = require("../models/userModel");
 const PoolTableTransaction = require("../models/poolTableTransactionModel");
 const pageController = require("./utils/pageController");
-const poolTableController = require("./poolTableController");
-const userController = require("./userController");
+const balanceTransactionController = require("./balanceTransactionController");
 const errorMessages = require("../repository/messages/errorMessages");
 const successMessages = require("../repository/messages/successMessages");
 const logController = require("./logController");
@@ -27,10 +26,18 @@ module.exports = {
     let dateISOString = new Date().toISOString();
     let body = req.body;
 
-    // const bearerHeader = req.headers["authorization"];
-    // const bearerToken = bearerHeader.split(" ")[1];
+    const bearerHeader = req.headers["authorization"];
+    const bearerToken = bearerHeader.split(" ")[1];
 
-    let customer = await User.findOne({ _id: body.customerId });
+    let userByToken = await User.findOne({
+      "auth.accessToken": bearerToken,
+    });
+
+    let customer = null;
+
+    if (body.customerId) {
+      customer = await User.findOne({ _id: body.customerId });
+    }
 
     let isBodyValid = () => {
       return (
@@ -38,9 +45,8 @@ module.exports = {
         body.outletId &&
         body.userId &&
         body.status &&
-        body.orderStatus &&
         body.details &&
-        body.tax &&
+        // body.tax &&
         // body.paymentAmount &&
         // body.paymentMethod &&
         body.details.length > 0
@@ -49,20 +55,20 @@ module.exports = {
 
     let payload = isBodyValid()
       ? {
-          status: body.status,
-          businessId: body.businessId,
           outletId: body.outletId,
           userId: body.userId,
+          businessId: body.businessId,
+          customerId: body.customerId ? body.customerId : null,
+          scheduledAt: body.scheduledAt,
+          status: body.status,
           details: body.details,
-          tax: body.tax,
           paymentAmount: body.paymentAmount,
           paymentMethod: body.paymentMethod,
+          tax: body.tax,
           charge: body.charge ? body.charge : 0,
           costs: body.costs ? body.costs : [],
           discounts: body.discounts ? body.discounts : [],
           customer: body.customer ? body.customer : null,
-          table: body.table ? body.table : null,
-          request: generateRequestCodes(),
           changedBy: userByToken._id,
           createdAt: dateISOString,
           updatedAt: dateISOString,
@@ -75,6 +81,8 @@ module.exports = {
     if (isBodyValid()) {
       return new Promise(async (resolve, reject) => {
         if (
+          body.status === "completed" &&
+          body.customerId &&
           body.paymentMethod === "accountBalance" &&
           customer.balance < body.paymentAmount
         ) {
@@ -82,34 +90,42 @@ module.exports = {
             error: true,
             message: errorMessages.BALANCE_NOT_ENOUGH,
           });
-        }
-
-        new PoolTableTransaction(payload).save().then(async (result) => {
-          logController.createLog({
-            createdAt: dateISOString,
-            title: "Create Pool Table Transaction",
-            note: "",
-            type: "poolTableTransaction",
-            from: result._id,
-            by: userByToken._id,
-            data: result,
-          });
-
-          if (body.customerId && body.paymentMethod === "accountBalance") {
-            await userController.updateUser({
-              userId: body.customerId,
-              data: {
-                balance: customer.balance - body.paymentAmount,
-              },
+        } else {
+          new PoolTableTransaction(payload).save().then(async (result) => {
+            logController.createLog({
+              createdAt: dateISOString,
+              title: "Create Pool Table Transaction",
+              note: "",
+              type: "poolTableTransaction",
+              from: result._id,
+              by: userByToken._id,
+              data: result,
             });
-          }
 
-          resolve({
-            error: false,
-            data: result,
-            message: successMessages.TRANSACTION_CREATED_SUCCESS,
+            if (
+              body.status === "completed" &&
+              body.customerId &&
+              body.paymentMethod === "accountBalance" &&
+              customer.balance >= body.paymentAmount
+            ) {
+              await balanceTransactionController.createBalanceTransaction({
+                headers: req.headers,
+                body: {
+                  customerId: body.customerId,
+                  amount: body.paymentAmount,
+                  tag: "out",
+                  note: "Order Meja",
+                },
+              });
+            }
+
+            resolve({
+              error: false,
+              data: result,
+              message: successMessages.TRANSACTION_CREATED_SUCCESS,
+            });
           });
-        });
+        }
       });
     } else {
       return Promise.reject(payload);
@@ -238,7 +254,7 @@ module.exports = {
           };
 
       pageController
-        .paginate(pageKey, pageSize, pipeline, Transaction)
+        .paginate(pageKey, pageSize, pipeline, PoolTableTransaction)
         .then((transactions) => {
           PoolTableTransaction.populate(transactions.data, {
             path: "businessId outletId userId details.poolTableId",
@@ -294,7 +310,7 @@ module.exports = {
             new: true,
           }
         )
-          .then((result) => {
+          .then(async (result) => {
             logController.createLog({
               createdAt: dateISOString,
               title: "Update Pool Table Transaction",
@@ -304,6 +320,24 @@ module.exports = {
               by: userByToken._id,
               data: body.data,
             });
+
+            if (
+              body.data.status === "completed" &&
+              body.data.customerId &&
+              body.data.paymentMethod === "accountBalance" &&
+              customer.balance >= body.data.paymentAmount
+            ) {
+              await balanceTransactionController.createBalanceTransaction({
+                headers: req.headers,
+                body: {
+                  customerId: body.customerId,
+                  amount: body.paymentAmount,
+                  tag: "out",
+                  note: "Order Menu",
+                },
+              });
+            }
+
             resolve({
               error: false,
               data: result,

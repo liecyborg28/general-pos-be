@@ -1,6 +1,5 @@
 //mamah uwu
 const User = require("../models/userModel");
-const Transaction = require("../models/transactionModel");
 const BalanceTransaction = require("../models/balanceTransactionModel");
 const pageController = require("./utils/pageController");
 const userController = require("./userController");
@@ -197,29 +196,21 @@ module.exports = {
       let dateISOString = new Date().toISOString();
       let body = req.body;
 
-      const bearerHeader = req.headers["authorization"];
-      const bearerToken = bearerHeader.split(" ")[1];
-
-      // Ambil data user dari token
-      let userByToken = await User.findOne({
-        "auth.accessToken": bearerToken,
-      });
-
       let isBodyValid = () => {
-        return body.amount && body.note;
+        return body.customerId && body.amount && body.note && body.tag;
       };
 
       // Payload untuk data balanceTransaction
       let payload = isBodyValid()
         ? {
-            userId: userByToken._id,
+            userId: body.customerId,
             invoiceId: null, // Akan diupdate setelah request ke payment gateway
             status: null, // Akan diupdate setelah request ke payment gateway
             amount: body.amount,
             note: body.note,
             fee: null, // Akan diupdate setelah request ke payment gateway
             paymentMethod: null, // Akan diupdate setelah request ke payment gateway
-            tag: "in",
+            tag: body.tag,
             createdAt: dateISOString,
             updatedAt: dateISOString,
           }
@@ -230,6 +221,9 @@ module.exports = {
 
       if (isBodyValid()) {
         return new Promise(async (resolve, reject) => {
+          let userByCustomerId = await User.findOne({
+            _id: body.customerId,
+          });
           // ... (Logika untuk request transaksi ke payment gateway)
 
           // Contoh:
@@ -255,18 +249,23 @@ module.exports = {
               logController.createLog({
                 createdAt: dateISOString,
                 title: "Create Balance Transaction",
-                note: "[Top Up Balance]",
+                note: "Top Up Balance",
                 type: "balanceTransaction",
                 from: newBalanceTransaction._id,
-                by: userByToken._id,
+                by: body.customerId,
                 data: newBalanceTransaction,
               });
 
+              let balanceAfterTransaction =
+                body.tag === "in"
+                  ? userByCustomerId.balance + body.amount
+                  : userByCustomerId.balance - body.amount;
+
               // Update saldo user
               await userController.updateUser({
-                userId: userByToken._id,
+                userId: body.customerId,
                 data: {
-                  balance: userByToken.balance + body.amount, // Update saldo dengan amount
+                  balance: balanceAfterTransaction, // Update saldo dengan amount
                 },
               });
 
@@ -313,14 +312,14 @@ module.exports = {
 
       let pipeline = {
         userId: userByToken._id,
-        createdAt: {
-          $gte: req.query.from
-            ? convertToLocaleISOString(new Date(req.query.from), "start")
-            : defaultFrom,
-          $lte: req.query.to
-            ? convertToLocaleISOString(new Date(req.query.to), "end")
-            : defaultTo,
-        },
+        // createdAt: {
+        //   $gte: req.query.from
+        //     ? convertToLocaleISOString(new Date(req.query.from), "start")
+        //     : defaultFrom,
+        //   $lte: req.query.to
+        //     ? convertToLocaleISOString(new Date(req.query.to), "end")
+        //     : defaultTo,
+        // },
       };
 
       return pageController

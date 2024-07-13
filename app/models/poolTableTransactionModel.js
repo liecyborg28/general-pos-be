@@ -29,18 +29,22 @@ const PoolTableTransaction = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "PoolTable",
       },
-      poolTableName: String,
+      poolTableNumber: String,
       poolTableFloor: Number,
       duration: String,
       durationType: String,
       price: Number,
     },
   ],
+  scheduledAt: String,
   status: String,
   tax: Number,
   charge: Number,
   paymentMethod: String,
   paymentAmount: String,
+  customer: String,
+  createdAt: String,
+  updatedAt: String,
 });
 
 module.exports = mongoose.model("PoolTableTransaction", PoolTableTransaction);

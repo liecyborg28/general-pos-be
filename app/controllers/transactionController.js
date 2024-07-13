@@ -3,7 +3,7 @@ const Item = require("../models/itemModel");
 const Inventory = require("../models/inventoryModel");
 const Transaction = require("../models/transactionModel");
 const pageController = require("./utils/pageController");
-const itemController = require("./itemController");
+const balanceTransactionController = require("./balanceTransactionController");
 const inventoryController = require("./inventoryController");
 const errorMessages = require("../repository/messages/errorMessages");
 const successMessages = require("../repository/messages/successMessages");
@@ -64,7 +64,7 @@ module.exports = {
         body.status &&
         body.orderStatus &&
         body.details &&
-        body.tax &&
+        // body.tax &&
         // body.paymentAmount &&
         // body.paymentMethod &&
         body.details.length > 0
@@ -97,11 +97,11 @@ module.exports = {
           message: errorMessages.INVALID_DATA,
         };
 
-    console.log("userId", payload);
-
     if (isBodyValid()) {
       return new Promise(async (resolve, reject) => {
         if (
+          body.status === "completed" &&
+          body.customerId &&
           body.paymentMethod === "accountBalance" &&
           customer.balance < body.paymentAmount
         ) {
@@ -109,123 +109,131 @@ module.exports = {
             error: true,
             message: errorMessages.BALANCE_NOT_ENOUGH,
           });
-        }
+        } else {
+          let outOfStockList = [];
+          let almostOutList = [];
+          let availableList = [];
 
-        let outOfStockList = [];
-        let almostOutList = [];
-        let availableList = [];
-
-        const promises = body.details.map(async (detail) => {
-          try {
-            const item = await Item.findOne({
-              _id: detail.itemId,
-            });
-
-            await Inventory.populate(item, {
-              path: "ingredients.inventoryId",
-            })
-              .then((item) => {
-                item.ingredients.forEach((e) => {
-                  if (e.inventoryId.qty.last - e.qty * detail.qty < 0) {
-                    outOfStockList.push(e);
-                  } else if (
-                    e.inventoryId.qty.last - e.qty * detail.qty <=
-                    e.inventoryId.qty.min
-                  ) {
-                    almostOutList.push(e);
-                  } else {
-                    availableList.push(e);
-                  }
-                });
-              })
-              .catch((err) => {
-                reject({ error: true, message: err });
+          const promises = body.details.map(async (detail) => {
+            try {
+              const item = await Item.findOne({
+                _id: detail.itemId,
               });
 
-            if (outOfStockList.length > 0) {
+              await Inventory.populate(item, {
+                path: "ingredients.inventoryId",
+              })
+                .then((item) => {
+                  item.ingredients.forEach((e) => {
+                    if (e.inventoryId.qty.last - e.qty * detail.qty < 0) {
+                      outOfStockList.push(e);
+                    } else if (
+                      e.inventoryId.qty.last - e.qty * detail.qty <=
+                      e.inventoryId.qty.min
+                    ) {
+                      almostOutList.push(e);
+                    } else {
+                      availableList.push(e);
+                    }
+                  });
+                })
+                .catch((err) => {
+                  reject({ error: true, message: err });
+                });
+
+              if (outOfStockList.length > 0) {
+                reject({
+                  error: true,
+                  message: errorMessages.TRANSACTION_FAILED_OUT_OF_STOCK,
+                });
+              }
+
+              if (almostOutList.length > 0) {
+                almostOutList.forEach((e) => {
+                  inventoryController.updateInventory({
+                    headers: req.headers,
+                    body: {
+                      inventoryId: e.inventoryId._id,
+                      note: "Create Transaction",
+                      data: {
+                        qty: {
+                          status: "almostOut",
+                          last: e.inventoryId.qty.last - e.qty * detail.qty,
+                          early: e.inventoryId.qty.early,
+                          min: e.inventoryId.qty.min,
+                          max: e.inventoryId.qty.max,
+                        },
+                      },
+                    },
+                  });
+                });
+              }
+
+              if (availableList.length > 0) {
+                availableList.forEach((e) => {
+                  inventoryController.updateInventory({
+                    headers: req.headers,
+                    body: {
+                      inventoryId: e.inventoryId._id,
+                      note: "Create Transaction",
+                      data: {
+                        qty: {
+                          status: "available",
+                          last: e.inventoryId.qty.last - e.qty * detail.qty,
+                          early: e.inventoryId.qty.early,
+                          min: e.inventoryId.qty.min,
+                          max: e.inventoryId.qty.max,
+                        },
+                      },
+                    },
+                  });
+                });
+              }
+            } catch (error) {
               reject({
                 error: true,
-                message: errorMessages.TRANSACTION_FAILED_OUT_OF_STOCK,
+                message: errorMessages.FAILED_SAVED_DATA,
               });
             }
-
-            if (almostOutList.length > 0) {
-              almostOutList.forEach((e) => {
-                inventoryController.updateInventory({
-                  headers: req.headers,
-                  body: {
-                    inventoryId: e.inventoryId._id,
-                    note: "[Create Transaction]",
-                    data: {
-                      qty: {
-                        status: "almostOut",
-                        last: e.inventoryId.qty.last - e.qty * detail.qty,
-                        early: e.inventoryId.qty.early,
-                        min: e.inventoryId.qty.min,
-                        max: e.inventoryId.qty.max,
-                      },
-                    },
-                  },
-                });
-              });
-            }
-
-            if (availableList.length > 0) {
-              availableList.forEach((e) => {
-                inventoryController.updateInventory({
-                  headers: req.headers,
-                  body: {
-                    inventoryId: e.inventoryId._id,
-                    note: "[Create Transaction]",
-                    data: {
-                      qty: {
-                        status: "available",
-                        last: e.inventoryId.qty.last - e.qty * detail.qty,
-                        early: e.inventoryId.qty.early,
-                        min: e.inventoryId.qty.min,
-                        max: e.inventoryId.qty.max,
-                      },
-                    },
-                  },
-                });
-              });
-            }
-          } catch (error) {
-            reject({
-              error: true,
-              message: errorMessages.FAILED_SAVED_DATA,
-            });
-          }
-        });
-
-        await Promise.all(promises);
-
-        new Transaction(payload).save().then(async (result) => {
-          logController.createLog({
-            createdAt: dateISOString,
-            title: "Create Transaction",
-            note: "",
-            type: "transaction",
-            from: result._id,
-            by: userByToken._id,
-            data: result,
           });
 
-          if (body.customerId && body.paymentMethod === "accountBalance") {
-            await userController.updateUser({
-              userId: body.customerId,
-              data: {
-                balance: customer.balance - body.paymentAmount,
-              },
-            });
-          }
+          await Promise.all(promises);
 
-          resolve({
-            error: false,
-            data: result,
-            message: successMessages.TRANSACTION_CREATED_SUCCESS,
+          new Transaction(payload).save().then(async (result) => {
+            logController.createLog({
+              createdAt: dateISOString,
+              title: "Create Transaction",
+              note: "",
+              type: "transaction",
+              from: result._id,
+              by: userByToken._id,
+              data: result,
+            });
+
+            if (
+              body.status === "completed" &&
+              body.customerId &&
+              body.paymentMethod === "accountBalance" &&
+              customer.balance >= body.paymentAmount
+            ) {
+              await balanceTransactionController.createBalanceTransaction({
+                headers: req.headers,
+                body: {
+                  customerId: body.customerId,
+                  amount: body.paymentAmount,
+                  tag: "out",
+                  note: "Order Menu",
+                },
+              });
+            }
+
+            resolve({
+              error: false,
+              data: result,
+              message: successMessages.TRANSACTION_CREATED_SUCCESS,
+            });
           });
-        });
+        }
       });
     } else {
       return Promise.reject(payload);
@@ -354,7 +362,7 @@ module.exports = {
           };
 
       pageController
-        .paginate(pageKey, pageSize, pipeline, Transaction)
+        .paginate(pageKey, pageSize, pipeline, Transaction, -1)
         .then((transactions) => {
           Transaction.populate(transactions.data, {
             path: "businessId outletId userId details.itemId",
@@ -415,7 +423,7 @@ module.exports = {
                       headers: req.headers,
                       body: {
                         inventoryId: e.inventoryId._id,
-                        note: "[Update Transaction]",
+                        note: "Update Transaction",
                         data: {
                           qty: {
                             last: e.inventoryId.qty.last + e.qty * detail.qty,
@@ -445,7 +453,7 @@ module.exports = {
         Transaction.findByIdAndUpdate(body.transactionId, body.data, {
           new: true,
         })
-          .then((result) => {
+          .then(async (result) => {
             logController.createLog({
               createdAt: dateISOString,
               title: "Update Transaction",
@@ -455,6 +463,24 @@ module.exports = {
               by: userByToken._id,
               data: body.data,
             });
+
+            if (
+              body.data.status === "completed" &&
+              body.data.customerId &&
+              body.data.paymentMethod === "accountBalance" &&
+              customer.balance >= body.data.paymentAmount
+            ) {
+              await balanceTransactionController.createBalanceTransaction({
+                headers: req.headers,
+                body: {
+                  customerId: body.customerId,
+                  amount: body.paymentAmount,
+                  tag: "out",
+                  note: "Order Menu",
+                },
+              });
+            }
+
             resolve({
               error: false,
               data: result,

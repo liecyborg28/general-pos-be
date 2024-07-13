@@ -75,7 +75,7 @@ module.exports = {
                     gender: data.gender,
                     password: data.password,
                     imageUrl: data.imageUrl,
-                    _id: data._id,
+                    userId: data._id,
                     access: [],
                     businessIds: [],
                     outletIds: [],
