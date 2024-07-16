@@ -41,7 +41,7 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.use('/api', routes); // Pastikan path prefix /api sudah benar
+//app.use('/api', routes); // Pastikan path prefix /api sudah benar
 
 // Menjalankan server
 app.listen(port, () => {
