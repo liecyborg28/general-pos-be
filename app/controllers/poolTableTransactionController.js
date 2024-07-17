@@ -46,6 +46,7 @@ module.exports = {
         body.userId &&
         body.status &&
         body.details &&
+        body.mode &&
         // body.tax &&
         // body.paymentAmount &&
         // body.paymentMethod &&
@@ -65,6 +66,7 @@ module.exports = {
           paymentAmount: body.paymentAmount,
           paymentMethod: body.paymentMethod,
           tax: body.tax,
+          mode: body.mode,
           charge: body.charge ? body.charge : 0,
           costs: body.costs ? body.costs : [],
           discounts: body.discounts ? body.discounts : [],
@@ -296,57 +298,69 @@ module.exports = {
     } else {
       body.data["updatedAt"] = dateISOString;
       body.data["changedBy"] = userByToken._id;
+      let customer = null;
+      if (body.data.customerId) {
+        customer = await User.findOne({
+          _id: body.data.customerId,
+        });
+      }
+
       return new Promise(async (resolve, reject) => {
-        // if (body.data.status && body.data.status === "canceled") {
-        //   let poolTableTransaction = await PoolTableTransaction.findOne({
-        //     _id: body.poolTableTransactionId,
-        //   });
-        // }
-
-        PoolTableTransaction.findByIdAndUpdate(
-          body.poolTableTransactionId,
-          body.data,
-          {
-            new: true,
-          }
-        )
-          .then(async (result) => {
-            logController.createLog({
-              createdAt: dateISOString,
-              title: "Update Pool Table Transaction",
-              note: body.note ? body.note : "",
-              type: "poolTableTransaction",
-              from: body.transactionId,
-              by: userByToken._id,
-              data: body.data,
-            });
-
-            if (
-              body.data.status === "completed" &&
-              body.data.customerId &&
-              body.data.paymentMethod === "accountBalance" &&
-              customer.balance >= body.data.paymentAmount
-            ) {
-              await balanceTransactionController.createBalanceTransaction({
-                headers: req.headers,
-                body: {
-                  customerId: body.customerId,
-                  amount: body.paymentAmount,
-                  tag: "out",
-                  note: "Order Menu",
-                },
-              });
-            }
-
-            resolve({
-              error: false,
-              data: result,
-              message: successMessages.DATA_SUCCESS_UPDATED,
-            });
-          })
-          .catch((err) => {
-            reject({ error: true, message: err });
+        if (
+          body.data.status === "completed" &&
+          body.data.customerId &&
+          body.data.paymentMethod === "accountBalance" &&
+          customer.balance < body.data.paymentAmount
+        ) {
+          reject({
+            error: true,
+            message: errorMessages.BALANCE_NOT_ENOUGH,
           });
+        } else {
+          if (
+            body.data.status === "completed" &&
+            body.data.customerId &&
+            body.data.paymentMethod === "accountBalance"
+          ) {
+            await balanceTransactionController.createBalanceTransaction({
+              headers: req.headers,
+              body: {
+                customerId: body.data.customerId,
+                amount: body.data.paymentAmount,
+                tag: "out",
+                note: "Order Meja",
+              },
+            });
+          }
+
+          PoolTableTransaction.findByIdAndUpdate(
+            body.poolTableTransactionId,
+            body.data,
+            {
+              new: true,
+            }
+          )
+            .then(async (result) => {
+              logController.createLog({
+                createdAt: dateISOString,
+                title: "Update Pool Table Transaction",
+                note: body.note ? body.note : "",
+                type: "poolTableTransaction",
+                from: body.poolTableTransactionId,
+                by: userByToken._id,
+                data: body.data,
+              });
+
+              resolve({
+                error: false,
+                data: result,
+                message: successMessages.DATA_SUCCESS_UPDATED,
+              });
+            })
+            .catch((err) => {
+              reject({ error: true, message: err });
+            });
+        }
       });
     }
   },

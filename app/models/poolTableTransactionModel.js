@@ -36,6 +36,7 @@ const PoolTableTransaction = mongoose.Schema({
       price: Number,
     },
   ],
+  mode: String,
   scheduledAt: String,
   status: String,
   tax: Number,

@@ -441,9 +441,27 @@ const UserController = {
       return new Promise((resolve, reject) => {
         User.findByIdAndUpdate(body.userId, body.data, { new: true })
           .then((result) => {
+            let finalResult = {
+              userId: result._id,
+              businessIds: result.businessIds,
+              outletIds: result.outletIds,
+              access: result.access,
+              auth: result.auth,
+              balance: result.balance,
+              type: result.type,
+              gender: result.gender,
+              status: result.status,
+              email: result.email,
+              phonenumber: result.phonenumber,
+              name: result.name,
+              username: result.username,
+              password: result.password,
+              createdAt: result.createdAt,
+              updatedAt: result.updateAt,
+            };
             resolve({
               error: false,
-              data: result,
+              data: finalResult,
               message: successMessages.DATA_SUCCESS_UPDATED,
             });
           })
