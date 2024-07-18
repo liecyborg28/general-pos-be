@@ -8,7 +8,7 @@ const balanceTransactionSchema = new mongoose.Schema({
   },
   invoiceId: {
     type: String,
-    required: true,
+    required: false,
     unique: true // Menambahkan unique index untuk mencegah duplikat invoiceId
   },
   status: {

@@ -85,7 +85,7 @@ module.exports = {
       // 4. Buat transaksi baru
       const newBalanceTransaction = new BalanceTransaction({
         userId: user._id,
-        invoiceId: paymentResponse.orderId,
+        invoiceId: `TOPUP-${Date.now()}-${Math.random().toString(36).substring(2, 15)}`, // Generate invoiceId unik
         status: "pending",
         amount,
         fee: 0,
