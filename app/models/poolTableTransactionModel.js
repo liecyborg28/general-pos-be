@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 
 const dbConfig = require("./../../config/dbConfig");
+const { string } = require("joi");
 
 mongoose.connect(dbConfig.url);
 
@@ -34,9 +35,9 @@ const PoolTableTransaction = mongoose.Schema({
       duration: String,
       durationType: String,
       price: Number,
+      mode: String,
     },
   ],
-  mode: String,
   scheduledAt: String,
   status: String,
   tax: Number,

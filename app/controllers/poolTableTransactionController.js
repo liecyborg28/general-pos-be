@@ -46,7 +46,6 @@ module.exports = {
         body.userId &&
         body.status &&
         body.details &&
-        body.mode &&
         // body.tax &&
         // body.paymentAmount &&
         // body.paymentMethod &&
@@ -66,7 +65,6 @@ module.exports = {
           paymentAmount: body.paymentAmount,
           paymentMethod: body.paymentMethod,
           tax: body.tax,
-          mode: body.mode,
           charge: body.charge ? body.charge : 0,
           costs: body.costs ? body.costs : [],
           discounts: body.discounts ? body.discounts : [],
@@ -152,7 +150,9 @@ module.exports = {
     return new Promise((resolve, reject) => {
       let pipeline = isNotEveryQueryNull()
         ? {
-            // status: transactionResource.STATUS.COMPLETED.value,
+            status: {
+              $ne: "canceled",
+            },
             $or: [
               {
                 customer: req.query.keyword
@@ -178,7 +178,11 @@ module.exports = {
               },
             ],
           }
-        : {};
+        : {
+            status: {
+              $ne: "canceled",
+            },
+          };
 
       pageController
         .paginate(pageKey, pageSize, pipeline, PoolTableTransaction)
@@ -220,6 +224,9 @@ module.exports = {
       let pipeline = isNotEveryQueryNull()
         ? req.query.outletId
           ? {
+              status: {
+                $ne: "canceled",
+              },
               outletId: req.query.outletId,
               createdAt: {
                 $gte: req.query.from
@@ -242,6 +249,9 @@ module.exports = {
             }
         : req.query.outletId
         ? {
+            status: {
+              $ne: "canceled",
+            },
             outletId: req.query.outletId,
             createdAt: {
               $gte: defaultFrom,
@@ -249,6 +259,9 @@ module.exports = {
             },
           }
         : {
+            status: {
+              $ne: "canceled",
+            },
             createdAt: {
               $gte: defaultFrom,
               $lte: defaultTo,
