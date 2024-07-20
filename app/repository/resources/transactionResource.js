@@ -50,11 +50,11 @@ module.exports = {
       en: "EDC Machine",
       id: "Mesin EDC",
     },
-    {
-      value: "accountBalance",
-      en: "Account Balance",
-      id: "Saldo Akun",
-    },
+    // {
+    //   value: "accountBalance",
+    //   en: "Account Balance",
+    //   id: "Saldo Akun",
+    // },
   ],
   OFFERS: [
     {
