@@ -9,8 +9,8 @@ const app = express();
 app.use(bodyParser.json());
 
 // Path to self-signed certificate and key
-const privateKey = fs.readFileSync('/path/to/your/selfsigned.key', 'utf8');
-const certificate = fs.readFileSync('/path/to/your/selfsigned.crt', 'utf8');
+const privateKey = fs.readFileSync('/root/AmanoDev/ssl/selfsigned.key', 'utf8');
+const certificate = fs.readFileSync('/root/AmanoDev/ssl/selfsigned.crt', 'utf8');
 const credentials = { key: privateKey, cert: certificate };
 
 // Storage for commands
