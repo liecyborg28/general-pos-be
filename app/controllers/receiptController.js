@@ -58,7 +58,9 @@ module.exports = {
         .then((result) => {
           let receiptDetails = result.details.map((e) => ({
             name: e.poolTableId.name,
+            poolTableNumber: e.poolTableNumber,
             duration: e.duration,
+            durationType: e.durationType,
             price: e.price,
             totalPrice: countBillingAmount(e.duration, e.price, e.durationType),
           }));
@@ -135,7 +137,7 @@ module.exports = {
                         border-color: #000;
                     }
                     .logo {
-                        content: url(https://raw.githubusercontent.com/liecyborg28/my-assets-public/main/logo-anak-bawang.png);
+                        content: url(https://raw.githubusercontent.com/liecyborg28/my-assets-public/main/logo-berlin-pool-bistro.png);
                         width: 100px;
                         min-height: fit-content;
                         filter: grayscale();
@@ -188,8 +190,10 @@ module.exports = {
 
           receiptData.details.map((e) => {
             html += `<div class="detail">
-              <span>${e.qty} ${e.name}</span>
+              <span>${e.name} ${e.poolTableNumber}</span>
+              <span>${formatController.currencyTransform(e.duration)}</span>
               <span>${formatController.currencyTransform(e.price)}</span>
+              <span>${formatController.currencyTransform(e.totalPrice)}</span>
           </div>`;
           });
 
@@ -225,7 +229,7 @@ module.exports = {
                 <div class="detail">
                     <span>Total Pajak</span>
                     <span>${formatController.currencyTransform(
-                      receiptData.totalTax
+                      parseInt(receiptData.totalTax)
                     )}</span>
                 </div>
                 <div class="detail">
@@ -284,6 +288,7 @@ module.exports = {
 
   getTransactionReceipt: (req) => {
     return new Promise((resolve, reject) => {
+      console.log("testtt");
       const transactionId = req.params.transactionId;
 
       Transaction.findOne({ _id: transactionId })

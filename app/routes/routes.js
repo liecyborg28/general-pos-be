@@ -12,7 +12,7 @@ const outletRouter = require("./outletRouter/outletRouter");
 const itemRouter = require("./itemRouter/itemRouter");
 const transactionRouter = require("./transactionRouter/transactionRouter");
 const reportRouter = require("./reportRouter/reportRouter");
-// const receiptRouter = require("./receiptRouter/receiptRouter");
+const receiptRouter = require("./receiptRouter/receiptRouter");
 
 // new routes
 const offerRouter = require("./offerRouter/offerRouter");
@@ -30,7 +30,7 @@ router.use(outletRouter);
 router.use(itemRouter);
 router.use(transactionRouter);
 router.use(reportRouter);
-// router.use(receiptRouter);
+router.use(receiptRouter);
 router.use(offerRouter);
 router.use(categoryRouter);
 router.use(inventoryRouter);
