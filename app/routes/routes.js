@@ -2,7 +2,7 @@ const router = require("express").Router();
 
 //Aldil
 //const router = express.Router();
-const relayController = require('../controllers/relayController');
+const relayController = require("../controllers/relayController");
 // routes
 const authRouter = require("./authRouter/authRouter");
 const userRouter = require("./userRouter/userRouter");
@@ -39,6 +39,8 @@ router.use(poolTableTransactionRouter);
 router.use(balanceTransactionRouter);
 
 // Endpoint untuk mengontrol relay menggunakan POST
-router.post('/relay', relayController.controlRelay);
+router.post("/relay", relayController.controlRelay);
+// router.post('/relay', relayController.controlRelay); // Ensure controlRelay is defined and properly imported
+router.get("/poll/:esp", relayController.pollRelay); // Ensure pollRelay is defined and properly imported
 
 module.exports = router;

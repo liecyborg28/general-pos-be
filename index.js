@@ -1,26 +1,3 @@
-/* Mabok IoT
-const express = require('express');
-const bodyParser = require('body-parser');
-const path = require('path');
-const app = express();
-
-// Middleware
-app.use(bodyParser.json());
-
-// Rute untuk relay
-const relayRouter = require('./app/routes');
-app.use('/', relayRouter);
-
-// Static files
-app.use(express.static(path.join(__dirname, 'public')));
-
-const port = 3000;
-app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
-});
-
-*/
-
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
