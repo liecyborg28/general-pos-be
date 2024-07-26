@@ -136,6 +136,11 @@ module.exports = {
                         border-top: 1px;
                         border-color: #000;
                     }
+                    
+                    .container {
+                        max-height: fit-content !important;
+                    }
+                    
                     .logo {
                         content: url(https://raw.githubusercontent.com/liecyborg28/my-assets-public/main/logo-berlin-billiard.png);
                         width: 100px;

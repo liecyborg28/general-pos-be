@@ -8,11 +8,10 @@ const errorMessages = require("../../repository/messages/errorMessages");
 const successMessages = require("../../repository/messages/successMessages");
 
 // Tentukan resolusi DPI sesuai dengan printer thermal Anda
-const DPI = 384; // Misalnya, 384 DPI untuk printer thermal
+const DPI = 203; // Misalnya, 384 DPI untuk printer thermal
 
 const config = {
-  width: "58mm",
-  height: "81mm",
+  width: "88mm", // Lebar kertas untuk PDF
   margin: { top: 0, right: 0, bottom: 0, left: 0 },
   timeout: 60000, // memperpanjang batas waktu menjadi 60 detik
 };
@@ -49,28 +48,17 @@ async function pdfToImage(pdfPath, outputDir) {
   const resizedImagePath = path.join(outputDir, "output_resized.png");
 
   // Ukuran kertas printer dalam piksel
-  const widthPx = (58 * DPI) / 25.4; // Lebar kertas 58mm
-  const heightPx = (81 * DPI) / 25.4; // Sesuaikan tinggi dengan konten PDF
+  const widthPx = (88 * DPI) / 25.4; // Lebar kertas 88mm
 
-  // Dapatkan metadata gambar asli
-  const originalImage = sharp(imagePath);
-  const metadata = await originalImage.metadata();
-
-  // Perbesar gambar untuk memenuhi lebar kertas printer
+  // Perbesar gambar menjadi dua kali lipat ukuran asli dengan pengaturan sharpen untuk ketajaman
   await sharp(imagePath)
     .resize({
-      width: Math.round(widthPx), // Lebar kertas dalam piksel
-      height: Math.round(heightPx), // Tinggi dalam piksel
-      fit: sharp.fit.contain, // Fit gambar ke dalam ukuran yang ditentukan
+      width: Math.round(widthPx * 2), // Sesuaikan dengan lebar baru
+      height: Math.round((widthPx * 2 * 162) / 116), // Sesuaikan dengan tinggi baru proporsional
+      fit: "inside",
     })
+    .sharpen()
     .toFile(resizedImagePath);
-
-  // Cek ukuran gambar yang diresize
-  const resizedImage = sharp(resizedImagePath);
-  const resizedMetadata = await resizedImage.metadata();
-  console.log(
-    `Ukuran gambar yang diresize: ${resizedMetadata.width}x${resizedMetadata.height} px`
-  );
 
   return resizedImagePath;
 }
@@ -118,10 +106,10 @@ module.exports = {
           `mspaint /pt "${outputImagePath}" "RONGTA 58mm Series Printer"`,
           (error) => {
             if (error) {
-              fs.unlinkSync(outputImagePath); // Hapus gambar sementara jika terjadi kesalahan
+              // fs.unlinkSync(outputImagePath); // Hapus gambar sementara jika terjadi kesalahan
               return reject(errorMessages.PRINTING_FAILED);
             }
-            fs.unlinkSync(outputImagePath); // Hapus gambar sementara
+            // fs.unlinkSync(outputImagePath); // Hapus gambar sementara
             resolve(successMessages.PRINTING_SUCCESSFULLY);
           }
         );
@@ -179,7 +167,7 @@ module.exports = {
       }); // menunggu hingga semua sumber daya dimuat
       const pdfBuffer = await page.pdf({
         width: config.width,
-        height: config.height,
+        // Menghapus height agar menyesuaikan dengan konten
         margin: config.margin,
         printBackground: true,
         timeout: config.timeout,
