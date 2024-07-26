@@ -1,12 +1,17 @@
 const puppeteer = require("puppeteer");
-const { PDFDocument } = require("pdf-lib");
 const fs = require("fs");
 const { exec } = require("child_process");
 const pdfPoppler = require("pdf-poppler");
 const path = require("path");
+const sharp = require("sharp"); // Pastikan sharp terpasang
+const errorMessages = require("../../repository/messages/errorMessages");
+const successMessages = require("../../repository/messages/successMessages");
+
+// Tentukan resolusi DPI sesuai dengan printer thermal Anda
+const DPI = 384; // Misalnya, 384 DPI untuk printer thermal
 
 const config = {
-  width: "57mm",
+  width: "58mm",
   height: "81mm",
   margin: { top: 0, right: 0, bottom: 0, left: 0 },
   timeout: 60000, // memperpanjang batas waktu menjadi 60 detik
@@ -39,7 +44,35 @@ async function pdfToImage(pdfPath, outputDir) {
     console.error("Gagal mengonversi PDF:", error);
   }
 
-  return outputPath + "-1.png";
+  // Tentukan path gambar hasil konversi
+  const imagePath = outputPath + "-1.png";
+  const resizedImagePath = path.join(outputDir, "output_resized.png");
+
+  // Ukuran kertas printer dalam piksel
+  const widthPx = (58 * DPI) / 25.4; // Lebar kertas 58mm
+  const heightPx = (81 * DPI) / 25.4; // Sesuaikan tinggi dengan konten PDF
+
+  // Dapatkan metadata gambar asli
+  const originalImage = sharp(imagePath);
+  const metadata = await originalImage.metadata();
+
+  // Perbesar gambar untuk memenuhi lebar kertas printer
+  await sharp(imagePath)
+    .resize({
+      width: Math.round(widthPx), // Lebar kertas dalam piksel
+      height: Math.round(heightPx), // Tinggi dalam piksel
+      fit: sharp.fit.contain, // Fit gambar ke dalam ukuran yang ditentukan
+    })
+    .toFile(resizedImagePath);
+
+  // Cek ukuran gambar yang diresize
+  const resizedImage = sharp(resizedImagePath);
+  const resizedMetadata = await resizedImage.metadata();
+  console.log(
+    `Ukuran gambar yang diresize: ${resizedMetadata.width}x${resizedMetadata.height} px`
+  );
+
+  return resizedImagePath;
 }
 
 function printImage(filePath) {
@@ -67,6 +100,38 @@ function printImage(filePath) {
 }
 
 module.exports = {
+  printFromBuffer: async (pdfBuffer) => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        // Simpan PDF buffer ke file sementara
+        const pdfPath = path.join(__dirname, "tempPrintFile.pdf");
+        fs.writeFileSync(pdfPath, pdfBuffer);
+
+        // Konversi PDF menjadi gambar menggunakan pdf-poppler
+        const outputImagePath = await pdfToImage(pdfPath, __dirname);
+
+        // Hapus file PDF sementara
+        fs.unlinkSync(pdfPath);
+
+        // Cetak gambar menggunakan MS Paint
+        exec(
+          `mspaint /pt "${outputImagePath}" "RONGTA 58mm Series Printer"`,
+          (error) => {
+            if (error) {
+              fs.unlinkSync(outputImagePath); // Hapus gambar sementara jika terjadi kesalahan
+              return reject(errorMessages.PRINTING_FAILED);
+            }
+            fs.unlinkSync(outputImagePath); // Hapus gambar sementara
+            resolve(successMessages.PRINTING_SUCCESSFULLY);
+          }
+        );
+      } catch (error) {
+        console.error("Kesalahan saat mencetak:", error);
+        reject(errorMessages.PRINTING_FAILED);
+      }
+    });
+  },
+
   printPdf: async (arrayBuffer) => {
     try {
       const outputDir = path.resolve(__dirname, "output");

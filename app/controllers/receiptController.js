@@ -137,7 +137,7 @@ module.exports = {
                         border-color: #000;
                     }
                     .logo {
-                        content: url(https://raw.githubusercontent.com/liecyborg28/my-assets-public/main/logo-berlin-pool-bistro.png);
+                        content: url(https://raw.githubusercontent.com/liecyborg28/my-assets-public/main/logo-berlin-billiard.png);
                         width: 100px;
                         min-height: fit-content;
                         filter: grayscale();
@@ -273,11 +273,11 @@ module.exports = {
             .generatePDF(html)
             .then((res) => {
               pdfController
-                .printPdf(res)
+                .printFromBuffer(res)
                 .then(() => {
                   resolve({
                     error: false,
-                    message: errorMessages.ACCOUNT_INACTIVE,
+                    message: successMessages.FILE_CREATED_SUCCESS,
                   });
                 })
                 .catch((err) => {
@@ -389,7 +389,7 @@ module.exports = {
                   border-color: #000;
               }
               .logo {
-                  content: url(https://raw.githubusercontent.com/liecyborg28/my-assets-public/main/logo-berlin-pool-bistro.png);
+                  content: url(https://raw.githubusercontent.com/liecyborg28/my-assets-public/main/logo-berlin-billiard.png);
                   width: 100px;
                   min-height: fit-content;
                   filter: grayscale();
@@ -621,7 +621,7 @@ module.exports = {
                   border-color: #000;
               }
               .logo {
-                  content: url(https://raw.githubusercontent.com/liecyborg28/my-assets-public/main/logo-berlin-pool-bistro.png);
+                  content: url(https://raw.githubusercontent.com/liecyborg28/my-assets-public/main/logo-berlin-billiard.png);
                   width: 100px;
                   min-height: fit-content;
                   filter: grayscale();

@@ -71,6 +71,10 @@ module.exports = {
     en: "Pool table created successfully!",
     id: "Meja billiard berhasil dibuat!",
   },
+  PRINTING_SUCCESSFULLY: {
+    en: "Printing failed!",
+    id: "Percatakan Gagal!",
+  },
   // Q
 
   // R

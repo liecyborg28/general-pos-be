@@ -83,6 +83,10 @@ module.exports = {
     en: "Phone number already exists",
     id: "Nomor telepon sudah terdaftar",
   },
+  PRINTING_FAILED: {
+    en: "Printing failed!",
+    id: "Percatakan Gagal!",
+  },
   // Q
 
   // R
