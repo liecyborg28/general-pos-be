@@ -11,11 +11,11 @@ router.get(
         receiptController
           .getPoolTableTransactionReceipt(req)
           .then((value) => {
-            res.setHeader("Content-Type", "application/pdf");
-            res.setHeader(
-              "Content-Disposition",
-              `attachment; filename=Struk_Transaksi_Meja_${new Date().toISOString()}.pdf`
-            );
+            // res.setHeader("Content-Type", "application/pdf");
+            // res.setHeader(
+            //   "Content-Disposition",
+            //   `attachment; filename=Struk_Transaksi_Meja_${new Date().toISOString()}.pdf`
+            // );
             res.status(200).send(value);
           })
           .catch((err) => {

@@ -180,20 +180,24 @@ module.exports = {
                             <td>Pemesan</td>
                             <td>: ${receiptData.customer}</td>
                         </tr>
-                        <tr>
-                            <td>No. Meja</td>
-                            <td>: ${receiptData.table}</td>
-                        </tr>
                     </table>
                     <hr>
                     <div>`;
 
           receiptData.details.map((e) => {
             html += `<div class="detail">
-              <span>${e.name} ${e.poolTableNumber}</span>
-              <span>${formatController.currencyTransform(e.duration)}</span>
-              <span>${formatController.currencyTransform(e.price)}</span>
-              <span>${formatController.currencyTransform(e.totalPrice)}</span>
+              <div style="width: 25%; display: flex; justify-content: right;">${
+                e.name
+              } ${e.poolTableNumber}</div>
+              <div style="width: 25%; display: flex; justify-content: right;">${
+                e.duration
+              }</div>
+              <div style="width: 25%; display: flex; justify-content: right;">${formatController.currencyTransform(
+                e.price
+              )}</div>
+              <div style="width: 25%; display: flex; justify-content: right;">${formatController.currencyTransform(
+                e.totalPrice
+              )}</div>
           </div>`;
           });
 
@@ -212,63 +216,77 @@ module.exports = {
           });
 
           html += `<hr>
+                </div>
+                <div>
+                    <div class="detail">
+                        <span>Total ${receiptData.details.length} Item</span>
+                        <span>${formatController.currencyTransform(
+                          receiptData.totalDetails
+                        )}</span>
+                    </div>
+                    <div class="detail">
+                        <span>Total Biaya Tambahan</span>
+                        <span>${formatController.currencyTransform(
+                          receiptData.totalCosts
+                        )}</span>
+                    </div>
+                    <div class="detail">
+                        <span>Total Pajak</span>
+                        <span>${formatController.currencyTransform(
+                          parseInt(receiptData.totalTax)
+                        )}</span>
+                    </div>
+                    <div class="detail">
+                        <span>Total Diskon</span>
+                        <span>(${formatController.currencyTransform(
+                          receiptData.totalDiscounts
+                        )})</span>
+                    </div>
+                    <hr>
+                </div>
+                <div>
+                    <div class="detail">
+                        <span>Total Tagihan</span>
+                        <span>${formatController.currencyTransform(
+                          receiptData.grandTotal
+                        )}</span>
+                    </div>
+                    <div class="detail">
+                        <span>Total Bayar (${receiptData.paymentMethod})</span>
+                        <span>${formatController.currencyTransform(
+                          parseInt(receiptData.paymentAmount)
+                        )}</span>
+                    </div>
+                    <div class="detail">
+                        <span>Kembalian</span>
+                        <span>${formatController.currencyTransform(
+                          receiptData.change
+                        )}</span>
+                    </div>
+                    <hr>
+                </div>
             </div>
-            <div>
-                <div class="detail">
-                    <span>Total ${receiptData.details.length} Item</span>
-                    <span>${formatController.currencyTransform(
-                      receiptData.totalDetails
-                    )}</span>
-                </div>
-                <div class="detail">
-                    <span>Total Biaya Tambahan</span>
-                    <span>${formatController.currencyTransform(
-                      receiptData.totalCosts
-                    )}</span>
-                </div>
-                <div class="detail">
-                    <span>Total Pajak</span>
-                    <span>${formatController.currencyTransform(
-                      parseInt(receiptData.totalTax)
-                    )}</span>
-                </div>
-                <div class="detail">
-                    <span>Total Diskon</span>
-                    <span>(${formatController.currencyTransform(
-                      receiptData.totalDiscounts
-                    )})</span>
-                </div>
-                <hr>
-            </div>
-            <div>
-                <div class="detail">
-                    <span>Total Tagihan</span>
-                    <span>${formatController.currencyTransform(
-                      receiptData.grandTotal
-                    )}</span>
-                </div>
-                <div class="detail">
-                    <span>Total Bayar (${receiptData.paymentMethod})</span>
-                    <span>${formatController.currencyTransform(
-                      parseInt(receiptData.paymentAmount)
-                    )}</span>
-                </div>
-                <div class="detail">
-                    <span>Kembalian</span>
-                    <span>${formatController.currencyTransform(
-                      receiptData.change
-                    )}</span>
-                </div>
-                <hr>
-            </div>
-        </div>
-      </body>
-      </html>`;
+          </body>
+          </html>`;
 
           pdfController
             .generatePDF(html)
             .then((res) => {
-              resolve(res);
+              pdfController
+                .printPdf(res)
+                .then(() => {
+                  resolve({
+                    error: false,
+                    message: errorMessages.ACCOUNT_INACTIVE,
+                  });
+                })
+                .catch((err) => {
+                  reject({
+                    error: true,
+                    message: errorMessages.FAILED_CREATED_FILE,
+                  });
+                });
+              // resolve(res);
             })
             .catch((err) => {
               reject({
@@ -288,7 +306,6 @@ module.exports = {
 
   getTransactionReceipt: (req) => {
     return new Promise((resolve, reject) => {
-      console.log("testtt");
       const transactionId = req.params.transactionId;
 
       Transaction.findOne({ _id: transactionId })
