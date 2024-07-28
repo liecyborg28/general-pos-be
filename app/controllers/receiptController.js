@@ -275,7 +275,7 @@ module.exports = {
                     </div>
                     <hr>
                 </div>
-                <p style="text-align: center;">Terima Kasih atas Kunjungan Anda :)</p>
+                <p style="text-align: center; margin-top: 50px;">Terima Kasih atas Kunjungan Anda :)</p>
             </div>
           </body>
           </html>`;
@@ -510,6 +510,7 @@ module.exports = {
           </div>
           <hr>
       </div>
+      <p style="text-align: center; margin-top: 50px;">Terima Kasih atas Kunjungan Anda :)</p>
   </div>
 </body>
 </html>`;
