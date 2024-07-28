@@ -1,8 +1,8 @@
 const router = require("express").Router();
 
-//Aldil
-//const router = express.Router();
-const relayController = require("../controllers/relayController");
+// Aldil
+const relayController = require('../controllers/relayController');
+
 // routes
 const authRouter = require("./authRouter/authRouter");
 const userRouter = require("./userRouter/userRouter");
@@ -12,7 +12,6 @@ const outletRouter = require("./outletRouter/outletRouter");
 const itemRouter = require("./itemRouter/itemRouter");
 const transactionRouter = require("./transactionRouter/transactionRouter");
 const reportRouter = require("./reportRouter/reportRouter");
-const receiptRouter = require("./receiptRouter/receiptRouter");
 
 // new routes
 const offerRouter = require("./offerRouter/offerRouter");
@@ -22,6 +21,9 @@ const balanceTransactionRouter = require("./balanceTransactionRouter/balanceTran
 const poolTableRouter = require("./poolTableRouter/poolTableRouter");
 const poolTableTransactionRouter = require("./poolTableTransactionRouter/poolTableTransactionRouter");
 
+// --- Gunakan router dari relayController ---
+router.use('/', relayController.router); // Gunakan router dari relayController
+
 router.use(authRouter);
 router.use(userRouter);
 router.use(resourceRouter);
@@ -30,7 +32,6 @@ router.use(outletRouter);
 router.use(itemRouter);
 router.use(transactionRouter);
 router.use(reportRouter);
-router.use(receiptRouter);
 router.use(offerRouter);
 router.use(categoryRouter);
 router.use(inventoryRouter);
@@ -38,9 +39,15 @@ router.use(poolTableRouter);
 router.use(poolTableTransactionRouter);
 router.use(balanceTransactionRouter);
 
-// Endpoint untuk mengontrol relay menggunakan POST
-router.post("/relay", relayController.controlRelay);
-// router.post('/relay', relayController.controlRelay); // Ensure controlRelay is defined and properly imported
-router.get("/poll/:esp", relayController.pollRelay); // Ensure pollRelay is defined and properly imported
+// --- Hapus rute ini, karena sudah didefinisikan di relayController.router ---
+// router.get('/', (req, res) => {
+//   res.send('Hello from the server!');
+// });
 
-module.exports = router;
+// router.post('/relay', relayController.controlRelay); 
+// router.get('/poll/:esp', relayController.pollRelay); 
+// router.get('/light-status', (req, res) => {
+//   res.json(lightStates);
+// });
+
+module.exports = router; 
