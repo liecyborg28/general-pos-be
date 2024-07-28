@@ -1,3 +1,4 @@
+// MODE VPS
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -67,3 +68,51 @@ http
   .listen(80, () => {
     console.log("HTTP server running on port 80 and redirecting to HTTPS");
   });
+
+// [MODE LOCAL]
+// const express = require("express");
+// const mongoose = require("mongoose");
+// const cors = require("cors");
+// const https = require("https");
+// const fs = require("fs");
+// const http = require("http"); // Untuk redirect HTTP
+
+// const routes = require("./app/routes/routes");
+// const dbConfig = require("./config/dbConfig");
+// const errorMessages = require("./app/repository/messages/errorMessages");
+
+// const app = express();
+// const port = 8081;
+
+// // Koneksi ke MongoDB
+// mongoose
+//   .connect(dbConfig.url, dbConfig.connectOption)
+//   .then(() => console.log("MongoDB connected!"))
+//   .catch((err) => console.log(err));
+
+// // Pengaturan CORS
+// const corsOptions = {
+//   // origin: "https://berlinpoolbistro-2024.web.app",
+//   origin: "http://localhost:3000",
+//   credentials: true,
+//   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+//   allowedHeaders: "Content-Type, Authorization",
+// };
+// app.use(cors(corsOptions));
+
+// // Parsing body request
+// app.use(express.json());
+// app.use(express.urlencoded({ extended: true }));
+
+// // Rute aplikasi
+// app.use(routes);
+
+// // Middleware untuk menangani error
+// app.use((err, req, res, next) => {
+//   console.error(err.stack);
+//   res.status(500).send({ message: errorMessages.SOMETHING_WENT_WRONG });
+// });
+
+// app.listen(port, () => {
+//   console.log("HTTP server running on port 80 and redirecting to HTTPS");
+// });
