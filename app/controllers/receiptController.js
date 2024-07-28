@@ -1,18 +1,9 @@
-const fs = require("fs");
 const errorMessages = require("../repository/messages/errorMessages");
-const successMessages = require("../repository/messages/successMessages");
 const pdfController = require("../controllers/utils/pdfController");
 const Transaction = require("../models/transactionModel");
 const PoolTableTransaction = require("../models/poolTableTransactionModel");
 const transactionResource = require("../repository/resources/transactionResource");
 const formatController = require("../controllers/utils/formatController");
-
-function getPageSize(pdfPath) {
-  const pdfReader = hummus.createReader(pdfPath);
-  const firstPage = pdfReader.getPage(0);
-  const pageSize = firstPage.getMediaBox();
-  return { width: pageSize[2], height: pageSize[3] };
-}
 
 function formatReceiptDate(inputDate) {
   const date = new Date(inputDate);
@@ -46,6 +37,13 @@ function countBillingAmount(timeStr, rate, rateType) {
     ? (totalMinutes / 60) * rate
     : totalMinutes * rate;
 }
+
+const logoUrl =
+  "https://raw.githubusercontent.com/liecyborg28/my-assets-public/main/logo-berlin-billiard-new.png";
+
+const phoneNumber = "(+62) 896 9929 1452";
+
+const postCode = "78121";
 
 module.exports = {
   getPoolTableTransactionReceipt: (req) => {
@@ -116,7 +114,7 @@ module.exports = {
             totalTax,
             paymentAmount: result.paymentAmount,
             grandTotal,
-            change: grandTotal - result.paymentAmount,
+            change: result.paymentAmount - grandTotal,
           };
 
           let html = `<!DOCTYPE html>
@@ -130,24 +128,24 @@ module.exports = {
                 <style>
                     * {
                         font-family: Arial, Helvetica, sans-serif;
-                        font-size: 8px;
+                        font-size: 14px;
                     }
                     hr {
                         border-top: 1px;
                         border-color: #000;
                     }
-                    
+
                     .container {
                         max-height: fit-content !important;
                     }
-                    
+
                     .logo {
-                        content: url(https://raw.githubusercontent.com/liecyborg28/my-assets-public/main/logo-berlin-billiard.png);
-                        width: 100px;
+                        content: url(${logoUrl});
+                        width: 250px;
                         min-height: fit-content;
-                        filter: grayscale();
-                        margin: 30px auto auto;
+                        margin: 0 auto auto;
                     }
+
                     .address {
                         text-align: center;
                     }
@@ -165,8 +163,8 @@ module.exports = {
             <body>
                 <div class="container">
                     <div class="logo"></div>
-                    <p class="address">${receiptData.outlet}, ${receiptData.address}</p>
-                    <p class="call-and-post">(+62) 852 5062 1375, 78111</p>
+                    <p class="address">${receiptData.address}</p>
+                    <p class="call-and-post">${phoneNumber}, ${postCode}</p>
                     <hr>
                     <table>
                         <tr>
@@ -189,9 +187,16 @@ module.exports = {
                     <hr>
                     <div>`;
 
+          html += `<div class="detail">
+                    <div style="width: 25%; display: flex; justify-content: left;">Meja</div>
+                    <div style="width: 25%; display: flex; justify-content: right;">Durasi</div>
+                    <div style="width: 25%; display: flex; justify-content: right;">Per Jam</div>
+                    <div style="width: 25%; display: flex; justify-content: right;">Total</div>
+                </div>`;
+
           receiptData.details.map((e) => {
             html += `<div class="detail">
-              <div style="width: 25%; display: flex; justify-content: right;">${
+              <div style="width: 25%; display: flex; justify-content: left;">${
                 e.name
               } ${e.poolTableNumber}</div>
               <div style="width: 25%; display: flex; justify-content: right;">${
@@ -251,15 +256,15 @@ module.exports = {
                 </div>
                 <div>
                     <div class="detail">
-                        <span>Total Tagihan</span>
-                        <span>${formatController.currencyTransform(
-                          receiptData.grandTotal
-                        )}</span>
-                    </div>
-                    <div class="detail">
                         <span>Total Bayar (${receiptData.paymentMethod})</span>
                         <span>${formatController.currencyTransform(
                           parseInt(receiptData.paymentAmount)
+                        )}</span>
+                    </div>    
+                    <div class="detail">
+                        <span>Total Tagihan</span>
+                        <span>${formatController.currencyTransform(
+                          receiptData.grandTotal
                         )}</span>
                     </div>
                     <div class="detail">
@@ -270,6 +275,7 @@ module.exports = {
                     </div>
                     <hr>
                 </div>
+                <p style="text-align: center;">Terima Kasih atas Kunjungan Anda :)</p>
             </div>
           </body>
           </html>`;
@@ -277,21 +283,7 @@ module.exports = {
           pdfController
             .generatePDF(html)
             .then((res) => {
-              pdfController
-                .printFromBuffer(res)
-                .then(() => {
-                  resolve({
-                    error: false,
-                    message: successMessages.FILE_CREATED_SUCCESS,
-                  });
-                })
-                .catch((err) => {
-                  reject({
-                    error: true,
-                    message: errorMessages.FAILED_CREATED_FILE,
-                  });
-                });
-              // resolve(res);
+              resolve(res);
             })
             .catch((err) => {
               reject({
@@ -373,7 +365,7 @@ module.exports = {
             totalTax,
             paymentAmount: result.paymentAmount,
             grandTotal,
-            change: grandTotal - result.paymentAmount,
+            change: result.paymentAmount - grandTotal,
           };
 
           let html = `<!DOCTYPE html>
@@ -387,18 +379,20 @@ module.exports = {
           <style>
               * {
                   font-family: Arial, Helvetica, sans-serif;
-                  font-size: 8px;
+                  font-size: 14px;
               }
               hr {
                   border-top: 1px;
                   border-color: #000;
               }
+              .container {
+                  max-height: fit-content !important;
+              }
               .logo {
-                  content: url(https://raw.githubusercontent.com/liecyborg28/my-assets-public/main/logo-berlin-billiard.png);
-                  width: 100px;
+                  content: url(${logoUrl});
+                  width: 250px;
                   min-height: fit-content;
-                  filter: grayscale();
-                  margin: 30px auto auto;
+                  margin: 0 auto auto;
               }
               .address {
                   text-align: center;
@@ -417,8 +411,8 @@ module.exports = {
       <body>
           <div class="container">
               <div class="logo"></div>
-              <p class="address">${receiptData.outlet}, ${receiptData.address}</p>
-              <p class="call-and-post">(+62) 852 5062 1375, 78111</p>
+              <p class="address">${receiptData.address}</p>
+              <p class="call-and-post">${phoneNumber}, ${postCode}</p>
               <hr>
               <table>
                   <tr>
@@ -497,15 +491,15 @@ module.exports = {
       </div>
       <div>
           <div class="detail">
-              <span>Total Tagihan</span>
-              <span>${formatController.currencyTransform(
-                receiptData.grandTotal
-              )}</span>
-          </div>
-          <div class="detail">
               <span>Total Bayar (${receiptData.paymentMethod})</span>
               <span>${formatController.currencyTransform(
                 receiptData.paymentAmount
+              )}</span>
+          </div>
+          <div class="detail">
+              <span>Total Tagihan</span>
+              <span>${formatController.currencyTransform(
+                receiptData.grandTotal
               )}</span>
           </div>
           <div class="detail">
@@ -619,18 +613,28 @@ module.exports = {
           <style>
               * {
                   font-family: Arial, Helvetica, sans-serif;
-                  font-size: 8px;
+                  font-size: 14px;
               }
               hr {
                   border-top: 1px;
                   border-color: #000;
               }
-              .logo {
-                  content: url(https://raw.githubusercontent.com/liecyborg28/my-assets-public/main/logo-berlin-billiard.png);
-                  width: 100px;
+              * {
+                  font-family: Arial, Helvetica, sans-serif;
+                  font-size: 14px;
+              }
+              hr {
+                  border-top: 1px;
+                  border-color: #000;
+              }
+              .container {
+                  max-height: fit-content !important;
+              }
+             .logo {
+                  content: url(${logoUrl});
+                  width: 250px;
                   min-height: fit-content;
-                  filter: grayscale();
-                  margin: 30px auto auto;
+                  margin: 0 auto auto;
               }
               .address {
                   text-align: center;
@@ -649,8 +653,6 @@ module.exports = {
       <body>
           <div class="container">
               <div class="logo"></div>
-              <p class="address">${receiptData.outlet}, ${receiptData.address}</p>
-              <p class="call-and-post">(+62) 852 5062 1375, 78111</p>
               <hr>
               <table>
                   <tr>

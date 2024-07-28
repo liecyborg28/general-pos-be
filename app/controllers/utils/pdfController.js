@@ -8,7 +8,7 @@ const errorMessages = require("../../repository/messages/errorMessages");
 const successMessages = require("../../repository/messages/successMessages");
 
 // Tentukan resolusi DPI sesuai dengan printer thermal Anda
-const DPI = 203; // Misalnya, 384 DPI untuk printer thermal
+const DPI = 384; // Misalnya, 384 DPI untuk printer thermal
 
 const config = {
   width: "88mm", // Lebar kertas untuk PDF
@@ -121,36 +121,49 @@ module.exports = {
   },
 
   printPdf: async (arrayBuffer) => {
-    try {
-      const outputDir = path.resolve(__dirname, "output");
-      if (!fs.existsSync(outputDir)) {
-        fs.mkdirSync(outputDir);
-      }
+    // try {
+    //   const outputDir = path.resolve(__dirname, "output");
+    //   if (!fs.existsSync(outputDir)) {
+    //     fs.mkdirSync(outputDir);
+    //   }
 
-      const pdfPath = path.join(outputDir, "temp.pdf");
-      await saveArrayBufferToFile(arrayBuffer, pdfPath);
-      console.log(`PDF berhasil disimpan sementara sebagai ${pdfPath}`);
+    //   const pdfPath = path.join(outputDir, "temp.pdf");
+    //   await saveArrayBufferToFile(arrayBuffer, pdfPath);
+    //   console.log(`PDF berhasil disimpan sementara sebagai ${pdfPath}`);
 
-      const imagePath = await pdfToImage(pdfPath, outputDir);
-      console.log(`PDF berhasil dikonversi ke gambar ${imagePath}`);
+    //   const imagePath = await pdfToImage(pdfPath, outputDir);
+    //   console.log(`PDF berhasil dikonversi ke gambar ${imagePath}`);
 
-      if (fs.existsSync(imagePath)) {
-        printImage(imagePath);
-        console.log(`Mencetak gambar ${imagePath}`);
+    //   if (fs.existsSync(imagePath)) {
+    //     printImage(imagePath);
+    //     console.log(`Mencetak gambar ${imagePath}`);
+    //   } else {
+    //     console.error(`File gambar tidak ditemukan: ${imagePath}`);
+    //   }
+
+    //   // Hapus file sementara PDF setelah pencetakan selesai
+    //   if (fs.existsSync(pdfPath)) {
+    //     fs.unlinkSync(pdfPath);
+    //     console.log(`File sementara PDF dihapus: ${pdfPath}`);
+    //   } else {
+    //     console.error(`File sementara PDF tidak ditemukan: ${pdfPath}`);
+    //   }
+    // } catch (err) {
+    //   console.error("Gagal mencetak PDF:", err);
+    // }
+
+    const pdfPath = path.join(__dirname, "tempPrintFile.pdf");
+    fs.writeFileSync(pdfPath, pdfBuffer);
+
+    exec(`mspaint /pt "${pdfPath}" "RONGTA 58mm Series Printer"`, (error) => {
+      if (error) {
+        console.error(`Gagal mencetak PDF: ${error.message}`);
       } else {
-        console.error(`File gambar tidak ditemukan: ${imagePath}`);
+        console.log("PDF berhasil dicetak!");
       }
 
-      // Hapus file sementara PDF setelah pencetakan selesai
-      if (fs.existsSync(pdfPath)) {
-        fs.unlinkSync(pdfPath);
-        console.log(`File sementara PDF dihapus: ${pdfPath}`);
-      } else {
-        console.error(`File sementara PDF tidak ditemukan: ${pdfPath}`);
-      }
-    } catch (err) {
-      console.error("Gagal mencetak PDF:", err);
-    }
+      fs.unlinkSync(pdfPath); // Hapus file PDF sementara setelah pencetakan
+    });
   },
 
   generatePDF: async (html) => {

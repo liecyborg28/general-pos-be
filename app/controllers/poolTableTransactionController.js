@@ -72,6 +72,7 @@ module.exports = {
           changedBy: userByToken._id,
           createdAt: dateISOString,
           updatedAt: dateISOString,
+          floor: body.floor ? body.floor : null,
         }
       : {
           error: true,

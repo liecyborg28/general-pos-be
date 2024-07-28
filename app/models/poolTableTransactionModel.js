@@ -42,6 +42,7 @@ const PoolTableTransaction = mongoose.Schema({
   status: String,
   tax: Number,
   charge: Number,
+  floor: String,
   paymentMethod: String,
   paymentAmount: String,
   customer: String,

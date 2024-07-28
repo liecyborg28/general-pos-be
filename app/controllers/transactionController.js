@@ -87,6 +87,7 @@ module.exports = {
           discounts: body.discounts ? body.discounts : [],
           customer: body.customer ? body.customer : null,
           table: body.table ? body.table : null,
+          floor: body.floor ? body.floor : null,
           request: generateRequestCodes(),
           changedBy: userByToken._id,
           createdAt: dateISOString,
