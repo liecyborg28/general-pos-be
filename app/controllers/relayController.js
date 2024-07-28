@@ -75,9 +75,7 @@ const controlRelay = (req, res) => {
       esp = "esp4";
     } else {
       console.log(`Table number out of range for floor ${floor}:`, tableNumber);
-      return res
-        .status(400)
-        .send(`Table number out of range for floor ${floor}`);
+      return res.status(400).send(`Table number out of range for floor ${floor}`);
     }
 
     // Balik logika perintah (karena relay NC)
@@ -92,11 +90,7 @@ const controlRelay = (req, res) => {
     }
 
     // Tambahkan perintah ke antrian
-    commands[esp].push({
-      action: relayAction,
-      table: tableNumber + 1,
-      floor: floor,
-    });
+    commands[esp].push({ action: relayAction, table: tableNumber + 1, floor: floor });
 
     // Perbarui status relay dan lampu
     relayState[esp][tableNumber] = relayAction;
@@ -104,6 +98,7 @@ const controlRelay = (req, res) => {
 
     console.log(`Command for table ${table} on floor ${floor} has been queued`);
     res.send(`Command for table ${table} on floor ${floor} has been queued`);
+
   } catch (error) {
     console.error("Server error:", error);
     res.status(500).send("Server error");
@@ -128,30 +123,27 @@ const pollRelay = (req, res) => {
 };
 
 // Route to receive light status updates from ESP32s
-router.post("/status/:esp", (req, res) => {
+router.post('/status/:esp', (req, res) => {
   try {
     const espId = req.params.esp;
     const receivedStates = req.body.states;
 
-    if (
-      lightStates[espId] &&
-      lightStates[espId].length === receivedStates.length
-    ) {
+    if (lightStates[espId] && lightStates[espId].length === receivedStates.length) {
       lightStates[espId] = receivedStates;
       console.log(`Light states for ${espId} updated:`, lightStates[espId]);
-      res.status(200).send("Light status received");
+      res.status(200).send('Light status received');
     } else {
       console.error(`Error updating light states for ${espId}: Invalid data`);
-      res.status(400).send("Invalid data");
+      res.status(400).send('Invalid data');
     }
   } catch (error) {
     console.error("Server error:", error);
-    res.status(500).send("Server error");
+    res.status(500).send('Server error');
   }
 });
 
 // Route to get the latest light status
-router.post("/light-status", (req, res) => {
+router.post('/light-status', (req, res) => {
   try {
     const floor = req.body.floor;
     console.log("Received request for floor:", floor);
@@ -163,15 +155,15 @@ router.post("/light-status", (req, res) => {
 
     let startTable, endTable;
     switch (floor) {
-      case "1":
+      case '1':
         startTable = 1;
         endTable = 21;
         break;
-      case "2":
+      case '2':
         startTable = 1;
         endTable = 17;
         break;
-      case "3":
+      case '3':
         startTable = 1;
         endTable = 20;
         break;
@@ -183,16 +175,16 @@ router.post("/light-status", (req, res) => {
     for (let tableNumber = startTable; tableNumber <= endTable; tableNumber++) {
       let esp, tableIndex;
       if (tableNumber >= 1 && tableNumber <= 17) {
-        esp = "esp1";
+        esp = 'esp1';
         tableIndex = tableNumber - 1;
       } else if (tableNumber >= 18 && tableNumber <= 21) {
-        esp = "esp2";
+        esp = 'esp2';
         tableIndex = tableNumber - 18;
       } else if (tableNumber >= 22 && tableNumber <= 38) {
-        esp = "esp3";
+        esp = 'esp3';
         tableIndex = tableNumber - 22;
       } else if (tableNumber >= 39 && tableNumber <= 58) {
-        esp = "esp4";
+        esp = 'esp4';
         tableIndex = tableNumber - 39;
       } else {
         continue;
@@ -213,7 +205,7 @@ router.post("/light-status", (req, res) => {
 });
 
 // --- Rute untuk relay controller ---
-router.post("/relay", controlRelay);
-router.get("/poll/:esp", pollRelay);
+router.post('/relay', controlRelay);
+router.get('/poll/:esp', pollRelay);
 
 module.exports = { controlRelay, pollRelay, router };

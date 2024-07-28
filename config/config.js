@@ -18,6 +18,6 @@ module.exports = {
   database: dbConfig,
 
   // Konfigurasi Aplikasi Umum
-  port: process.env.PORT || 3000,
+  port: process.env.PORT || 8081,
   appSecret: process.env.APP_SECRET || "your_app_secret_key",
 };
