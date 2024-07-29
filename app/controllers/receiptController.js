@@ -141,7 +141,7 @@ module.exports = {
 
                     .logo {
                         content: url(${logoUrl});
-                        width: 250px;
+                        width: 350px;
                         min-height: fit-content;
                         margin: 0 auto auto;
                     }
@@ -390,7 +390,7 @@ module.exports = {
               }
               .logo {
                   content: url(${logoUrl});
-                  width: 250px;
+                  width: 350px;
                   min-height: fit-content;
                   margin: 0 auto auto;
               }
@@ -654,7 +654,7 @@ module.exports = {
               }
              .logo {
                   content: url(${logoUrl});
-                  width: 250px;
+                  width: 350px;
                   min-height: fit-content;
                   margin: 0 auto auto;
               }
