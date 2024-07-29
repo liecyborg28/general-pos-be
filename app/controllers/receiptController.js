@@ -539,23 +539,44 @@ module.exports = {
   getItemReceipt: (req) => {
     return new Promise((resolve, reject) => {
       const transactionId = req.params.transactionId;
+      let categoryId = req.query.categoryId ? req.query.categoryId : null;
 
       Transaction.findOne({ _id: transactionId })
         .populate("businessId outletId userId details.itemId")
         .exec()
         .then((result) => {
-          let receiptDetails = result.details.map((e) => ({
-            name: e.itemId.name,
-            qty: e.qty,
-            price: e.price,
-          }));
+          let receiptDetails = [];
+          let totalDetails = [];
 
-          let totalDetails =
-            result.details.length > 0
-              ? receiptDetails
-                  .map((e) => e.qty * e.price)
-                  .reduce((a, b) => a + b)
-              : 0;
+          if (categoryId) {
+            receiptDetails = result.details
+              .filter((el) => el.itemId.categoryId.toString() == categoryId)
+              .map((e) => ({
+                name: e.itemId.name,
+                qty: e.qty,
+                price: e.price,
+              }));
+
+            totalDetails =
+              result.details.length > 0
+                ? receiptDetails
+                    .map((e) => e.qty * e.price)
+                    .reduce((a, b) => a + b)
+                : 0;
+          } else {
+            receiptDetails = result.details.map((e) => ({
+              name: e.itemId.name,
+              qty: e.qty,
+              price: e.price,
+            }));
+
+            totalDetails =
+              result.details.length > 0
+                ? receiptDetails
+                    .map((e) => e.qty * e.price)
+                    .reduce((a, b) => a + b)
+                : 0;
+          }
 
           let totalCosts =
             result.costs.length > 0
