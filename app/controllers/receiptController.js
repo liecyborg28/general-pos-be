@@ -548,8 +548,7 @@ module.exports = {
       let receiptBar1Details = [];
       let receiptBar2Details = [];
 
-      pageController.paginate(1, null, Category).then((categories) => {
-        console.log("test");
+      pageController.paginate(1, null, {}, Category).then((categories) => {
         categoriesList = categories.data;
 
         let findKitchenCategory = categoriesList.find(
