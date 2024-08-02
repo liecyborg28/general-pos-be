@@ -86,6 +86,7 @@ module.exports = {
     return new Promise((resolve, reject) => {
       let pipeline = isNotEveryQueryNull()
         ? {
+          status: { $ne: "deleted" },
             $or: [
               {
                 title: req.query.keyword

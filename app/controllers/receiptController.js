@@ -130,6 +130,7 @@ module.exports = {
                         font-family: Arial, Helvetica, sans-serif;
                         font-size: 14px;
                     }
+
                     hr {
                         border-top: 1px;
                         border-color: #000;
@@ -143,7 +144,7 @@ module.exports = {
                         content: url(${logoUrl});
                         width: 350px;
                         min-height: fit-content;
-                        margin: 0 auto auto;
+                        margin: -20px auto auto;
                     }
 
                     .address {
@@ -392,7 +393,7 @@ module.exports = {
                   content: url(${logoUrl});
                   width: 350px;
                   min-height: fit-content;
-                  margin: 0 auto auto;
+                  margin: -20px auto auto;
               }
               .address {
                   text-align: center;
@@ -656,7 +657,7 @@ module.exports = {
                   content: url(${logoUrl});
                   width: 350px;
                   min-height: fit-content;
-                  margin: 0 auto auto;
+                  margin: -20px auto auto;
               }
               .address {
                   text-align: center;
