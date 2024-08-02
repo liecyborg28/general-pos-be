@@ -45,6 +45,7 @@ const Transaction = mongoose.Schema({
   charge: Number,
   table: String,
   floor: String,
+  note: String,
   paymentAmount: Number,
   paymentMethod: String,
   orderType: String,

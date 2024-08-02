@@ -3,13 +3,13 @@ const puppeteer = require("puppeteer");
 const config = {
   width: "88mm", // Lebar kertas untuk PDF
   margin: { top: 0, right: 0, bottom: 0, left: 0 },
-  timeout: 60000, // memperpanjang batas waktu menjadi 60 detik
+  timeout: 90000, // memperpanjang batas waktu menjadi 60 detik
 };
 
 module.exports = {
   generatePDF: async (html) => {
     try {
-      console.log("config", config);
+      // console.log("config", config);
       const browser = await puppeteer.launch({
         headless: true, // Menggunakan true atau false
         args: ["--no-sandbox", "--disable-setuid-sandbox"], // opsi tambahan untuk stabilitas

@@ -1,9 +1,11 @@
 const errorMessages = require("../repository/messages/errorMessages");
 const pdfController = require("../controllers/utils/pdfController");
 const Transaction = require("../models/transactionModel");
+const Category = require("../models/categoryModel");
 const PoolTableTransaction = require("../models/poolTableTransactionModel");
 const transactionResource = require("../repository/resources/transactionResource");
 const formatController = require("../controllers/utils/formatController");
+const pageController = require("../controllers/utils/pageController");
 
 function formatReceiptDate(inputDate) {
   const date = new Date(inputDate);
@@ -169,11 +171,11 @@ module.exports = {
                     <hr>
                     <table>
                         <tr>
-                            <td>ID Transaksi</td>
+                            <td>ID</td>
                             <td>: ${receiptData.id}</td>
                         </tr>
                         <tr>
-                            <td>Waktu Transaksi</td>
+                            <td>Waktu</td>
                             <td>: ${receiptData.date}</td>
                         </tr>
                         <tr>
@@ -417,11 +419,11 @@ module.exports = {
               <hr>
               <table>
                   <tr>
-                      <td>ID Transaksi</td>
+                      <td>ID</td>
                       <td>: ${receiptData.id}</td>
                   </tr>
                   <tr>
-                      <td>Waktu Transaksi</td>
+                      <td>Waktu</td>
                       <td>: ${receiptData.date}</td>
                   </tr>
                   <tr>
@@ -541,91 +543,150 @@ module.exports = {
     return new Promise((resolve, reject) => {
       const transactionId = req.params.transactionId;
       let categoryId = req.query.categoryId ? req.query.categoryId : null;
+      let categoriesList = [];
+      let receiptKitchenDetails = [];
+      let receiptBar1Details = [];
+      let receiptBar2Details = [];
 
-      Transaction.findOne({ _id: transactionId })
-        .populate("businessId outletId userId details.itemId")
-        .exec()
-        .then((result) => {
-          let receiptDetails = [];
-          let totalDetails = [];
+      pageController.paginate(1, null, Category).then((categories) => {
+        console.log("test");
+        categoriesList = categories.data;
 
-          if (categoryId) {
-            receiptDetails = result.details
-              .filter((el) => el.itemId.categoryId.toString() == categoryId)
+        let findKitchenCategory = categoriesList.find(
+          (e) => e.name === "Kitchen"
+        );
+        let findBar1Category = categoriesList.find(
+          (e) => e.name === "Bar Lantai 1"
+        );
+        let findBar2Category = categoriesList.find(
+          (e) => e.name === "Bar Lantai 2"
+        );
+
+        Transaction.findOne({ _id: transactionId })
+          .populate("businessId outletId userId details.itemId")
+          .exec()
+          .then((result) => {
+            let receiptDetails = [];
+            let totalDetails = [];
+
+            receiptKitchenDetails = result.details
+              .filter(
+                (el) =>
+                  el.itemId.categoryId.toString() ==
+                  findKitchenCategory._id.toString()
+              )
               .map((e) => ({
                 name: e.itemId.name,
                 qty: e.qty,
                 price: e.price,
               }));
 
-            totalDetails =
-              result.details.length > 0
-                ? receiptDetails
-                    .map((e) => e.qty * e.price)
-                    .reduce((a, b) => a + b)
+            receiptBar1Details = result.details
+              .filter(
+                (el) =>
+                  el.itemId.categoryId.toString() ==
+                  findBar1Category._id.toString()
+              )
+              .map((e) => ({
+                name: e.itemId.name,
+                qty: e.qty,
+                price: e.price,
+              }));
+
+            receiptBar2Details = result.details
+              .filter(
+                (el) =>
+                  el.itemId.categoryId.toString() ==
+                  findBar2Category._id.toString()
+              )
+              .map((e) => ({
+                name: e.itemId.name,
+                qty: e.qty,
+                price: e.price,
+              }));
+
+            if (categoryId) {
+              receiptDetails = result.details
+                .filter((el) => el.itemId.categoryId.toString() == categoryId)
+                .map((e) => ({
+                  name: e.itemId.name,
+                  qty: e.qty,
+                  price: e.price,
+                }));
+
+              totalDetails =
+                result.details.length > 0
+                  ? receiptDetails
+                      .map((e) => e.qty * e.price)
+                      .reduce((a, b) => a + b)
+                  : 0;
+            } else {
+              receiptDetails = result.details.map((e) => ({
+                name: e.itemId.name,
+                qty: e.qty,
+                price: e.price,
+              }));
+
+              totalDetails =
+                result.details.length > 0
+                  ? receiptDetails
+                      .map((e) => e.qty * e.price)
+                      .reduce((a, b) => a + b)
+                  : 0;
+            }
+
+            let totalCosts =
+              result.costs.length > 0
+                ? result.costs.map((e) => e.amount).reduce((a, b) => a + b)
                 : 0;
-          } else {
-            receiptDetails = result.details.map((e) => ({
-              name: e.itemId.name,
-              qty: e.qty,
-              price: e.price,
-            }));
 
-            totalDetails =
-              result.details.length > 0
-                ? receiptDetails
-                    .map((e) => e.qty * e.price)
-                    .reduce((a, b) => a + b)
+            let totalDiscounts =
+              result.discounts.length > 0
+                ? result.discounts.map((e) => e.amount).reduce((a, b) => a + b)
                 : 0;
-          }
 
-          let totalCosts =
-            result.costs.length > 0
-              ? result.costs.map((e) => e.amount).reduce((a, b) => a + b)
-              : 0;
+            let totalCharge = totalDetails * result.charge;
 
-          let totalDiscounts =
-            result.discounts.length > 0
-              ? result.discounts.map((e) => e.amount).reduce((a, b) => a + b)
-              : 0;
+            let totalTax = Math.round(
+              (totalDetails + totalCharge - totalDiscounts) * result.tax
+            );
 
-          let totalCharge = totalDetails * result.charge;
+            let grandTotal =
+              totalDetails +
+              totalCosts +
+              totalCharge +
+              totalTax -
+              totalDiscounts;
 
-          let totalTax = Math.round(
-            (totalDetails + totalCharge - totalDiscounts) * result.tax
-          );
+            let receiptData = {
+              // header
+              outlet: result.outletId.name,
+              address: result.outletId.address,
+              // content
+              id: result._id,
+              date: formatReceiptDate(result.createdAt),
+              cashier: result.userId.name,
+              customer: capitalizeEveryWord(result.customer),
+              table: result.table ? result.table : "-",
+              paymentMethod: getPropertyFromArray(
+                result.paymentMethod,
+                "id",
+                transactionResource.PAYMENT_METHOD
+              ),
+              details: receiptDetails,
+              costs: result.costs,
+              discounts: result.discounts,
+              totalDetails,
+              totalCosts,
+              totalDiscounts,
+              totalTax,
+              paymentAmount: result.paymentAmount,
+              grandTotal,
+              change: grandTotal - result.paymentAmount,
+              note: result.note,
+            };
 
-          let grandTotal =
-            totalDetails + totalCosts + totalCharge + totalTax - totalDiscounts;
-
-          let receiptData = {
-            // header
-            outlet: result.outletId.name,
-            address: result.outletId.address,
-            // content
-            id: result._id,
-            date: formatReceiptDate(result.createdAt),
-            cashier: result.userId.name,
-            customer: capitalizeEveryWord(result.customer),
-            table: result.table ? result.table : "-",
-            paymentMethod: getPropertyFromArray(
-              result.paymentMethod,
-              "id",
-              transactionResource.PAYMENT_METHOD
-            ),
-            details: receiptDetails,
-            costs: result.costs,
-            discounts: result.discounts,
-            totalDetails,
-            totalCosts,
-            totalDiscounts,
-            totalTax,
-            paymentAmount: result.paymentAmount,
-            grandTotal,
-            change: grandTotal - result.paymentAmount,
-          };
-
-          let html = `<!DOCTYPE html>
+            let html = `<!DOCTYPE html>
       <html lang="en">
       <head>
           <meta charset="UTF-8">
@@ -679,11 +740,11 @@ module.exports = {
               <hr>
               <table>
                   <tr>
-                      <td>ID Transaksi</td>
+                      <td>ID</td>
                       <td>: ${receiptData.id}</td>
                   </tr>
                   <tr>
-                      <td>Waktu Transaksi</td>
+                      <td>Waktu</td>
                       <td>: ${receiptData.date}</td>
                   </tr>
                   <tr>
@@ -702,37 +763,88 @@ module.exports = {
               <hr>
               <div>`;
 
-          receiptData.details.map((e) => {
-            html += `<div class="detail">
+            //         receiptData.details.map((e) => {
+            //           html += `<div class="detail">
+            //     <span>${e.qty} ${e.name}</span>
+            //     <span>${formatController.currencyTransform(e.price)}</span>
+            // </div>`;
+            //         });
+
+            if (receiptKitchenDetails.length > 0) {
+              html += `<div class="detail">
+                  <span>(Kitchen)</span>
+              </div>`;
+
+              receiptKitchenDetails.map((e) => {
+                html += `<div class="detail">
         <span>${e.qty} ${e.name}</span>
         <span>${formatController.currencyTransform(e.price)}</span>
     </div>`;
-          });
+              });
+            }
 
-          html += `<hr>
+            if (receiptBar1Details.length > 0) {
+              html += `<div class="detail">
+                  <span>(Bar Lantai 1)</span>
+              </div>`;
+
+              receiptBar1Details.map((e) => {
+                html += `<div class="detail">
+        <span>${e.qty} ${e.name}</span>
+        <span>${formatController.currencyTransform(e.price)}</span>
+    </div>`;
+              });
+            }
+
+            if (receiptBar2Details.length > 0) {
+              html += `<div class="detail">
+                  <span>(Bar Lantai 2)</span>
+              </div>`;
+
+              receiptBar2Details.map((e) => {
+                html += `<div class="detail">
+        <span>${e.qty} ${e.name}</span>
+        <span>${formatController.currencyTransform(e.price)}</span>
+    </div>`;
+              });
+            }
+
+            if (receiptData.note) {
+              html += `<div class="detail">
+                  <span>(Catatan)</span>
+              </div>
+              <div class="detail">
+                  <span>${receiptData.note}</span>
+              </div>`;
+            }
+
+            html += `<hr>
       </div>
   </div>
 </body>
 </html>`;
 
-          pdfController
-            .generatePDF(html)
-            .then((res) => {
-              resolve(res);
-            })
-            .catch((err) => {
-              reject({
-                error: true,
-                message: errorMessages.FAILED_CREATED_FILE,
-              });
+            if (receiptData.details.length > 0) {
+              pdfController
+                .generatePDF(html)
+                .then((res) => {
+                  resolve(res);
+                })
+                .catch((err) => {
+                  reject({
+                    error: true,
+                    message: errorMessages.FAILED_CREATED_FILE,
+                  });
+                });
+            }
+          })
+          .catch((err) => {
+            reject({
+              error: true,
+              message: errorMessages.FAILED_CREATED_FILE,
             });
-        })
-        .catch((err) => {
-          reject({
-            error: true,
-            message: errorMessages.FAILED_CREATED_FILE,
           });
-        });
+      });
     });
   },
 };
