@@ -769,7 +769,10 @@ module.exports = {
             // </div>`;
             //         });
 
-            if (receiptKitchenDetails.length > 0) {
+            if (
+              receiptKitchenDetails.length > 0 &&
+              req.query.categoryId === findKitchenCategory._id.toString()
+            ) {
               html += `<div class="detail">
                   <span>(Kitchen)</span>
               </div>`;
@@ -782,7 +785,10 @@ module.exports = {
               });
             }
 
-            if (receiptBar1Details.length > 0) {
+            if (
+              receiptBar1Details.length > 0 &&
+              req.query.categoryId === findBar1Category._id.toString()
+            ) {
               html += `<div class="detail">
                   <span>(Bar Lantai 1)</span>
               </div>`;
@@ -795,7 +801,10 @@ module.exports = {
               });
             }
 
-            if (receiptBar2Details.length > 0) {
+            if (
+              receiptBar2Details.length > 0 &&
+              req.query.categoryId === findBar2Category._id.toString()
+            ) {
               html += `<div class="detail">
                   <span>(Bar Lantai 2)</span>
               </div>`;
