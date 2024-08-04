@@ -40,6 +40,7 @@ function convertToLocaleISOString(date, type) {
 
 module.exports = {
   createTransaction: async (req) => {
+    console.log("payload", req.body);
     let dateISOString = new Date().toISOString();
     let body = req.body;
 
