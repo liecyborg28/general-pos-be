@@ -79,7 +79,7 @@ module.exports = {
           outletId: body.outletId,
           userId: body.userId,
           details: body.details,
-          tax: body.tax,
+          tax: body.tax ? body.tax : 0,
           paymentAmount: body.paymentAmount,
           paymentMethod: body.paymentMethod,
           charge: body.charge ? body.charge : 0,

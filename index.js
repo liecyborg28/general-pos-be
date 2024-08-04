@@ -114,5 +114,5 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(port, () => {
-  console.log(`TTP server running on port ${port} and redirecting to HTTPS`);
+  console.log(`HTTP server running on port ${port} and redirecting to HTTPS`);
 });
