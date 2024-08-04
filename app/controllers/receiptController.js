@@ -435,6 +435,10 @@ module.exports = {
                       <td>: ${receiptData.customer}</td>
                   </tr>
                   <tr>
+                      <td>Lantai</td>
+                      <td>: ${receiptData.floor}</td>
+                  </tr>
+                  <tr>
                       <td>No. Meja</td>
                       <td>: ${receiptData.table}</td>
                   </tr>
@@ -753,6 +757,10 @@ module.exports = {
                   <tr>
                       <td>Pemesan</td>
                       <td>: ${receiptData.customer}</td>
+                  </tr>
+                  <tr>
+                      <td>Lantai</td>
+                      <td>: ${receiptData.floor}</td>
                   </tr>
                   <tr>
                       <td>No. Meja</td>
