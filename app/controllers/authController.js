@@ -1,24 +1,22 @@
-const errorMessages = require("../repository/messages/errorMessages");
-const successMessages = require("../repository/messages/successMessages");
-const crypto = require("crypto");
-const User = require("../models/userModel");
-const Business = require("../models/businessModel");
-const pageController = require("./utils/pageController");
+// utils
 const authUtils = require("../utility/authUtils");
 
-function generateHash(data) {
-  const hash = crypto.createHash("sha256");
-  hash.update(data);
-  return hash.digest("hex");
-}
+// models
+const Business = require("../models/businessModel");
+const Category = require("../models/categoryModel");
+const Role = require("../models/roleModel");
+const User = require("../models/userModel");
+
+// controllers
+const dataController = require("./utils/dataController");
+const pageController = require("./utils/pageController");
+
+// repositories
+const errorMessages = require("../repository/messages/errorMessages");
+const successMessages = require("../repository/messages/successMessages");
 
 module.exports = {
-  generateAuth: () => {
-    return {
-      accessToken: generateHash(authUtils.generateAccessToken()),
-    };
-  },
-  checkAccessToken: (req) => {
+  checkAccess: (req) => {
     return new Promise((resolve, reject) => {
       const bearerHeader = req.headers["authorization"];
 
@@ -42,81 +40,126 @@ module.exports = {
       }
     });
   },
-  customerLogin: (req) => {
-    return new Promise((resolve, reject) => {
-      User.findOne({
-        type: "customer",
-        status: { $ne: "deleted" },
-        $or: [{ email: req.body.email, password: req.body.password }],
-      })
-        .catch((err) => {
-          return Promise.reject({ error: true, message: err });
-        })
-        .then((data) => {
-          if (data) {
-            if (data.status === "inactive") {
-              reject({
-                error: true,
-                message: errorMessages.ACCOUNT_INACTIVE,
-              });
-            }
+  createAccess: (req) => {
+    return new Promise(async (resolve, reject) => {
+      const businessIsEmpty = await dataController.isCollectionEmpty(Business);
+      const roleIsEmpty = await dataController.isCollectionEmpty(Role);
+      const userIsEmpty = await dataController.isCollectionEmpty(Business);
+      const categoryIsEmpty = await dataController.isCollectionEmpty(Business);
 
-            pageController
-              .paginate(1, null, { status: { $ne: "deleted" } }, Business)
-              .then((businesses) => {
-                resolve({
-                  error: false,
-                  userData: {
-                    balance: data.balance,
-                    email: data.email,
-                    phonenumber: data.phonenumber,
-                    type: data.type,
-                    name: data.name,
-                    gender: data.gender,
-                    password: data.password,
-                    imageUrl: data.imageUrl,
-                    userId: data._id,
-                    access: [],
-                    businessIds: [],
-                    outletIds: [],
-                    auth: {
-                      accessToken: data.auth.accessToken,
-                      expiredAt: authUtils.generateTokenExpirateAt(7),
-                    },
+      if (businessIsEmpty && roleIsEmpty && userIsEmpty && categoryIsEmpty) {
+        const dateISOString = new Date().toISOString();
+
+        const businessPayload = {
+          status: "active",
+          imageUrl: null,
+          name: "Business Name Example",
+          createdAt: dateISOString,
+          updatedAt: dateISOString,
+        };
+
+        new Business(businessPayload)
+          .save()
+          .then((business) => {
+            const rolePayload = {
+              businessIds: [business._id.toString()],
+              access: ["feature1", "feature2", "feature3"],
+              title: "administrator",
+              createdAt: dateISOString,
+              updatedAt: dateISOString,
+            };
+            new Role(rolePayload)
+              .save()
+              .then((role) => {
+                const userPayload = {
+                  auth: {
+                    accessToken: authUtils.generateAccessToken(),
+                    expiredAt: authUtils.generateTokenExpirateAt(7),
                   },
-                  businessData: businesses.data.map((e) => ({
-                    id: e._id,
-                    name: e.name,
-                    imageUrl: e.imageUrl,
-                  })),
-                });
+                  businessId: business._id.toString(),
+                  email: "example@gmail.com",
+                  gender: "male",
+                  imageUrl: null,
+                  name: "User Name",
+                  password: "12345678",
+                  phone: null,
+                  roleId: role._id.toString(),
+                  settings: {
+                    theme: "light",
+                    language: "id",
+                  },
+                  status: "active",
+                  username: "admin",
+                  // timestamp
+                  createdAt: dateISOString,
+                  updatedAt: dateISOString,
+                };
+
+                console.log("user payload", userPayload);
+
+                new User(userPayload)
+                  .save()
+                  .then((user) => {
+                    console.log(user, userPayload);
+                    const categoryPayload = {
+                      businessId: business._id.toString(),
+                      name: "category name",
+                      status: "active",
+                    };
+                    new Category(categoryPayload)
+                      .save()
+                      .then((category) => {
+                        resolve({
+                          error: false,
+                          data: {
+                            business,
+                            user,
+                            role,
+                            category,
+                          },
+                          message: successMessages.ACCESS_CREATED_SUCCESS,
+                        });
+                      })
+                      .catch((err) => {
+                        reject({ error: true, message: err });
+                      });
+                  })
+                  .catch((err) => {
+                    reject({ error: true, message: err });
+                  });
               })
               .catch((err) => {
                 reject({ error: true, message: err });
               });
-          } else {
-            reject({
-              error: false,
-              message: errorMessages.LOGIN_FAILED,
-            });
-          }
+          })
+          .catch((err) => {
+            reject({ error: true, message: err });
+          });
+      } else {
+        reject({
+          error: true,
+          message: errorMessages.ACCESS_ALREADY_SAVED,
         });
+      }
     });
+  },
+  generateAuth: () => {
+    return {
+      accessToken: authUtils.generateAccessToken(),
+      expiredAt: authUtils.generateExpirationDate(7),
+    };
   },
   login: (req) => {
     return new Promise((resolve, reject) => {
       User.findOne({
         status: { $ne: "deleted" },
-        $or: [
-          { username: req.body.loginMethod, password: req.body.password },
-          // { phonenumber: req.body.loginMethod, password: req.body.password },
-        ],
+        $or: [{ username: req.body.username, password: req.body.password }],
       })
         .catch((err) => {
           return Promise.reject({ error: true, message: err });
         })
-        .then((data) => {
-          if (data) {
+        .then((result) => {
+          if (result) {
             if (data.status === "inactive") {
               reject({
                 error: true,
@@ -124,32 +167,27 @@ module.exports = {
               });
             }
 
-            pageController
-              .paginate(1, null, { status: { $ne: "deleted" } }, Business)
-              .then((businesses) => {
-                resolve({
-                  error: false,
-                  userData: {
-                    balance: data.balance,
-                    type: data.type,
-                    name: data.name,
-                    gender: data.gender,
-                    imageUrl: data.imageUrl,
-                    userId: data._id,
-                    access: [],
-                    businessIds: [],
-                    outletIds: [],
-                    auth: {
-                      accessToken: data.auth.accessToken,
-                      expiredAt: authUtils.generateTokenExpirateAt(7),
-                    },
-                  },
-                  businessData: businesses.data.map((e) => ({
-                    id: e._id,
-                    name: e.name,
-                    imageUrl: e.imageUrl,
-                  })),
-                });
+            User.findByIdAndUpdate(result._id.toString(), {
+              auth: {
+                accessToken: authUtils.accessToken(),
+                expiredAt: authUtils.generateTokenExpirateAt(7),
+              },
+            })
+              .then((user) => {
+                pageController
+                  .paginate(1, null, { status: { $ne: "deleted" } }, Business)
+                  .then((businesses) => {
+                    resolve({
+                      error: false,
+                      data: {
+                        user,
+                        businesses,
+                      },
+                    });
+                  })
+                  .catch((err) => {
+                    reject({ error: true, message: err });
+                  });
               })
               .catch((err) => {
                 reject({ error: true, message: err });
@@ -179,7 +217,7 @@ module.exports = {
           .then((data) => {
             let newAuth = {
               auth: {
-                accessToken: generateHash(authUtils.generateAccessToken()),
+                accessToken: authUtils.generateAccessToken(),
               },
             };
             if (data) {

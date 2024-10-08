@@ -2,9 +2,9 @@ const router = require("express").Router();
 
 const authController = require("../../controllers/authController");
 
-router.post("/auth/customerLogin", (req, res) => {
+router.post("/auth/create", (req, res) => {
   authController
-    .customerLogin(req)
+    .createAccess(req)
     .then((value) => {
       res.status(200).send(value);
     })

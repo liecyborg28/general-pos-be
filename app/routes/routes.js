@@ -1,44 +1,32 @@
 const router = require("express").Router();
 
-// Aldil
-const relayController = require("../controllers/relayController");
-
 // routes
 const authRouter = require("./authRouter/authRouter");
-const userRouter = require("./userRouter/userRouter");
-const resourceRouter = require("./resourceRouter/resourceRouter");
 const businessRouter = require("./businessRouter/businessRouter");
-const outletRouter = require("./outletRouter/outletRouter");
-const itemRouter = require("./itemRouter/itemRouter");
-const transactionRouter = require("./transactionRouter/transactionRouter");
-const reportRouter = require("./reportRouter/reportRouter");
-const receiptRouter = require("./receiptRouter/receiptRouter");
-
-// new routes
-const offerRouter = require("./offerRouter/offerRouter");
 const categoryRouter = require("./categoryRouter/categoryRouter");
 const inventoryRouter = require("./inventoryRouter/inventoryRouter");
-const balanceTransactionRouter = require("./balanceTransactionRouter/balanceTransactionRouter");
-const poolTableRouter = require("./poolTableRouter/poolTableRouter");
-const poolTableTransactionRouter = require("./poolTableTransactionRouter/poolTableTransactionRouter");
-
-// --- Gunakan router dari relayController ---
-router.use("/", relayController.router); // Gunakan router dari relayController
+const productRouter = require("./productRouter/productRouter");
+const offerRouter = require("./offerRouter/offerRouter");
+const outletRouter = require("./outletRouter/outletRouter");
+const receiptRouter = require("./receiptRouter/receiptRouter");
+const reportRouter = require("./reportRouter/reportRouter");
+const resourceRouter = require("./resourceRouter/resourceRouter");
+const roleRouter = require("./roleRouter/roleRouter");
+const transactionRouter = require("./transactionRouter/transactionRouter");
+const userRouter = require("./userRouter/userRouter");
 
 router.use(authRouter);
-router.use(userRouter);
-router.use(resourceRouter);
 router.use(businessRouter);
-router.use(outletRouter);
-router.use(itemRouter);
-router.use(transactionRouter);
-router.use(reportRouter);
-router.use(offerRouter);
-router.use(categoryRouter);
-router.use(inventoryRouter);
-router.use(poolTableRouter);
-router.use(poolTableTransactionRouter);
-router.use(balanceTransactionRouter);
-router.use(receiptRouter);
+// router.use(categoryRouter);
+// router.use(inventoryRouter);
+// router.use(productRouter);
+// router.use(offerRouter);
+// router.use(outletRouter);
+// router.use(receiptRouter);
+// router.use(reportRouter);
+// router.use(resourceRouter);
+router.use(roleRouter);
+// router.use(transactionRouter);
+router.use(userRouter);
 
 module.exports = router;

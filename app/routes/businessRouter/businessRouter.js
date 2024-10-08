@@ -1,4 +1,6 @@
 const router = require("express").Router();
+
+// controllers
 const authController = require("../../controllers/authController");
 const businessController = require("../../controllers/businessController");
 
@@ -6,10 +8,10 @@ router
   .route("/businesses")
   .get((req, res) => {
     authController
-      .checkAccessToken(req)
+      .checkAccess(req)
       .then(() => {
         businessController
-          .getBusinesses(req)
+          .get(req)
           .then((value) => {
             res.status(200).send(value);
           })
@@ -22,28 +24,28 @@ router
       });
   })
   .post((req, res) => {
-    authController
-      .checkAccessToken(req)
-      .then(() => {
-        businessController
-          .createBusiness(req)
-          .then((value) => {
-            res.status(200).send(value);
-          })
-          .catch((err) => {
-            res.status(500).send(err);
-          });
+    // authController
+    //   .checkAccessToken(req)
+    //   .then(() => {
+    businessController
+      .create(req)
+      .then((value) => {
+        res.status(200).send(value);
       })
       .catch((err) => {
         res.status(500).send(err);
       });
+    // })
+    // .catch((err) => {
+    //   res.status(500).send(err);
+    // });
   })
   .patch((req, res) => {
     authController
-      .checkAccessToken(req)
+      .checkAccess(req)
       .then(() => {
         businessController
-          .updateBusiness(req)
+          .update(req)
           .then((value) => {
             res.status(200).send(value);
           })

@@ -9,8 +9,6 @@ const Category = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Business",
   },
-  type: String,
-  subtype: String,
   name: String,
   status: String,
 });

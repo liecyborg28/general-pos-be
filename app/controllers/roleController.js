@@ -1,18 +1,17 @@
-// models
-const User = require("../models/userModel");
-const Category = require("../models/categoryModel");
-
 // controllers
-const dataController = require("./utils/dataController");
 const logController = require("./logController");
 const pageController = require("./utils/pageController");
+
+// models
+const Role = require("../models/roleModel");
+const User = require("../models/userModel");
 
 // repositories
 const errorMessages = require("../repository/messages/errorMessages");
 const successMessages = require("../repository/messages/successMessages");
 
 module.exports = {
-  createCategory: async (req) => {
+  create: async (req) => {
     let body = req.body;
     let dateISOString = new Date().toISOString();
     const bearerHeader = req.headers["authorization"];
@@ -23,16 +22,20 @@ module.exports = {
     });
 
     let isBodyValid = () => {
-      return body.name && body.businessId && body.type && body.subtype;
+      return (
+        body.access &&
+        body.access.length > 0 &&
+        body.businessIds &&
+        body.businessIds?.length > 0 &&
+        body.title
+      );
     };
 
     let payload = isBodyValid()
       ? {
-          name: body.name,
-          businessId: body.businessId,
-          type: body.type,
-          subtype: body.subtype,
-          status: "active",
+          businessIds: body.businessIds,
+          access: body.access,
+          title: body.title,
         }
       : {
           error: true,
@@ -40,62 +43,33 @@ module.exports = {
         };
 
     if (isBodyValid()) {
-      let nameIsExist = await dataController.isExist(
-        {
-          businessId: body.businessId,
-          name: body.name,
-          status: { $ne: "deleted" },
-        },
-        Category
-      );
-
-      if (nameIsExist) {
-        return Promise.reject({
-          error: true,
-          message: errorMessages.NAME_ALREADY_EXISTS,
-        });
-      }
-
       return new Promise((resolve, reject) => {
-        new Category(payload)
-          .save()
-          .then((result) => {
-            logController.createLog({
-              createdAt: dateISOString,
-              title: "Create Category",
-              note: "",
-              type: "category",
-              from: result._id,
-              by: userByToken._id,
-              data: result,
-            });
-            resolve({
-              error: false,
-              data: result,
-              message: successMessages.CATEGORY_CREATED_SUCCESS,
-            });
-          })
-          .catch((err) => {
-            reject({ error: true, message: err });
+        new Role(payload).save().then((result) => {
+          logController.createLog({
+            createdAt: dateISOString,
+            name: "Create Role",
+            note: "",
+            type: "role",
+            from: result._id,
+            by: userByToken._id,
+            data: result,
           });
+
+          resolve({
+            error: false,
+            data: result,
+            message: successMessages.ROLE_CREATED_SUCCESS,
+          });
+        });
       });
     } else {
       return Promise.reject(payload);
     }
   },
 
-  getCategories: (req) => {
+  get: (req) => {
     let pageKey = req.query.pageKey ? req.query.pageKey : 1;
-    let pageSize = req.query.pageSize ? req.query.pageSize : 10;
-
-    isNotEveryQueryNull = () => {
-      return (
-        req.query.keyword ||
-        req.query.name ||
-        req.query.businessId ||
-        req.query.type
-      );
-    };
+    let pageSize = req.query.pageSize ? req.query.pageSize : null;
 
     return new Promise((resolve, reject) => {
       let pipeline = isNotEveryQueryNull()
@@ -112,27 +86,17 @@ module.exports = {
                   ? { $regex: req.query.name, $options: "i" }
                   : null,
               },
-              {
-                businessId: req.query.businessId ? req.query.businessId : null,
-              },
-              {
-                type: req.query.type
-                  ? { $regex: req.query.type, $options: "i" }
-                  : null,
-              },
             ],
           }
-        : {
-            status: { $ne: "deleted" },
-          };
+        : { status: { $ne: "deleted" } };
 
       pageController
-        .paginate(pageKey, pageSize, pipeline, Category)
-        .then((categorys) => {
+        .paginate(pageKey, pageSize, pipeline, Role)
+        .then((roles) => {
           resolve({
             error: false,
-            data: categorys.data,
-            count: categorys.count,
+            data: roles.data,
+            count: roles.count,
           });
         })
         .catch((err) => {
@@ -141,7 +105,7 @@ module.exports = {
     });
   },
 
-  updateCategory: async (req) => {
+  update: async (req) => {
     let body = req.body;
     let dateISOString = new Date().toISOString();
     const bearerHeader = req.headers["authorization"];
@@ -151,7 +115,7 @@ module.exports = {
       "auth.accessToken": bearerToken,
     });
 
-    if (!body.categoryId) {
+    if (!body.roleId) {
       return Promise.reject({
         error: true,
         message: errorMessages.INVALID_DATA,
@@ -159,18 +123,17 @@ module.exports = {
     } else {
       body.data["updatedAt"] = dateISOString;
       return new Promise((resolve, reject) => {
-        Category.findByIdAndUpdate(body.categoryId, body.data, { new: true })
+        Role.findByIdAndUpdate(body.roleId, body.data, { new: true })
           .then((result) => {
             logController.createLog({
               createdAt: dateISOString,
-              title: "Update Category",
+              name: "Update Role",
               note: body.note ? body.note : "",
-              type: "category",
-              from: body.categoryId,
+              type: "role",
+              from: body.roleId,
               by: userByToken._id,
-              data: result,
+              data: body.data,
             });
-
             resolve({
               error: false,
               data: result,

@@ -1,10 +1,10 @@
 const mongoose = require("mongoose");
 
-const dbConfig = require("./../../config/dbConfig");
+const dbConfig = require("../../config/dbConfig");
 
 mongoose.connect(dbConfig.url);
 
-const Item = mongoose.Schema({
+const Product = mongoose.Schema({
   businessId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Business",
@@ -26,15 +26,17 @@ const Item = mongoose.Schema({
       qty: Number,
     },
   ],
-  // changeLog: [],
   taxed: Boolean,
   charged: Boolean,
   status: String,
   name: String,
   imageUrl: String,
+  cost: Number,
   price: Number,
+  qty: Number,
+  countable: Boolean,
   createdAt: String,
   updatedAt: String,
 });
 
-module.exports = mongoose.model("Item", Item);
+module.exports = mongoose.model("Product", Product);

@@ -12,6 +12,10 @@ module.exports = {
     en: "Login failed, your account access has been removed!",
     id: "Login gagal, akses akun Anda telah dihapus!",
   },
+  ACCESS_ALREADY_SAVED: {
+    en: "Access already saved in database!",
+    id: "Akses telah tersimpan di dalam basis data!",
+  },
   // B
   BUSINESS_ID_NOT_FOUND: {
     en: "Business ID not found!",

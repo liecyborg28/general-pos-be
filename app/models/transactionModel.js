@@ -27,7 +27,7 @@ const Transaction = mongoose.Schema({
     {
       itemId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Item",
+        ref: "Product",
       },
       qty: Number,
       price: Number,
@@ -43,13 +43,9 @@ const Transaction = mongoose.Schema({
   orderStatus: String,
   tax: Number,
   charge: Number,
-  table: String,
-  floor: String,
   note: String,
   paymentAmount: Number,
   paymentMethod: String,
-  orderType: String,
-  customer: String,
   createdAt: String,
   updatedAt: String,
 });

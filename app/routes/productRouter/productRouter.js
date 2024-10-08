@@ -1,13 +1,36 @@
 const router = require("express").Router();
-const authController = require("../../controllers/authController");
-const poolTableTransactionController = require("../../controllers/poolTableTransactionController");
 
-router.get("/poolTableTransactions/period", (req, res) => {
+const authController = require("../../controllers/authController");
+const productController = require("../../controllers/productController");
+
+const multer = require("multer");
+const storage = multer.memoryStorage();
+const upload = multer({ storage: storage });
+
+router.get("/products/bulk/template", (req, res) => {
   authController
     .checkAccessToken(req)
     .then(() => {
-      poolTableTransactionController
-        .getPoolTableTransactionsByPeriod(req)
+      productController
+        .getBulkProductTemplate(req)
+        .then((value) => {
+          res.status(200).send(value);
+        })
+        .catch((err) => {
+          res.status(500).send(err);
+        });
+    })
+    .catch((err) => {
+      res.status(500).send(err);
+    });
+});
+
+router.post("/products/bulk", upload.single("file"), (req, res) => {
+  authController
+    .checkAccessToken(req)
+    .then(() => {
+      productController
+        .createBulkProduct(req)
         .then((value) => {
           res.status(200).send(value);
         })
@@ -21,13 +44,13 @@ router.get("/poolTableTransactions/period", (req, res) => {
 });
 
 router
-  .route("/poolTableTransactions")
+  .route("/products")
   .get((req, res) => {
     authController
       .checkAccessToken(req)
       .then(() => {
-        poolTableTransactionController
-          .getPoolTableTransactions(req)
+        productController
+          .getProducts(req)
           .then((value) => {
             res.status(200).send(value);
           })
@@ -43,8 +66,8 @@ router
     authController
       .checkAccessToken(req)
       .then(() => {
-        poolTableTransactionController
-          .createPoolTableTransaction(req)
+        productController
+          .createProduct(req)
           .then((value) => {
             res.status(200).send(value);
           })
@@ -60,8 +83,8 @@ router
     authController
       .checkAccessToken(req)
       .then(() => {
-        poolTableTransactionController
-          .updatePoolTableTransaction(req)
+        productController
+          .updateProduct(req)
           .then((value) => {
             res.status(200).send(value);
           })

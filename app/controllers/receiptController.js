@@ -2,7 +2,6 @@ const errorMessages = require("../repository/messages/errorMessages");
 const pdfController = require("../controllers/utils/pdfController");
 const Transaction = require("../models/transactionModel");
 const Category = require("../models/categoryModel");
-const PoolTableTransaction = require("../models/poolTableTransactionModel");
 const transactionResource = require("../repository/resources/transactionResource");
 const formatController = require("../controllers/utils/formatController");
 const pageController = require("../controllers/utils/pageController");

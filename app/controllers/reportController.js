@@ -1,12 +1,12 @@
 const ExcelJS = require("exceljs");
 const excelController = require("./utils/excelController");
 const Transaction = require("../models/transactionModel");
-const Item = require("../models/itemModel");
+const Product = require("../models/productModel");
 const pageController = require("./utils/pageController");
 const errorMessages = require("../repository/messages/errorMessages");
 const successMessages = require("../repository/messages/successMessages");
-const itemController = require("./itemController");
-const itemResource = require("../repository/resources/itemResource");
+const productController = require("./productController");
+const productResource = require("../repository/resources/productResource");
 const transactionResource = require("../repository/resources/transactionResource");
 const dataController = require("./utils/dataController");
 
@@ -31,7 +31,7 @@ function convertToLocaleISOString(date, type) {
   return fixDate;
 }
 
-function countItemSales(transactions) {
+function countProductSales(transactions) {
   const groupedItems = {};
 
   transactions.forEach((transaction) => {
@@ -296,7 +296,7 @@ module.exports = {
                 path: "details.itemId.categoryId",
               })
                 .then((result) => {
-                  let transformedData = countItemSales(result)
+                  let transformedData = countProductSales(result)
                     .sort((a, b) => b.totalQty - a.totalQty)
                     .map((e, i) => ({
                       "No.": i + 1,
@@ -321,7 +321,7 @@ module.exports = {
                       resolve({
                         error: false,
                         data: {
-                          obj: countItemSales(data),
+                          obj: countProductSales(data),
                           excel: result.data.excel,
                         },
                       });

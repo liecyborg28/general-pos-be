@@ -1,5 +1,5 @@
 const outletResource = require("../repository/resources/outletResource");
-const itemResource = require("../repository/resources/itemResource");
+const itemResource = require("../repository/resources/productResource");
 const transactionResource = require("../repository/resources/transactionResource");
 const inventoryResource = require("../repository/resources/inventoryResource");
 

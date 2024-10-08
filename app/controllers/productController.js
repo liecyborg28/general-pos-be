@@ -2,7 +2,7 @@ const ExcelJS = require("exceljs");
 const excelController = require("./utils/excelController");
 
 const User = require("../models/userModel");
-const Item = require("../models/itemModel");
+const Product = require("../models/productModel");
 const dataController = require("./utils/dataController");
 const pageController = require("./utils/pageController");
 const errorMessages = require("../repository/messages/errorMessages");
@@ -10,22 +10,22 @@ const successMessages = require("../repository/messages/successMessages");
 const logController = require("./logController");
 
 module.exports = {
-  getBulkItemTemplate: async (req) => {
+  getBulkProductTemplate: async (req) => {
     let businessId = req.query.businessId || null;
     let categoryId = req.query.categoryId || null;
 
     if (businessId && categoryId) {
       return new Promise(async (resolve, reject) => {
         const properties = {
-          workbook: "Template_Upload_Daftar_Menu",
-          worksheet: "Daftar Menu",
-          title: "Daftar Menu",
+          workbook: "Template_Upload_Daftar_Produk",
+          worksheet: "Daftar Produk",
+          title: "Daftar Produk",
           data: [
             {
               no: 1,
-              name: "Nama menu (wajib)",
-              price: "Harga menu (wajib)",
-              imageUrl: "URL gambar",
+              name: "Nama Produk (wajib)",
+              cost: "Biaya Produksi (wajib)",
+              price: "Harga Produk (wajib)",
             },
           ],
           hiddenSheets: [
@@ -57,7 +57,7 @@ module.exports = {
     }
   },
 
-  createBulkItem: async (req) => {
+  createBulkProduct: async (req) => {
     let dateISOString = new Date().toISOString();
 
     const bearerHeader = req.headers["authorization"];
@@ -82,7 +82,7 @@ module.exports = {
 
           let categoryId = hiddenSheets.find((e) => e.name === "categoryId");
 
-          let existingItems = [];
+          let existingProducts = [];
 
           const transformedData = data.map((e) => {
             return {
@@ -100,31 +100,31 @@ module.exports = {
             };
           });
 
-          const promises = transformedData.map(async (item) => {
+          const promises = transformedData.map(async (product) => {
             try {
-              let existingItem = await dataController.isExist(
+              let existingProduct = await dataController.isExist(
                 {
-                  businessId: item.businessId,
-                  name: item.name,
+                  businessId: Product.businessId,
+                  name: Product.name,
                   status: { $ne: "deleted" },
                 },
-                Item
+                Product
               );
 
-              if (!existingItem) {
-                await new Item(item).save().then((result) => {
+              if (!existingProduct) {
+                await new Product(product).save().then((result) => {
                   logController.createLog({
                     createdAt: dateISOString,
-                    title: "Create Item",
+                    title: "Create Product",
                     note: "",
-                    type: "item",
+                    type: "Product",
                     from: result._id,
                     by: userByToken._id,
                     data: result,
                   });
                 });
               } else {
-                existingItems.push(item);
+                existingProducts.push(product);
               }
             } catch (error) {
               console.log(error);
@@ -133,12 +133,12 @@ module.exports = {
 
           await Promise.all(promises);
 
-          if (existingItems.length < 1) {
+          if (existingProducts.length < 1) {
             resolve({
               error: false,
               message: successMessages.ALL_DATA_SAVED,
             });
-          } else if (existingItems.length === data.length) {
+          } else if (existingProducts.length === data.length) {
             reject({
               error: true,
               message: errorMessages.ALL_DATA_NOT_SAVED_BECAUSE_DUPLICATE,
@@ -159,7 +159,7 @@ module.exports = {
     });
   },
 
-  createItem: async (req) => {
+  createProduct: async (req) => {
     let dateISOString = new Date().toISOString();
     let body = req.body;
 
@@ -207,7 +207,7 @@ module.exports = {
           name: body.name,
           status: { $ne: "deleted" },
         },
-        Item
+        Product
       );
 
       if (nameIsExist) {
@@ -218,14 +218,14 @@ module.exports = {
       }
 
       return new Promise((resolve, reject) => {
-        new Item(payload)
+        new Product(payload)
           .save()
           .then((result) => {
             logController.createLog({
               createdAt: dateISOString,
-              title: "Create Item",
+              title: "Create Product",
               note: "",
-              type: "item",
+              type: "Product",
               from: result._id,
               by: userByToken._id,
               data: result,
@@ -233,7 +233,7 @@ module.exports = {
             resolve({
               error: false,
               data: result,
-              message: successMessages.ITEM_CREATED_SUCCESS,
+              message: successMessages.Product_CREATED_SUCCESS,
             });
           })
           .catch((err) => {
@@ -245,7 +245,7 @@ module.exports = {
     }
   },
 
-  getItems: (req) => {
+  getProducts: (req) => {
     let pageKey = req.query.pageKey ? req.query.pageKey : 1;
     let pageSize = req.query.pageSize ? req.query.pageSize : null;
 
@@ -291,14 +291,14 @@ module.exports = {
           };
 
       pageController
-        .paginate(pageKey, pageSize, pipeline, Item)
-        .then((items) => {
-          Item.populate(items.data, { path: "businessId categoryId" })
+        .paginate(pageKey, pageSize, pipeline, Product)
+        .then((products) => {
+          Product.populate(products.data, { path: "businessId categoryId" })
             .then((data) => {
               resolve({
                 error: false,
                 data: data,
-                count: items.count,
+                count: products.count,
               });
             })
             .catch((err) => {
@@ -311,7 +311,7 @@ module.exports = {
     });
   },
 
-  updateItem: async (req) => {
+  updateProduct: async (req) => {
     let dateISOString = new Date().toISOString();
     const bearerHeader = req.headers["authorization"];
     const bearerToken = bearerHeader.split(" ")[1];
@@ -324,7 +324,7 @@ module.exports = {
 
     let nameIsExist = await dataController.isExist(
       { businessId: body.data.businessId, name: body.data.name },
-      Item
+      Product
     );
 
     if (nameIsExist) {
@@ -334,7 +334,7 @@ module.exports = {
       });
     }
 
-    if (!body.itemId) {
+    if (!body.ProductId) {
       return Promise.reject({
         error: true,
         message: errorMessages.INVALID_DATA,
@@ -345,14 +345,14 @@ module.exports = {
     body.data["changedBy"] = userByToken._id;
 
     return new Promise((resolve, reject) => {
-      Item.findByIdAndUpdate(body.itemId, body.data, { new: true })
+      Product.findByIdAndUpdate(body.ProductId, body.data, { new: true })
         .then((result) => {
           logController.createLog({
             createdAt: dateISOString,
-            title: "Update Item",
+            title: "Update Product",
             note: body.note ? body.note : "",
-            type: "item",
-            from: body.itemId,
+            type: "Product",
+            from: body.ProductId,
             by: userByToken._id,
             data: body.data,
           });

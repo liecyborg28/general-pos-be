@@ -5,30 +5,28 @@ const dbConfig = require("./../../config/dbConfig");
 mongoose.connect(dbConfig.url);
 
 const User = mongoose.Schema({
-  businessIds: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Business",
-    },
-  ],
-  outletIds: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Outlet",
-    },
-  ],
-  access: [],
   auth: {},
-  balance: Number,
-  type: String,
-  status: String,
-  imageUrl: String,
-  gender: String,
+  businessId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Business",
+  },
   email: String,
-  phonenumber: String,
+  gender: String,
+  imageUrl: String,
   name: String,
-  username: String,
   password: String,
+  phone: String,
+  roleId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Role",
+  },
+  settings: {
+    theme: String,
+    language: String,
+  },
+  status: String,
+  username: String,
+  // timestamp
   createdAt: String,
   updatedAt: String,
 });

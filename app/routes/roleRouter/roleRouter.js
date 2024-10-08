@@ -1,56 +1,15 @@
 const router = require("express").Router();
-
 const authController = require("../../controllers/authController");
-const itemController = require("../../controllers/itemController");
-
-const multer = require("multer");
-const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
-
-router.get("/items/bulk/template", (req, res) => {
-  authController
-    .checkAccessToken(req)
-    .then(() => {
-      itemController
-        .getBulkItemTemplate(req)
-        .then((value) => {
-          res.status(200).send(value);
-        })
-        .catch((err) => {
-          res.status(500).send(err);
-        });
-    })
-    .catch((err) => {
-      res.status(500).send(err);
-    });
-});
-
-router.post("/items/bulk", upload.single("file"), (req, res) => {
-  authController
-    .checkAccessToken(req)
-    .then(() => {
-      itemController
-        .createBulkItem(req)
-        .then((value) => {
-          res.status(200).send(value);
-        })
-        .catch((err) => {
-          res.status(500).send(err);
-        });
-    })
-    .catch((err) => {
-      res.status(500).send(err);
-    });
-});
+const roleController = require("../../controllers/roleController");
 
 router
-  .route("/items")
+  .route("/roles")
   .get((req, res) => {
     authController
       .checkAccessToken(req)
       .then(() => {
-        itemController
-          .getItems(req)
+        roleController
+          .getRoles(req)
           .then((value) => {
             res.status(200).send(value);
           })
@@ -66,8 +25,8 @@ router
     authController
       .checkAccessToken(req)
       .then(() => {
-        itemController
-          .createItem(req)
+        roleController
+          .createRole(req)
           .then((value) => {
             res.status(200).send(value);
           })
@@ -83,8 +42,8 @@ router
     authController
       .checkAccessToken(req)
       .then(() => {
-        itemController
-          .updateItem(req)
+        roleController
+          .updateRole(req)
           .then((value) => {
             res.status(200).send(value);
           })

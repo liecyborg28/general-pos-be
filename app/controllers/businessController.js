@@ -1,5 +1,7 @@
-const User = require("../models/userModel");
+// Models
 const Business = require("../models/businessModel");
+
+// controllers
 const dataController = require("./utils/dataController");
 const pageController = require("./utils/pageController");
 const errorMessages = require("../repository/messages/errorMessages");
@@ -7,7 +9,7 @@ const successMessages = require("../repository/messages/successMessages");
 const logController = require("./logController");
 
 module.exports = {
-  createBusiness: async (req) => {
+  create: async (req) => {
     let body = req.body;
     let dateISOString = new Date().toISOString();
     const bearerHeader = req.headers["authorization"];
@@ -28,7 +30,6 @@ module.exports = {
           name: body.name,
           createdAt: dateISOString,
           updatedAt: dateISOString,
-          userIds: [],
         }
       : {
           error: true,
@@ -77,32 +78,12 @@ module.exports = {
     }
   },
 
-  getBusinesses: (req) => {
+  get: (req) => {
     let pageKey = req.query.pageKey ? req.query.pageKey : 1;
     let pageSize = req.query.pageSize ? req.query.pageSize : null;
 
-    isNotEveryQueryNull = () => {
-      return req.query.keyword || req.query.name;
-    };
-
     return new Promise((resolve, reject) => {
-      let pipeline = isNotEveryQueryNull()
-        ? {
-            status: { $ne: "deleted" },
-            $or: [
-              {
-                name: req.query.keyword
-                  ? { $regex: req.query.keyword, $options: "i" }
-                  : null,
-              },
-              {
-                name: req.query.name
-                  ? { $regex: req.query.name, $options: "i" }
-                  : null,
-              },
-            ],
-          }
-        : { status: { $ne: "deleted" } };
+      let pipeline = { status: { $ne: "deleted" } };
 
       pageController
         .paginate(pageKey, pageSize, pipeline, Business)
@@ -119,8 +100,8 @@ module.exports = {
     });
   },
 
-  updateBusiness: async (req) => {
-    body = req.body;
+  update: async (req) => {
+    let body = req.body;
     let dateISOString = new Date().toISOString();
     const bearerHeader = req.headers["authorization"];
     const bearerToken = bearerHeader.split(" ")[1];
@@ -137,26 +118,24 @@ module.exports = {
     } else {
       body.data["updatedAt"] = dateISOString;
       return new Promise((resolve, reject) => {
-        Business.findByIdAndUpdate(body.businessId, body.data, { new: true })
-          .then((result) => {
-            logController.createLog({
-              createdAt: dateISOString,
-              name: "Update Business",
-              note: body.note ? body.note : "",
-              type: "business",
-              from: body.businessId,
-              by: userByToken._id,
-              data: body.data,
-            });
-            resolve({
-              error: false,
-              data: result,
-              message: successMessages.DATA_SUCCESS_UPDATED,
-            });
-          })
-          .catch((err) => {
-            reject({ error: true, message: err });
+        Business.findByIdAndUpdate(body.businessId, body.data, {
+          new: true,
+        }).then((result) => {
+          logController.createLog({
+            createdAt: dateISOString,
+            name: "Update Business",
+            note: body.note ? body.note : "",
+            type: "business",
+            from: body.businessId,
+            by: userByToken._id,
+            data: body.data,
           });
+          resolve({
+            error: false,
+            data: result,
+            message: successMessages.DATA_SUCCESS_UPDATED,
+          });
+        });
       });
     }
   },

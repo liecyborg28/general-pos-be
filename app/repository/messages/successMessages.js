@@ -4,6 +4,10 @@ module.exports = {
     en: "All data has been successfully saved!",
     id: "Semua data berhasil tersimpan!",
   },
+  ACCESS_CREATED_SUCCESS: {
+    en: "Access created successfully!",
+    id: "Akses awal berhasil dibuat!",
+  },
   AUTHORIZED: {
     en: "Authorized!",
     id: "Akses diizinkan!",
@@ -67,14 +71,14 @@ module.exports = {
     id: "Outlet berhasil dibuat!",
   },
   // P
-  POOL_TABLE_SUCCESS: {
-    en: "Pool table created successfully!",
-    id: "Meja billiard berhasil dibuat!",
-  },
+
   // Q
 
   // R
-
+  ROLE_CREATED_SUCCESS: {
+    en: "Role created successfully!",
+    id: "Akses berhasil dibuat!",
+  },
   // S
 
   // T
