@@ -1,5 +1,6 @@
 const router = require("express").Router();
 
+// controllers
 const authController = require("../../controllers/authController");
 const outletController = require("../../controllers/outletController");
 
@@ -7,10 +8,10 @@ router
   .route("/outlets")
   .get((req, res) => {
     authController
-      .checkAccessToken(req)
+      .checkAccess(req)
       .then(() => {
         outletController
-          .getOutlets(req)
+          .get(req)
           .then((value) => {
             res.status(200).send(value);
           })
@@ -24,10 +25,10 @@ router
   })
   .post((req, res) => {
     authController
-      .checkAccessToken(req)
+      .checkAccess(req)
       .then(() => {
         outletController
-          .createOutlet(req)
+          .create(req)
           .then((value) => {
             res.status(200).send(value);
           })
@@ -41,10 +42,10 @@ router
   })
   .patch((req, res) => {
     authController
-      .checkAccessToken(req)
+      .checkAccess(req)
       .then(() => {
         outletController
-          .updateOutlet(req)
+          .update(req)
           .then((value) => {
             res.status(200).send(value);
           })

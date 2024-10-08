@@ -1,13 +1,18 @@
+// models
 const Outlet = require("../models/outletModel");
 const User = require("../models/userModel");
+
+// controllers
 const dataController = require("./utils/dataController");
+const logController = require("./logController");
 const pageController = require("./utils/pageController");
+
+// repositories
 const errorMessages = require("../repository/messages/errorMessages");
 const successMessages = require("../repository/messages/successMessages");
-const logController = require("./logController");
 
 module.exports = {
-  createOutlet: async (req) => {
+  create: async (req) => {
     let body = req.body;
     const bearerHeader = req.headers["authorization"];
     const bearerToken = bearerHeader.split(" ")[1];
@@ -75,7 +80,7 @@ module.exports = {
     }
   },
 
-  getOutlets: (req) => {
+  get: (req) => {
     let pageKey = req.query.pageKey ? req.query.pageKey : 1;
     let pageSize = req.query.pageSize ? req.query.pageSize : null;
 
@@ -153,7 +158,7 @@ module.exports = {
     });
   },
 
-  updateOutlet: async (req) => {
+  update: async (req) => {
     let body = req.body;
     const bearerHeader = req.headers["authorization"];
     const bearerToken = bearerHeader.split(" ")[1];

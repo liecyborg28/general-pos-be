@@ -74,7 +74,7 @@ module.exports = {
                 const userPayload = {
                   auth: {
                     accessToken: authUtils.generateAccessToken(),
-                    expiredAt: authUtils.generateTokenExpirateAt(7),
+                    expiredAt: authUtils.generateExpirationDate(7),
                   },
                   businessId: business._id.toString(),
                   email: "example@gmail.com",
@@ -95,8 +95,6 @@ module.exports = {
                   updatedAt: dateISOString,
                 };
 
-                console.log("user payload", userPayload);
-
                 new User(userPayload)
                   .save()
                   .then((user) => {
@@ -113,8 +111,8 @@ module.exports = {
                           error: false,
                           data: {
                             business,
-                            user,
                             role,
+                            user,
                             category,
                           },
                           message: successMessages.ACCESS_CREATED_SUCCESS,

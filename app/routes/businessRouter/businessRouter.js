@@ -24,21 +24,21 @@ router
       });
   })
   .post((req, res) => {
-    // authController
-    //   .checkAccessToken(req)
-    //   .then(() => {
-    businessController
-      .create(req)
-      .then((value) => {
-        res.status(200).send(value);
+    authController
+      .checkAccess(req)
+      .then(() => {
+        businessController
+          .create(req)
+          .then((value) => {
+            res.status(200).send(value);
+          })
+          .catch((err) => {
+            res.status(500).send(err);
+          });
       })
       .catch((err) => {
         res.status(500).send(err);
       });
-    // })
-    // .catch((err) => {
-    //   res.status(500).send(err);
-    // });
   })
   .patch((req, res) => {
     authController

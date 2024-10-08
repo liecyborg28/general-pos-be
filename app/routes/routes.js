@@ -17,11 +17,11 @@ const userRouter = require("./userRouter/userRouter");
 
 router.use(authRouter);
 router.use(businessRouter);
-// router.use(categoryRouter);
+router.use(categoryRouter);
 // router.use(inventoryRouter);
 // router.use(productRouter);
 // router.use(offerRouter);
-// router.use(outletRouter);
+router.use(outletRouter);
 // router.use(receiptRouter);
 // router.use(reportRouter);
 // router.use(resourceRouter);

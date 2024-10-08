@@ -12,7 +12,7 @@ const errorMessages = require("../repository/messages/errorMessages");
 const successMessages = require("../repository/messages/successMessages");
 
 module.exports = {
-  createCategory: async (req) => {
+  create: async (req) => {
     let body = req.body;
     let dateISOString = new Date().toISOString();
     const bearerHeader = req.headers["authorization"];
@@ -23,15 +23,13 @@ module.exports = {
     });
 
     let isBodyValid = () => {
-      return body.name && body.businessId && body.type && body.subtype;
+      return body.name && body.businessId;
     };
 
     let payload = isBodyValid()
       ? {
           name: body.name,
           businessId: body.businessId,
-          type: body.type,
-          subtype: body.subtype,
           status: "active",
         }
       : {
@@ -84,55 +82,22 @@ module.exports = {
     }
   },
 
-  getCategories: (req) => {
+  get: (req) => {
     let pageKey = req.query.pageKey ? req.query.pageKey : 1;
     let pageSize = req.query.pageSize ? req.query.pageSize : 10;
 
-    isNotEveryQueryNull = () => {
-      return (
-        req.query.keyword ||
-        req.query.name ||
-        req.query.businessId ||
-        req.query.type
-      );
-    };
-
     return new Promise((resolve, reject) => {
-      let pipeline = isNotEveryQueryNull()
-        ? {
-            status: { $ne: "deleted" },
-            $or: [
-              {
-                name: req.query.keyword
-                  ? { $regex: req.query.keyword, $options: "i" }
-                  : null,
-              },
-              {
-                name: req.query.name
-                  ? { $regex: req.query.name, $options: "i" }
-                  : null,
-              },
-              {
-                businessId: req.query.businessId ? req.query.businessId : null,
-              },
-              {
-                type: req.query.type
-                  ? { $regex: req.query.type, $options: "i" }
-                  : null,
-              },
-            ],
-          }
-        : {
-            status: { $ne: "deleted" },
-          };
+      let pipeline = {
+        status: { $ne: "deleted" },
+      };
 
       pageController
         .paginate(pageKey, pageSize, pipeline, Category)
-        .then((categorys) => {
+        .then((categories) => {
           resolve({
             error: false,
-            data: categorys.data,
-            count: categorys.count,
+            data: categories.data,
+            count: categories.count,
           });
         })
         .catch((err) => {
@@ -141,7 +106,7 @@ module.exports = {
     });
   },
 
-  updateCategory: async (req) => {
+  update: async (req) => {
     let body = req.body;
     let dateISOString = new Date().toISOString();
     const bearerHeader = req.headers["authorization"];
@@ -164,7 +129,7 @@ module.exports = {
             logController.createLog({
               createdAt: dateISOString,
               title: "Update Category",
-              note: body.note ? body.note : "",
+              note: body.note ? body.note : null,
               type: "category",
               from: body.categoryId,
               by: userByToken._id,

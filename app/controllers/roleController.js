@@ -48,7 +48,7 @@ module.exports = {
           logController.createLog({
             createdAt: dateISOString,
             name: "Create Role",
-            note: "",
+            note: body.note ? body.note : null,
             type: "role",
             from: result._id,
             by: userByToken._id,
@@ -72,23 +72,7 @@ module.exports = {
     let pageSize = req.query.pageSize ? req.query.pageSize : null;
 
     return new Promise((resolve, reject) => {
-      let pipeline = isNotEveryQueryNull()
-        ? {
-            status: { $ne: "deleted" },
-            $or: [
-              {
-                name: req.query.keyword
-                  ? { $regex: req.query.keyword, $options: "i" }
-                  : null,
-              },
-              {
-                name: req.query.name
-                  ? { $regex: req.query.name, $options: "i" }
-                  : null,
-              },
-            ],
-          }
-        : { status: { $ne: "deleted" } };
+      let pipeline = { status: { $ne: "deleted" } };
 
       pageController
         .paginate(pageKey, pageSize, pipeline, Role)

@@ -6,10 +6,10 @@ router
   .route("/roles")
   .get((req, res) => {
     authController
-      .checkAccessToken(req)
+      .checkAccess(req)
       .then(() => {
         roleController
-          .getRoles(req)
+          .get(req)
           .then((value) => {
             res.status(200).send(value);
           })
@@ -23,10 +23,10 @@ router
   })
   .post((req, res) => {
     authController
-      .checkAccessToken(req)
+      .checkAccess(req)
       .then(() => {
         roleController
-          .createRole(req)
+          .create(req)
           .then((value) => {
             res.status(200).send(value);
           })
@@ -40,10 +40,10 @@ router
   })
   .patch((req, res) => {
     authController
-      .checkAccessToken(req)
+      .checkAccess(req)
       .then(() => {
         roleController
-          .updateRole(req)
+          .update(req)
           .then((value) => {
             res.status(200).send(value);
           })

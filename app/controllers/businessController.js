@@ -1,12 +1,15 @@
 // Models
 const Business = require("../models/businessModel");
+const User = require("../models/userModel");
 
 // controllers
 const dataController = require("./utils/dataController");
 const pageController = require("./utils/pageController");
+const logController = require("./logController");
+
+// repositories
 const errorMessages = require("../repository/messages/errorMessages");
 const successMessages = require("../repository/messages/successMessages");
-const logController = require("./logController");
 
 module.exports = {
   create: async (req) => {
@@ -53,12 +56,13 @@ module.exports = {
         new Business(payload)
           .save()
           .then((result) => {
+            console.log("userByToken", userByToken);
             logController.createLog({
               createdAt: dateISOString,
-              name: "Create Business",
-              note: "",
+              title: "Create Business",
+              note: body.note ? body.note : null,
               type: "business",
-              from: result._id,
+              from: result._id.toString(),
               by: userByToken._id,
               data: result,
             });
@@ -123,12 +127,12 @@ module.exports = {
         }).then((result) => {
           logController.createLog({
             createdAt: dateISOString,
-            name: "Update Business",
-            note: body.note ? body.note : "",
+            title: "Update Business",
+            note: body.note ? body.note : null,
             type: "business",
-            from: body.businessId,
+            from: result._id.toString(),
             by: userByToken._id,
-            data: body.data,
+            data: result,
           });
           resolve({
             error: false,
