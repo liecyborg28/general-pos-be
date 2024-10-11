@@ -4,6 +4,7 @@ const authUtils = require("../utility/authUtils");
 // models
 const Business = require("../models/businessModel");
 const Category = require("../models/categoryModel");
+const Outlet = require("../models/outletModel");
 const Role = require("../models/roleModel");
 const User = require("../models/userModel");
 
@@ -29,13 +30,13 @@ module.exports = {
             ? resolve({ error: false, message: successMessages.AUTHORIZED })
             : reject({
                 error: true,
-                message: errorMessages.UNAUTHORIZED,
+                message: errorMessages.SESSION_ENDED,
               });
         });
       } else {
         reject({
           error: true,
-          message: errorMessages.SESSION_ENDED,
+          message: errorMessages.UNAUTHORIZED,
         });
       }
     });
@@ -61,62 +62,82 @@ module.exports = {
         new Business(businessPayload)
           .save()
           .then((business) => {
-            const rolePayload = {
-              businessIds: [business._id.toString()],
-              access: ["feature1", "feature2", "feature3"],
-              title: "administrator",
+            const outletPayload = {
+              address: "Outlet Address",
+              businessId: business._id.toString(),
+              name: "Outlet Name Example",
+              status: "active",
+              // timestamp
               createdAt: dateISOString,
               updatedAt: dateISOString,
             };
-            new Role(rolePayload)
+
+            new Outlet(outletPayload)
               .save()
-              .then((role) => {
-                const userPayload = {
-                  auth: {
-                    accessToken: authUtils.generateAccessToken(),
-                    expiredAt: authUtils.generateExpirationDate(7),
-                  },
-                  businessId: business._id.toString(),
-                  email: "example@gmail.com",
-                  gender: "male",
-                  imageUrl: null,
-                  name: "User Name",
-                  password: "12345678",
-                  phone: null,
-                  roleId: role._id.toString(),
-                  settings: {
-                    theme: "light",
-                    language: "id",
-                  },
-                  status: "active",
-                  username: "admin",
-                  // timestamp
+              .then((outlet) => {
+                const rolePayload = {
+                  businessIds: [business._id.toString()],
+                  access: ["feature1", "feature2", "feature3"],
+                  title: "administrator",
                   createdAt: dateISOString,
                   updatedAt: dateISOString,
                 };
 
-                new User(userPayload)
+                new Role(rolePayload)
                   .save()
-                  .then((user) => {
-                    console.log(user, userPayload);
-                    const categoryPayload = {
+                  .then((role) => {
+                    const userPayload = {
+                      auth: {
+                        accessToken: authUtils.generateAccessToken(),
+                        expiredAt: authUtils.generateExpirationDate(7),
+                      },
                       businessId: business._id.toString(),
-                      name: "category name",
+                      email: "example@gmail.com",
+                      gender: "male",
+                      imageUrl: null,
+                      name: "User Name",
+                      password: "12345678",
+                      phone: null,
+                      roleId: role._id.toString(),
+                      settings: {
+                        theme: "light",
+                        language: "id",
+                      },
                       status: "active",
+                      username: "admin",
+                      // timestamp
+                      createdAt: dateISOString,
+                      updatedAt: dateISOString,
                     };
-                    new Category(categoryPayload)
+
+                    new User(userPayload)
                       .save()
-                      .then((category) => {
-                        resolve({
-                          error: false,
-                          data: {
-                            business,
-                            role,
-                            user,
-                            category,
-                          },
-                          message: successMessages.ACCESS_CREATED_SUCCESS,
-                        });
+                      .then((user) => {
+                        const categoryPayload = {
+                          businessId: business._id.toString(),
+                          name: "category name",
+                          status: "active",
+                          createdAt: dateISOString,
+                          updatedAt: dateISOString,
+                        };
+                        new Category(categoryPayload)
+                          .save()
+                          .then((category) => {
+                            resolve({
+                              error: false,
+                              data: {
+                                business,
+                                outlet,
+                                role,
+                                user,
+                                category,
+                              },
+                              message: successMessages.ACCESS_CREATED_SUCCESS,
+                            });
+                          })
+                          .catch((err) => {
+                            reject({ error: true, message: err });
+                          });
                       })
                       .catch((err) => {
                         reject({ error: true, message: err });
@@ -158,7 +179,7 @@ module.exports = {
         })
         .then((result) => {
           if (result) {
-            if (data.status === "inactive") {
+            if (result.status === "inactive") {
               reject({
                 error: true,
                 message: errorMessages.ACCOUNT_INACTIVE,
@@ -167,8 +188,8 @@ module.exports = {
 
             User.findByIdAndUpdate(result._id.toString(), {
               auth: {
-                accessToken: authUtils.accessToken(),
-                expiredAt: authUtils.generateTokenExpirateAt(7),
+                accessToken: authUtils.generateAccessToken(),
+                expiredAt: authUtils.generateExpirationDate(7),
               },
             })
               .then((user) => {
@@ -197,51 +218,6 @@ module.exports = {
             });
           }
         });
-    });
-  },
-  logout: (req) => {
-    return new Promise((resolve, reject) => {
-      const bearerHeader = req.headers["authorization"];
-
-      if (typeof bearerHeader !== "undefined") {
-        const bearerToken = bearerHeader.split(" ")[1];
-
-        User.findOne({
-          "auth.accessToken": bearerToken,
-        })
-          .catch((err) => {
-            reject({ error: true, message: err });
-          })
-          .then((data) => {
-            let newAuth = {
-              auth: {
-                accessToken: authUtils.generateAccessToken(),
-              },
-            };
-            if (data) {
-              User.findByIdAndUpdate(data._id, newAuth, { new: true })
-                .then(() => {
-                  resolve({
-                    error: false,
-                    message: successMessages.TOKEN_SUCCESS_UPDATED,
-                  });
-                })
-                .catch((err) => {
-                  reject({ error: true, message: err });
-                });
-            } else {
-              reject({
-                error: true,
-                message: errorMessages.TOKEN_NOT_FOUND,
-              });
-            }
-          });
-      } else {
-        reject({
-          error: true,
-          message: errorMessages.TOKEN_IS_REQUIRED,
-        });
-      }
     });
   },
 };

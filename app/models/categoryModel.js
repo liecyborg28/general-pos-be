@@ -11,6 +11,9 @@ const Category = mongoose.Schema({
   },
   name: String,
   status: String,
+  // timestamp
+  createdAt: String,
+  updatedAt: String,
 });
 
 module.exports = mongoose.model("Category", Category);

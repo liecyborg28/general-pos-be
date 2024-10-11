@@ -5,13 +5,14 @@ const dbConfig = require("./../../config/dbConfig");
 mongoose.connect(dbConfig.url);
 
 const Outlet = mongoose.Schema({
-  status: String,
+  address: String,
   businessId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Business",
   },
   name: String,
-  address: String,
+  status: String,
+  // timestamp
   createdAt: String,
   updatedAt: String,
 });

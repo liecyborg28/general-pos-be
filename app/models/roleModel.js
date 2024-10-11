@@ -5,14 +5,15 @@ const dbConfig = require("./../../config/dbConfig");
 mongoose.connect(dbConfig.url);
 
 const Role = mongoose.Schema({
+  access: [],
   businessIds: [
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Business",
     },
   ],
-  access: [],
   title: String,
+  // timestamp
   createdAt: String,
   updatedAt: String,
 });
