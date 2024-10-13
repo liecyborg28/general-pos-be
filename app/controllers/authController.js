@@ -44,11 +44,18 @@ module.exports = {
   createAccess: (req) => {
     return new Promise(async (resolve, reject) => {
       const businessIsEmpty = await dataController.isCollectionEmpty(Business);
+      const ouletletIsEmpty = await dataController.isCollectionEmpty(Outlet);
       const roleIsEmpty = await dataController.isCollectionEmpty(Role);
       const userIsEmpty = await dataController.isCollectionEmpty(Business);
       const categoryIsEmpty = await dataController.isCollectionEmpty(Business);
 
-      if (businessIsEmpty && roleIsEmpty && userIsEmpty && categoryIsEmpty) {
+      if (
+        businessIsEmpty &&
+        ouletletIsEmpty &&
+        roleIsEmpty &&
+        userIsEmpty &&
+        categoryIsEmpty
+      ) {
         const dateISOString = new Date().toISOString();
 
         const businessPayload = {
@@ -186,13 +193,18 @@ module.exports = {
               });
             }
 
+            // generate new access token
+            const auth = {
+              accessToken: authUtils.generateAccessToken(),
+              expiredAt: authUtils.generateExpirationDate(7),
+            };
+
             User.findByIdAndUpdate(result._id.toString(), {
-              auth: {
-                accessToken: authUtils.generateAccessToken(),
-                expiredAt: authUtils.generateExpirationDate(7),
-              },
+              auth,
             })
               .then((user) => {
+                // update new token
+                user.auth = auth;
                 pageController
                   .paginate(1, null, { status: { $ne: "deleted" } }, Business)
                   .then((businesses) => {

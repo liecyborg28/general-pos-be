@@ -8,7 +8,7 @@ router
   .route("/users")
   .get((req, res) => {
     authController
-      .checkAccessToken(req)
+      .checkAccess(req)
       .then(() => {
         userController
           .get(req)
@@ -25,7 +25,7 @@ router
   })
   .post((req, res) => {
     authController
-      .checkAccessToken(req)
+      .checkAccess(req)
       .then(() => {
         userController
           .create(req)
@@ -42,7 +42,7 @@ router
   })
   .patch((req, res) => {
     authController
-      .checkAccessToken(req)
+      .checkAccess(req)
       .then(() => {
         userController
           .update(req)

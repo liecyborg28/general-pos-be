@@ -22,7 +22,7 @@ module.exports = {
 
     let dateISOString = new Date().toISOString();
     let isBodyValid = () => {
-      return body.businessId && body.status && body.name && body.address;
+      return body.address && body.businessId && body.name && body.status;
     };
 
     let payload = isBodyValid()

@@ -5,10 +5,43 @@ const dbConfig = require("./../../config/dbConfig");
 mongoose.connect(dbConfig.url);
 
 const Transaction = mongoose.Schema({
+  amount: Number,
   businessId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Business",
   },
+  charge: Number,
+  costs: [{ title: String, amount: Number }],
+  customerId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Customer",
+  },
+  details: [
+    {
+      extras: [
+        {
+          productId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Product",
+          },
+          inventoryId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Inventory",
+          },
+          qty: Number,
+          price: Number,
+        },
+      ],
+      note: String,
+      price: Number,
+      productId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Product",
+      },
+      qty: Number,
+    },
+  ],
+  offers: [{ title: String, amount: Number }],
   outletId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Outlet",
@@ -17,35 +50,19 @@ const Transaction = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
-  customerId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "User",
-  },
-  discounts: [{ title: String, amount: Number }],
-  costs: [{ title: String, amount: Number }],
-  details: [
-    {
-      itemId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Product",
-      },
-      qty: Number,
-      price: Number,
-    },
-  ],
   request: {
     status: String,
     viewCode: Number,
     valueCode: Number,
   },
-  changeLog: [],
-  status: String,
-  orderStatus: String,
-  tax: Number,
-  charge: Number,
+  status: {
+    order: String,
+    payment: String,
+  },
+  method: String,
   note: String,
-  paymentAmount: Number,
-  paymentMethod: String,
+  tax: Number,
+  // timestamp
   createdAt: String,
   updatedAt: String,
 });

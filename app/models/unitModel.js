@@ -4,14 +4,17 @@ const dbConfig = require("../../config/dbConfig");
 
 mongoose.connect(dbConfig.url);
 
-const Offer = mongoose.Schema({
-  amount: Number,
+const Unit = mongoose.Schema({
   businessId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Business",
   },
-  title: String,
-  type: String,
+  name: String,
+  status: String,
+  symbol: String,
+  // timestamp
+  createdAt: String,
+  updatedAt: String,
 });
 
-module.exports = mongoose.model("Offer", Offer);
+module.exports = mongoose.model("Unit", Unit);

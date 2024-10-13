@@ -9,9 +9,9 @@ function generateHash(data) {
 
 module.exports = {
   generateAccessToken: () => {
-    const uuid = uuidv4();
-    const timestamp = Date.now().toString();
-    const combined = `${uuid}-${timestamp}`;
+    let uuid = uuidv4();
+    let timestamp = Date.now().toString();
+    let combined = `${uuid}-${timestamp}`;
     return generateHash(combined);
   },
 

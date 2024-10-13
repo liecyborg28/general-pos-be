@@ -17,6 +17,10 @@ const Product = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
+  cost: Number,
+  countable: Boolean,
+  charged: Boolean,
+  imageUrl: String,
   ingredients: [
     {
       inventoryId: {
@@ -26,15 +30,23 @@ const Product = mongoose.Schema({
       qty: Number,
     },
   ],
-  taxed: Boolean,
-  charged: Boolean,
-  status: String,
   name: String,
-  imageUrl: String,
-  cost: Number,
   price: Number,
   qty: Number,
-  countable: Boolean,
+  status: String,
+  unitId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Unit",
+  },
+  qty: {
+    current: Number,
+    last: Number,
+    status: String,
+    max: Number,
+    min: Number,
+  },
+  taxed: Boolean,
+  // timestamp
   createdAt: String,
   updatedAt: String,
 });
