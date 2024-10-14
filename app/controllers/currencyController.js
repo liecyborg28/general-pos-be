@@ -1,11 +1,31 @@
-// Models
-const Business = require("../models/businessModel");
+function formatCurrency(
+  amount,
+  decimal = ",",
+  separator = ".",
+  symbol = "Rp",
+  totalDecimal = 2
+) {
+  // Pastikan jumlah angka desimal tidak negatif
+  if (totalDecimal < 0) totalDecimal = 0;
+
+  // Pisahkan bagian desimal dari angka
+  const parts = amount.toFixed(totalDecimal).split(".");
+
+  // Format bagian ribuan dengan pemisah
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, separator);
+
+  // Gabungkan simbol dan bagian desimal
+  return `${symbol} ${parts.join(decimal)}`;
+}
+
+// models
+const Currency = require("../models/currencyModel");
 const User = require("../models/userModel");
 
 // controllers
 const dataController = require("./utils/dataController");
-const pageController = require("./utils/pageController");
 const logController = require("./logController");
+const pageController = require("./utils/pageController");
 
 // repositories
 const errorMessages = require("../repository/messages/errorMessages");
@@ -23,14 +43,26 @@ module.exports = {
     });
 
     let isBodyValid = () => {
-      return body.imageUrl && body.name && body.status;
+      return (
+        body.businessId &&
+        body.decimal &&
+        body.name &&
+        body.separator &&
+        body.status &&
+        body.symbol &&
+        body.totalDecimal
+      );
     };
 
     let payload = isBodyValid()
       ? {
-          imageUrl: body.imageUrl,
+          businessId: body.businessId,
+          decimal: body.decimal,
           name: body.name,
+          separator: body.separator,
           status: body.status,
+          symbol: body.symbol,
+          totalDecimal: body.totalDecimal,
           createdAt: dateISOString,
           updatedAt: dateISOString,
         }
@@ -41,8 +73,12 @@ module.exports = {
 
     if (isBodyValid()) {
       let nameIsExist = await dataController.isExist(
-        { name: body.name, status: { $ne: "deleted" } },
-        Business
+        {
+          businessId: body.businessId,
+          name: body.name,
+          status: { $ne: "deleted" },
+        },
+        Currency
       );
 
       if (nameIsExist) {
@@ -53,16 +89,15 @@ module.exports = {
       }
 
       return new Promise((resolve, reject) => {
-        new Business(payload)
+        new Currency(payload)
           .save()
           .then((result) => {
-            console.log("userByToken", userByToken);
             logController.createLog({
               createdAt: dateISOString,
-              title: "Create Business",
-              note: body.note ? body.note : null,
-              type: "business",
-              from: result._id.toString(),
+              title: "Create currency",
+              note: "",
+              type: "currency",
+              from: result._id,
               by: userByToken._id,
               data: result,
             });
@@ -70,7 +105,7 @@ module.exports = {
             resolve({
               error: false,
               data: result,
-              message: successMessages.BUSINESS_CREATED_SUCCESS,
+              message: successMessages.CURRENCY_CREATED_SUCCESS,
             });
           })
           .catch((err) => {
@@ -84,18 +119,20 @@ module.exports = {
 
   get: (req) => {
     let pageKey = req.query.pageKey ? req.query.pageKey : 1;
-    let pageSize = req.query.pageSize ? req.query.pageSize : null;
+    let pageSize = req.query.pageSize ? req.query.pageSize : 10;
 
     return new Promise((resolve, reject) => {
-      let pipeline = { status: { $ne: "deleted" } };
+      let pipeline = {
+        status: { $ne: "deleted" },
+      };
 
       pageController
-        .paginate(pageKey, pageSize, pipeline, Business)
-        .then((businesses) => {
+        .paginate(pageKey, pageSize, pipeline, currency)
+        .then((currencies) => {
           resolve({
             error: false,
-            data: businesses.data,
-            count: businesses.count,
+            data: currencies.data,
+            count: currencies.count,
           });
         })
         .catch((err) => {
@@ -114,7 +151,7 @@ module.exports = {
       "auth.accessToken": bearerToken,
     });
 
-    if (!body.businessId) {
+    if (!body.currencyId) {
       return Promise.reject({
         error: true,
         message: errorMessages.INVALID_DATA,
@@ -122,24 +159,27 @@ module.exports = {
     } else {
       body.data["updatedAt"] = dateISOString;
       return new Promise((resolve, reject) => {
-        Business.findByIdAndUpdate(body.businessId, body.data, {
-          new: true,
-        }).then((result) => {
-          logController.createLog({
-            createdAt: dateISOString,
-            title: "Update Business",
-            note: body.note ? body.note : null,
-            type: "business",
-            from: result._id.toString(),
-            by: userByToken._id,
-            data: result,
+        Currency.findByIdAndUpdate(body.currencyId, body.data, { new: true })
+          .then((result) => {
+            logController.createLog({
+              createdAt: dateISOString,
+              title: "Update currency",
+              note: body.note ? body.note : null,
+              type: "currency",
+              from: body.currencyId,
+              by: userByToken._id,
+              data: result,
+            });
+
+            resolve({
+              error: false,
+              data: result,
+              message: successMessages.DATA_SUCCESS_UPDATED,
+            });
+          })
+          .catch((err) => {
+            reject({ error: true, message: err });
           });
-          resolve({
-            error: false,
-            data: result,
-            message: successMessages.DATA_SUCCESS_UPDATED,
-          });
-        });
       });
     }
   },

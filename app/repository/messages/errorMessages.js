@@ -63,7 +63,10 @@ module.exports = {
   // J
 
   // K
-
+  KEY_FAILED: {
+    en: "Access failed! Make sure your access key is correct",
+    id: "Akses gagal! mohon periksa kembali kunci akses yang Anda isi!",
+  },
   // L
   LOGIN_FAILED: {
     en: "Login failed! Make sure your login data is correct",

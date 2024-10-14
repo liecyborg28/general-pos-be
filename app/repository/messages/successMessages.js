@@ -22,6 +22,10 @@ module.exports = {
     en: "Item created successfully!",
     id: "Item berhasil dibuat!",
   },
+  CURRENCY_CREATED_SUCCESS: {
+    en: "Currency created successfully!",
+    id: "Mata uang berhasil dibuat!",
+  },
   // D
   DATA_SUCCESS_UPDATED: {
     en: "Data has been successfully updated!",
@@ -91,6 +95,10 @@ module.exports = {
     id: "Transaksi berhasil dibuat!",
   },
   // U
+  UNIT_CREATED_SUCCESS: {
+    en: "Unit created successfully!",
+    id: "Satuan berhasil dibuat!",
+  },
   USER_CREATED_SUCCESS: {
     en: "User created successfully!",
     id: "Pengguna berhasil dibuat!",

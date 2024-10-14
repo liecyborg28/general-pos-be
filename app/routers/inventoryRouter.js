@@ -1,18 +1,18 @@
 const router = require("express").Router();
 
-const authController = require("../../controllers/authController");
-const productController = require("../../controllers/productController");
+const authController = require("../controllers/authController");
+const inventoryController = require("../controllers/inventoryController");
 
 const multer = require("multer");
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });
 
-router.get("/products/bulk/template", (req, res) => {
+router.get("/inventories/bulk/template", (req, res) => {
   authController
     .checkAccessToken(req)
     .then(() => {
-      productController
-        .getBulkProductTemplate(req)
+      inventoryController
+        .getBulkInventoryTemplate(req)
         .then((value) => {
           res.status(200).send(value);
         })
@@ -25,12 +25,12 @@ router.get("/products/bulk/template", (req, res) => {
     });
 });
 
-router.post("/products/bulk", upload.single("file"), (req, res) => {
+router.post("/inventories/bulk", upload.single("file"), (req, res) => {
   authController
     .checkAccessToken(req)
     .then(() => {
-      productController
-        .createBulkProduct(req)
+      inventoryController
+        .createBulkInventory(req)
         .then((value) => {
           res.status(200).send(value);
         })
@@ -44,13 +44,13 @@ router.post("/products/bulk", upload.single("file"), (req, res) => {
 });
 
 router
-  .route("/products")
+  .route("/inventories")
   .get((req, res) => {
     authController
       .checkAccessToken(req)
       .then(() => {
-        productController
-          .getProducts(req)
+        inventoryController
+          .getInventories(req)
           .then((value) => {
             res.status(200).send(value);
           })
@@ -66,8 +66,8 @@ router
     authController
       .checkAccessToken(req)
       .then(() => {
-        productController
-          .createProduct(req)
+        inventoryController
+          .createInventory(req)
           .then((value) => {
             res.status(200).send(value);
           })
@@ -83,8 +83,8 @@ router
     authController
       .checkAccessToken(req)
       .then(() => {
-        productController
-          .updateProduct(req)
+        inventoryController
+          .updateInventory(req)
           .then((value) => {
             res.status(200).send(value);
           })

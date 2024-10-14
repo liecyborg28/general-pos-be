@@ -1,6 +1,6 @@
 const router = require("express").Router();
-const authController = require("../../controllers/authController");
-const receiptController = require("../../controllers/receiptController");
+const authController = require("../controllers/authController");
+const receiptController = require("../controllers/receiptController");
 
 router.get("/receipt/transaction/:transactionId", (req, res) => {
   authController

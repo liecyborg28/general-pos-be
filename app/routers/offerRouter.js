@@ -1,7 +1,7 @@
 const router = require("express").Router();
 
-const authController = require("../../controllers/authController");
-const offerController = require("../../controllers/offerController");
+const authController = require("../controllers/authController");
+const offerController = require("../controllers/offerController");
 
 router
   .route("/offers")

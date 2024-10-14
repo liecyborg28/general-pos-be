@@ -1,8 +1,8 @@
 const router = require("express").Router();
 
 // controllers
-const authController = require("../../controllers/authController");
-const outletController = require("../../controllers/outletController");
+const authController = require("../controllers/authController");
+const outletController = require("../controllers/outletController");
 
 router
   .route("/outlets")

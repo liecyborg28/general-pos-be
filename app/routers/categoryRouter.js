@@ -1,14 +1,16 @@
 const router = require("express").Router();
-const authController = require("../../controllers/authController");
-const roleController = require("../../controllers/roleController");
+
+// controllers
+const authController = require("../controllers/authController");
+const categoryController = require("../controllers/categoryController");
 
 router
-  .route("/roles")
+  .route("/categories")
   .get((req, res) => {
     authController
       .checkAccess(req)
       .then(() => {
-        roleController
+        categoryController
           .get(req)
           .then((value) => {
             res.status(200).send(value);
@@ -25,7 +27,7 @@ router
     authController
       .checkAccess(req)
       .then(() => {
-        roleController
+        categoryController
           .create(req)
           .then((value) => {
             res.status(200).send(value);
@@ -42,7 +44,7 @@ router
     authController
       .checkAccess(req)
       .then(() => {
-        roleController
+        categoryController
           .update(req)
           .then((value) => {
             res.status(200).send(value);

@@ -1,16 +1,16 @@
 const router = require("express").Router();
 
 // controllers
-const authController = require("../../controllers/authController");
-const userController = require("../../controllers/userController");
+const authController = require("../controllers/authController");
+const businessController = require("../controllers/businessController");
 
 router
-  .route("/users")
+  .route("/businesses")
   .get((req, res) => {
     authController
       .checkAccess(req)
       .then(() => {
-        userController
+        businessController
           .get(req)
           .then((value) => {
             res.status(200).send(value);
@@ -27,7 +27,7 @@ router
     authController
       .checkAccess(req)
       .then(() => {
-        userController
+        businessController
           .create(req)
           .then((value) => {
             res.status(200).send(value);
@@ -44,7 +44,7 @@ router
     authController
       .checkAccess(req)
       .then(() => {
-        userController
+        businessController
           .update(req)
           .then((value) => {
             res.status(200).send(value);

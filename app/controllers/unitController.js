@@ -1,11 +1,11 @@
-// Models
-const Business = require("../models/businessModel");
+// models
+const Unit = require("../models/unitModel");
 const User = require("../models/userModel");
 
 // controllers
 const dataController = require("./utils/dataController");
-const pageController = require("./utils/pageController");
 const logController = require("./logController");
+const pageController = require("./utils/pageController");
 
 // repositories
 const errorMessages = require("../repository/messages/errorMessages");
@@ -23,14 +23,15 @@ module.exports = {
     });
 
     let isBodyValid = () => {
-      return body.imageUrl && body.name && body.status;
+      return body.businessId && body.name && body.status && body.symbol;
     };
 
     let payload = isBodyValid()
       ? {
-          imageUrl: body.imageUrl,
+          businessId: body.businessId,
           name: body.name,
           status: body.status,
+          symbol: body.symbol,
           createdAt: dateISOString,
           updatedAt: dateISOString,
         }
@@ -41,8 +42,12 @@ module.exports = {
 
     if (isBodyValid()) {
       let nameIsExist = await dataController.isExist(
-        { name: body.name, status: { $ne: "deleted" } },
-        Business
+        {
+          businessId: body.businessId,
+          name: body.name,
+          status: { $ne: "deleted" },
+        },
+        Unit
       );
 
       if (nameIsExist) {
@@ -53,24 +58,22 @@ module.exports = {
       }
 
       return new Promise((resolve, reject) => {
-        new Business(payload)
+        new Unit(payload)
           .save()
           .then((result) => {
-            console.log("userByToken", userByToken);
             logController.createLog({
               createdAt: dateISOString,
-              title: "Create Business",
-              note: body.note ? body.note : null,
-              type: "business",
-              from: result._id.toString(),
+              title: "Create Unit",
+              note: "",
+              type: "Unit",
+              from: result._id,
               by: userByToken._id,
               data: result,
             });
-
             resolve({
               error: false,
               data: result,
-              message: successMessages.BUSINESS_CREATED_SUCCESS,
+              message: successMessages.UNIT_CREATED_SUCCESS,
             });
           })
           .catch((err) => {
@@ -84,18 +87,20 @@ module.exports = {
 
   get: (req) => {
     let pageKey = req.query.pageKey ? req.query.pageKey : 1;
-    let pageSize = req.query.pageSize ? req.query.pageSize : null;
+    let pageSize = req.query.pageSize ? req.query.pageSize : 10;
 
     return new Promise((resolve, reject) => {
-      let pipeline = { status: { $ne: "deleted" } };
+      let pipeline = {
+        status: { $ne: "deleted" },
+      };
 
       pageController
-        .paginate(pageKey, pageSize, pipeline, Business)
-        .then((businesses) => {
+        .paginate(pageKey, pageSize, pipeline, Unit)
+        .then((categories) => {
           resolve({
             error: false,
-            data: businesses.data,
-            count: businesses.count,
+            data: categories.data,
+            count: categories.count,
           });
         })
         .catch((err) => {
@@ -114,7 +119,7 @@ module.exports = {
       "auth.accessToken": bearerToken,
     });
 
-    if (!body.businessId) {
+    if (!body.unitId) {
       return Promise.reject({
         error: true,
         message: errorMessages.INVALID_DATA,
@@ -122,24 +127,27 @@ module.exports = {
     } else {
       body.data["updatedAt"] = dateISOString;
       return new Promise((resolve, reject) => {
-        Business.findByIdAndUpdate(body.businessId, body.data, {
-          new: true,
-        }).then((result) => {
-          logController.createLog({
-            createdAt: dateISOString,
-            title: "Update Business",
-            note: body.note ? body.note : null,
-            type: "business",
-            from: result._id.toString(),
-            by: userByToken._id,
-            data: result,
+        Unit.findByIdAndUpdate(body.unitId, body.data, { new: true })
+          .then((result) => {
+            logController.createLog({
+              createdAt: dateISOString,
+              title: "Update Unit",
+              note: body.note ? body.note : null,
+              type: "unit",
+              from: body.unitId,
+              by: userByToken._id,
+              data: result,
+            });
+
+            resolve({
+              error: false,
+              data: result,
+              message: successMessages.DATA_SUCCESS_UPDATED,
+            });
+          })
+          .catch((err) => {
+            reject({ error: true, message: err });
           });
-          resolve({
-            error: false,
-            data: result,
-            message: successMessages.DATA_SUCCESS_UPDATED,
-          });
-        });
       });
     }
   },

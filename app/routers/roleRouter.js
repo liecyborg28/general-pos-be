@@ -1,33 +1,15 @@
 const router = require("express").Router();
-const authController = require("../../controllers/authController");
-const transactionController = require("../../controllers/transactionController");
-
-router.get("/transactions/period", (req, res) => {
-  authController
-    .checkAccessToken(req)
-    .then(() => {
-      transactionController
-        .getTransactionsByPeriod(req)
-        .then((value) => {
-          res.status(200).send(value);
-        })
-        .catch((err) => {
-          res.status(500).send(err);
-        });
-    })
-    .catch((err) => {
-      res.status(500).send(err);
-    });
-});
+const authController = require("../controllers/authController");
+const roleController = require("../controllers/roleController");
 
 router
-  .route("/transactions")
+  .route("/roles")
   .get((req, res) => {
     authController
-      .checkAccessToken(req)
+      .checkAccess(req)
       .then(() => {
-        transactionController
-          .getTransactions(req)
+        roleController
+          .get(req)
           .then((value) => {
             res.status(200).send(value);
           })
@@ -41,10 +23,10 @@ router
   })
   .post((req, res) => {
     authController
-      .checkAccessToken(req)
+      .checkAccess(req)
       .then(() => {
-        transactionController
-          .createTransaction(req)
+        roleController
+          .create(req)
           .then((value) => {
             res.status(200).send(value);
           })
@@ -58,10 +40,10 @@ router
   })
   .patch((req, res) => {
     authController
-      .checkAccessToken(req)
+      .checkAccess(req)
       .then(() => {
-        transactionController
-          .updateTransaction(req)
+        roleController
+          .update(req)
           .then((value) => {
             res.status(200).send(value);
           })

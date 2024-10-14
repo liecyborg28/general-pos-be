@@ -1,6 +1,6 @@
 const router = require("express").Router();
-const authController = require("../../controllers/authController");
-const resourceController = require("../../controllers/resourceController");
+const authController = require("../controllers/authController");
+const resourceController = require("../controllers/resourceController");
 
 router.get("/resources/transaction", (req, res) => {
   authController

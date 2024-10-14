@@ -11,7 +11,7 @@ const mongoose = require("mongoose");
 const app = express();
 const dbConfig = require("./config/dbConfig");
 const errorMessages = require("./app/repository/messages/errorMessages");
-const routes = require("./app/routes/routes");
+const routes = require("./app/routers/routers/routers");
 
 const port = 8081;
 
@@ -45,5 +45,5 @@ app.use((err, req, res, next) => {
 });
 
 app.listen(port, () => {
-  console.log(`HTTP server running on port ${port} and redirecting to HTTPS`);
+  console.log(`HTTP server running on port ${port}`);
 });
