@@ -24,15 +24,4 @@ router.post("/auth/login", (req, res) => {
     });
 });
 
-router.post("/auth/logout", (req, res) => {
-  authController
-    .logout(req)
-    .then((value) => {
-      res.status(200).send(value);
-    })
-    .catch((err) => {
-      res.status(500).send(err);
-    });
-});
-
 module.exports = router;

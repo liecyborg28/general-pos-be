@@ -96,9 +96,10 @@ module.exports = {
                 .save()
                 .then((outlet) => {
                   const rolePayload = {
-                    businessIds: [business._id.toString()],
                     access: ["feature1", "feature2", "feature3"],
+                    businessId: business._id.toString(),
                     title: "administrator",
+                    status: "active",
                     createdAt: dateISOString,
                     updatedAt: dateISOString,
                   };

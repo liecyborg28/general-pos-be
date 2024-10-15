@@ -5,7 +5,7 @@ const authController = require("../controllers/authController");
 const currencyController = require("../controllers/currencyController");
 
 router
-  .route("/currency")
+  .route("/currencies")
   .get((req, res) => {
     authController
       .checkAccess(req)

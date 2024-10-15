@@ -32,12 +32,14 @@ const UserController = {
       ? {
           auth: authController.generateAuth(),
           businessId: body.businessId,
-          email: body.email,
+          // email: body.email,
+          email: null,
           gender: body.gender,
           imageUrl: body.imageUrl ? body.imageUrl : null,
           name: body.name,
           password: body.password,
-          phone: body.phone,
+          // phone: body.phone,
+          phone: null,
           roleId: body.roleId,
           settings: body.settings,
           status: body.status,
@@ -52,13 +54,13 @@ const UserController = {
         };
 
     if (isBodyValid()) {
-      let phoneIsExist = await dataController.isExist(
-        {
-          phone: body.phone,
-          status: { $ne: "deleted" },
-        },
-        User
-      );
+      // let phoneIsExist = await dataController.isExist(
+      //   {
+      //     phone: body.phone,
+      //     status: { $ne: "deleted" },
+      //   },
+      //   User
+      // );
 
       let usernameIsExist = await dataController.isExist(
         {
@@ -68,12 +70,12 @@ const UserController = {
         User
       );
 
-      if (phoneIsExist) {
-        return Promise.reject({
-          error: true,
-          message: errorMessages.PHONE_ALREADY_EXISTS,
-        });
-      }
+      // if (phoneIsExist) {
+      //   return Promise.reject({
+      //     error: true,
+      //     message: errorMessages.PHONE_ALREADY_EXISTS,
+      //   });
+      // }
 
       if (usernameIsExist) {
         return Promise.reject({

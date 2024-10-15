@@ -1,4 +1,5 @@
 // controllers
+const dataController = require("./utils/dataController");
 const logController = require("./logController");
 const pageController = require("./utils/pageController");
 
@@ -25,17 +26,20 @@ module.exports = {
       return (
         body.access &&
         body.access.length > 0 &&
-        body.businessIds &&
-        body.businessIds?.length > 0 &&
+        body.businessId &&
+        body.status &&
         body.title
       );
     };
 
     let payload = isBodyValid()
       ? {
-          businessIds: body.businessIds,
           access: body.access,
+          businessId: body.businessId,
+          status: body.status,
           title: body.title,
+          createdAt: dateISOString,
+          updatedAt: dateISOString,
         }
       : {
           error: true,
@@ -43,6 +47,22 @@ module.exports = {
         };
 
     if (isBodyValid()) {
+      let nameIsExist = await dataController.isExist(
+        {
+          businessId: body.businessId,
+          title: body.title,
+          status: { $ne: "deleted" },
+        },
+        Role
+      );
+
+      if (nameIsExist) {
+        return Promise.reject({
+          error: true,
+          message: errorMessages.NAME_ALREADY_EXISTS,
+        });
+      }
+
       return new Promise((resolve, reject) => {
         new Role(payload).save().then((result) => {
           logController.createLog({

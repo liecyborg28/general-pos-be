@@ -6,13 +6,12 @@ mongoose.connect(dbConfig.url);
 
 const Role = mongoose.Schema({
   access: [],
-  businessIds: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Business",
-    },
-  ],
+  businessId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Business",
+  },
   title: String,
+  status: String,
   // timestamp
   createdAt: String,
   updatedAt: String,

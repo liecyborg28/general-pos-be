@@ -56,7 +56,6 @@ module.exports = {
         new Business(payload)
           .save()
           .then((result) => {
-            console.log("userByToken", userByToken);
             logController.createLog({
               createdAt: dateISOString,
               title: "Create Business",

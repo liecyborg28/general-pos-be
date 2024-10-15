@@ -27,10 +27,10 @@ module.exports = {
 
     let payload = isBodyValid()
       ? {
+          address: body.address,
           businessId: body.businessId,
-          status: body.status,
           name: body.name,
-          address: body.address ? body.address : null,
+          status: body.status,
           createdAt: dateISOString,
           updatedAt: dateISOString,
         }
