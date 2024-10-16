@@ -57,14 +57,16 @@ module.exports = {
           .save()
           .then((result) => {
             logController.createLog({
-              createdAt: dateISOString,
-              title: "Create Outlet",
-              note: "",
-              type: "outlet",
-              from: result._id,
               by: userByToken._id,
               data: result,
+              from: result._id,
+              note: body.note ? body.note : null,
+              title: "Create Outlet",
+              type: "outlet",
+              // timestamp
+              createdAt: dateISOString,
             });
+
             resolve({
               error: false,
               data: result,
@@ -190,14 +192,16 @@ module.exports = {
         Outlet.findByIdAndUpdate(body.outletId, body.data, { new: true })
           .then((result) => {
             logController.createLog({
-              createdAt: dateISOString,
-              title: "Update Outlet",
-              note: body.note ? body.note : "",
-              type: "outlet",
-              from: body.outletId,
               by: userByToken._id,
-              data: body.data,
+              data: result,
+              from: result._id,
+              note: body.note ? body.note : null,
+              title: "Update Outlet",
+              type: "outlet",
+              // timestamp
+              createdAt: dateISOString,
             });
+
             resolve({
               error: false,
               data: result,

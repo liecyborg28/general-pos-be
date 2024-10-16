@@ -57,13 +57,14 @@ module.exports = {
           .save()
           .then((result) => {
             logController.createLog({
-              createdAt: dateISOString,
-              title: "Create Business",
-              note: body.note ? body.note : null,
-              type: "business",
-              from: result._id.toString(),
               by: userByToken._id,
               data: result,
+              from: result._id,
+              note: body.note ? body.note : null,
+              title: "Create Business",
+              type: "business",
+              // timestamp
+              createdAt: dateISOString,
             });
 
             resolve({
@@ -123,22 +124,28 @@ module.exports = {
       return new Promise((resolve, reject) => {
         Business.findByIdAndUpdate(body.businessId, body.data, {
           new: true,
-        }).then((result) => {
-          logController.createLog({
-            createdAt: dateISOString,
-            title: "Update Business",
-            note: body.note ? body.note : null,
-            type: "business",
-            from: result._id.toString(),
-            by: userByToken._id,
-            data: result,
+        })
+          .then((result) => {
+            logController.createLog({
+              by: userByToken._id,
+              data: result,
+              from: result._id,
+              note: body.note ? body.note : null,
+              title: "Update Business",
+              type: "business",
+              // timestamp
+              createdAt: dateISOString,
+            });
+
+            resolve({
+              error: false,
+              data: result,
+              message: successMessages.DATA_SUCCESS_UPDATED,
+            });
+          })
+          .catch((err) => {
+            reject({ error: true, message: err });
           });
-          resolve({
-            error: false,
-            data: result,
-            message: successMessages.DATA_SUCCESS_UPDATED,
-          });
-        });
       });
     }
   },

@@ -98,7 +98,7 @@ module.exports = {
                   const rolePayload = {
                     access: ["feature1", "feature2", "feature3"],
                     businessId: business._id.toString(),
-                    title: "administrator",
+                    name: "administrator",
                     status: "active",
                     createdAt: dateISOString,
                     updatedAt: dateISOString,
@@ -113,7 +113,7 @@ module.exports = {
                           expiredAt: authUtils.generateExpirationDate(7),
                         },
                         businessId: business._id.toString(),
-                        email: "example@gmail.com",
+                        email: null,
                         gender: "male",
                         imageUrl: null,
                         name: "User Name",
@@ -147,15 +147,9 @@ module.exports = {
                               const unitPayload = [
                                 {
                                   businessId: business._id.toString(),
-                                  name: "Pieces",
+                                  name: "Gram",
                                   status: "active",
-                                  symbol: "pcs",
-                                },
-                                {
-                                  businessId: business._id.toString(),
-                                  name: "Lusin",
-                                  status: "active",
-                                  symbol: "lusin",
+                                  symbol: "gr",
                                 },
                                 {
                                   businessId: business._id.toString(),
@@ -165,9 +159,21 @@ module.exports = {
                                 },
                                 {
                                   businessId: business._id.toString(),
-                                  name: "Gram",
+                                  name: "Liter",
                                   status: "active",
-                                  symbol: "gr",
+                                  symbol: "L",
+                                },
+                                {
+                                  businessId: business._id.toString(),
+                                  name: "Lusin",
+                                  status: "active",
+                                  symbol: "lusin",
+                                },
+                                {
+                                  businessId: business._id.toString(),
+                                  name: "Pieces",
+                                  status: "active",
+                                  symbol: "pcs",
                                 },
                               ];
 
@@ -217,7 +223,6 @@ module.exports = {
                                   });
                                 })
                                 .catch((err) => {
-                                  console.error("Error:", err);
                                   reject({ error: true, message: err });
                                 });
                             })

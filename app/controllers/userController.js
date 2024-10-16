@@ -32,13 +32,11 @@ const UserController = {
       ? {
           auth: authController.generateAuth(),
           businessId: body.businessId,
-          // email: body.email,
           email: null,
           gender: body.gender,
           imageUrl: body.imageUrl ? body.imageUrl : null,
           name: body.name,
           password: body.password,
-          // phone: body.phone,
           phone: null,
           roleId: body.roleId,
           settings: body.settings,

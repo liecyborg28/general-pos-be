@@ -93,13 +93,14 @@ module.exports = {
           .save()
           .then((result) => {
             logController.createLog({
-              createdAt: dateISOString,
-              title: "Create currency",
-              note: "",
-              type: "currency",
-              from: result._id,
               by: userByToken._id,
               data: result,
+              from: result._id,
+              note: body.note ? body.note : null,
+              title: "Create Currency",
+              type: "currency",
+              // timestamp
+              createdAt: dateISOString,
             });
 
             resolve({
@@ -127,7 +128,7 @@ module.exports = {
       };
 
       pageController
-        .paginate(pageKey, pageSize, pipeline, currency)
+        .paginate(pageKey, pageSize, pipeline, Currency)
         .then((currencies) => {
           resolve({
             error: false,
@@ -162,13 +163,14 @@ module.exports = {
         Currency.findByIdAndUpdate(body.currencyId, body.data, { new: true })
           .then((result) => {
             logController.createLog({
-              createdAt: dateISOString,
-              title: "Update currency",
-              note: body.note ? body.note : null,
-              type: "currency",
-              from: body.currencyId,
               by: userByToken._id,
               data: result,
+              from: result._id,
+              note: body.note ? body.note : null,
+              title: "Update Currency",
+              type: "currency",
+              // timestamp
+              createdAt: dateISOString,
             });
 
             resolve({

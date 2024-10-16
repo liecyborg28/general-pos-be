@@ -59,14 +59,16 @@ module.exports = {
           .save()
           .then((result) => {
             logController.createLog({
-              createdAt: dateISOString,
-              title: "Create Category",
-              note: "",
-              type: "category",
-              from: result._id,
               by: userByToken._id,
               data: result,
+              from: result._id,
+              note: body.note ? body.note : null,
+              title: "Create Category",
+              type: "category",
+              // timestamp
+              createdAt: dateISOString,
             });
+
             resolve({
               error: false,
               data: result,
@@ -127,13 +129,14 @@ module.exports = {
         Category.findByIdAndUpdate(body.categoryId, body.data, { new: true })
           .then((result) => {
             logController.createLog({
-              createdAt: dateISOString,
-              title: "Update Category",
-              note: body.note ? body.note : null,
-              type: "category",
-              from: body.categoryId,
               by: userByToken._id,
               data: result,
+              from: result._id,
+              note: body.note ? body.note : null,
+              title: "Create Category",
+              type: "category",
+              // timestamp
+              createdAt: dateISOString,
             });
 
             resolve({

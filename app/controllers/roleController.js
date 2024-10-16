@@ -27,8 +27,8 @@ module.exports = {
         body.access &&
         body.access.length > 0 &&
         body.businessId &&
-        body.status &&
-        body.title
+        body.name &&
+        body.status
       );
     };
 
@@ -36,8 +36,8 @@ module.exports = {
       ? {
           access: body.access,
           businessId: body.businessId,
+          name: body.name,
           status: body.status,
-          title: body.title,
           createdAt: dateISOString,
           updatedAt: dateISOString,
         }
@@ -50,8 +50,8 @@ module.exports = {
       let nameIsExist = await dataController.isExist(
         {
           businessId: body.businessId,
-          title: body.title,
           status: { $ne: "deleted" },
+          name: body.name,
         },
         Role
       );
@@ -63,16 +63,17 @@ module.exports = {
         });
       }
 
-      return new Promise((resolve, reject) => {
+      return new Promise((resolve) => {
         new Role(payload).save().then((result) => {
           logController.createLog({
-            createdAt: dateISOString,
-            name: "Create Role",
-            note: body.note ? body.note : null,
-            type: "role",
-            from: result._id,
             by: userByToken._id,
             data: result,
+            from: result._id,
+            note: body.note ? body.note : null,
+            title: "Create Role",
+            type: "role",
+            // timestamp
+            createdAt: dateISOString,
           });
 
           resolve({
@@ -126,17 +127,19 @@ module.exports = {
       });
     } else {
       body.data["updatedAt"] = dateISOString;
+
       return new Promise((resolve, reject) => {
         Role.findByIdAndUpdate(body.roleId, body.data, { new: true })
           .then((result) => {
             logController.createLog({
-              createdAt: dateISOString,
-              name: "Update Role",
-              note: body.note ? body.note : "",
-              type: "role",
-              from: body.roleId,
               by: userByToken._id,
-              data: body.data,
+              data: result,
+              from: result._id,
+              note: body.note ? body.note : null,
+              title: "Update Role",
+              type: "role",
+              // timestamp
+              createdAt: dateISOString,
             });
             resolve({
               error: false,

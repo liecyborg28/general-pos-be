@@ -62,14 +62,16 @@ module.exports = {
           .save()
           .then((result) => {
             logController.createLog({
-              createdAt: dateISOString,
-              title: "Create Unit",
-              note: "",
-              type: "Unit",
-              from: result._id,
               by: userByToken._id,
               data: result,
+              from: result._id,
+              note: body.note ? body.note : null,
+              title: "Create Unit",
+              type: "unit",
+              // timestamp
+              createdAt: dateISOString,
             });
+
             resolve({
               error: false,
               data: result,
@@ -130,13 +132,14 @@ module.exports = {
         Unit.findByIdAndUpdate(body.unitId, body.data, { new: true })
           .then((result) => {
             logController.createLog({
-              createdAt: dateISOString,
-              title: "Update Unit",
-              note: body.note ? body.note : null,
-              type: "unit",
-              from: body.unitId,
               by: userByToken._id,
               data: result,
+              from: result._id,
+              note: body.note ? body.note : null,
+              title: "Update Unit",
+              type: "unit",
+              // timestamp
+              createdAt: dateISOString,
             });
 
             resolve({

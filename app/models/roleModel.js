@@ -10,7 +10,7 @@ const Role = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Business",
   },
-  title: String,
+  name: String,
   status: String,
   // timestamp
   createdAt: String,
