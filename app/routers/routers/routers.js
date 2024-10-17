@@ -22,7 +22,7 @@ router.use(businessRouter);
 router.use(categoryRouter);
 router.use(componentRouter);
 router.use(currencyRouter);
-// router.use(productRouter);
+router.use(productRouter);
 // router.use(offerRouter);
 router.use(outletRouter);
 // router.use(receiptRouter);

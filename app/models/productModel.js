@@ -17,22 +17,26 @@ const Product = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
-  cost: Number,
   countable: Boolean,
   charged: Boolean,
-  imageUrl: String,
-  ingredients: [
+  variants: [
     {
-      inventoryId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Inventory",
-      },
+      components: [
+        {
+          componentId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Component",
+          },
+          qty: Number,
+        },
+      ],
+      cost: Number,
+      imageUrl: String,
+      name: String,
+      price: Number,
       qty: Number,
     },
   ],
-  name: String,
-  price: Number,
-  qty: Number,
   status: String,
   unitId: {
     type: mongoose.Schema.Types.ObjectId,
