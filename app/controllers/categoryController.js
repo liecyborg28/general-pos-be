@@ -23,14 +23,14 @@ module.exports = {
     });
 
     let isBodyValid = () => {
-      return body.name && body.businessId;
+      return body.name && body.businessId && body.status;
     };
 
     let payload = isBodyValid()
       ? {
           name: body.name,
           businessId: body.businessId,
-          status: "active",
+          status: body.status,
         }
       : {
           error: true,
@@ -58,16 +58,16 @@ module.exports = {
         new Category(payload)
           .save()
           .then((result) => {
-            logController.createLog({
-              by: userByToken._id,
-              data: result,
-              from: result._id,
-              note: body.note ? body.note : null,
-              title: "Create Category",
-              type: "category",
-              // timestamp
-              createdAt: dateISOString,
-            });
+            // logController.create({
+            //   by: userByToken._id,
+            //   data: result,
+            //   from: result._id,
+            //   note: body.note ? body.note : null,
+            //   title: "Create Category",
+            //   type: "category",
+            //   // timestamp
+            //   createdAt: dateISOString,
+            // });
 
             resolve({
               error: false,
@@ -88,10 +88,27 @@ module.exports = {
     let pageKey = req.query.pageKey ? req.query.pageKey : 1;
     let pageSize = req.query.pageSize ? req.query.pageSize : 10;
 
+    isNotEveryQueryNull = () => {
+      return req.query.name || req.query.businessId;
+    };
+
     return new Promise((resolve, reject) => {
-      let pipeline = {
-        status: { $ne: "deleted" },
-      };
+      let pipeline = isNotEveryQueryNull()
+        ? {
+            $or: [
+              {
+                businessId: req.query.businessId ? req.query.businessId : null,
+              },
+              {
+                name: req.query.name
+                  ? { $regex: req.query.name, $options: "i" }
+                  : null,
+              },
+            ],
+          }
+        : {
+            status: { $ne: "deleted" },
+          };
 
       pageController
         .paginate(pageKey, pageSize, pipeline, Category)
@@ -128,16 +145,16 @@ module.exports = {
       return new Promise((resolve, reject) => {
         Category.findByIdAndUpdate(body.categoryId, body.data, { new: true })
           .then((result) => {
-            logController.createLog({
-              by: userByToken._id,
-              data: result,
-              from: result._id,
-              note: body.note ? body.note : null,
-              title: "Create Category",
-              type: "category",
-              // timestamp
-              createdAt: dateISOString,
-            });
+            // logController.create({
+            //   by: userByToken._id,
+            //   data: result,
+            //   from: result._id,
+            //   note: body.note ? body.note : null,
+            //   title: "Create Category",
+            //   type: "category",
+            //   // timestamp
+            //   createdAt: dateISOString,
+            // });
 
             resolve({
               error: false,

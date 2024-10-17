@@ -1,10 +1,10 @@
 const mongoose = require("mongoose");
 
-const dbConfig = require("./../../config/dbConfig");
+const dbConfig = require("../../config/dbConfig");
 
 mongoose.connect(dbConfig.url);
 
-const Inventory = mongoose.Schema({
+const Component = mongoose.Schema({
   businessId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Business",
@@ -17,16 +17,12 @@ const Inventory = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
-  outletId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Outlet",
-  },
   imageUrl: String,
   name: String,
   status: String,
   unitId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Outlet",
+    ref: "Unit",
   },
   qty: {
     current: Number,
@@ -35,8 +31,9 @@ const Inventory = mongoose.Schema({
     max: Number,
     min: Number,
   },
+  // timestamp
   createdAt: String,
   uodatedAt: String,
 });
 
-module.exports = mongoose.model("Inventory", Inventory);
+module.exports = mongoose.model("Component", Component);

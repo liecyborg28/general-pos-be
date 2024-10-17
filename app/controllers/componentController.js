@@ -1,36 +1,53 @@
-// models
-const Outlet = require("../models/outletModel");
 const User = require("../models/userModel");
-
-// controllers
+const Component = require("../models/componentModel");
 const dataController = require("./utils/dataController");
-const logController = require("./logController");
 const pageController = require("./utils/pageController");
-
-// repositories
 const errorMessages = require("../repository/messages/errorMessages");
 const successMessages = require("../repository/messages/successMessages");
+const logController = require("./logController");
 
 module.exports = {
   create: async (req) => {
+    let dateISOString = new Date().toISOString();
     let body = req.body;
+
+    let isBodyValid = () => {
+      return (
+        body.businessId &&
+        body.categoryId &&
+        body.current &&
+        body.last &&
+        body.max &&
+        body.min &&
+        body.name &&
+        body.status &&
+        body.unitId
+      );
+    };
+
     const bearerHeader = req.headers["authorization"];
     const bearerToken = bearerHeader.split(" ")[1];
+
     let userByToken = await User.findOne({
       "auth.accessToken": bearerToken,
     });
 
-    let dateISOString = new Date().toISOString();
-    let isBodyValid = () => {
-      return body.address && body.businessId && body.name && body.status;
-    };
-
     let payload = isBodyValid()
       ? {
-          address: body.address,
           businessId: body.businessId,
+          categoryId: body.categoryId,
+          imageUrl: body.imageUrl ? body.imageUrl : null,
           name: body.name,
           status: body.status,
+          unitId: body.unitId,
+          qty: {
+            status: "available",
+            early: body.current,
+            last: body.last,
+            max: body.max,
+            min: body.min,
+          },
+          changedBy: userByToken._id,
           createdAt: dateISOString,
           updatedAt: dateISOString,
         }
@@ -41,8 +58,12 @@ module.exports = {
 
     if (isBodyValid()) {
       let nameIsExist = await dataController.isExist(
-        { businessId: body.businessId, name: body.name },
-        Outlet
+        {
+          businessId: body.businessId,
+          name: body.name,
+          status: { $ne: "deleted" },
+        },
+        Component
       );
 
       if (nameIsExist) {
@@ -53,7 +74,7 @@ module.exports = {
       }
 
       return new Promise((resolve, reject) => {
-        new Outlet(payload)
+        new Component(payload)
           .save()
           .then((result) => {
             // logController.create({
@@ -61,16 +82,15 @@ module.exports = {
             //   data: result,
             //   from: result._id,
             //   note: body.note ? body.note : null,
-            //   title: "Create Outlet",
-            //   type: "outlet",
+            //   title: "Create Component",
+            //   type: "component",
             //   // timestamp
             //   createdAt: dateISOString,
             // });
-
             resolve({
               error: false,
               data: result,
-              message: successMessages.OUTLET_CREATED_SUCCESS,
+              message: successMessages.INVENTORY_CREATED_SUCCESS,
             });
           })
           .catch((err) => {
@@ -87,7 +107,7 @@ module.exports = {
     let pageSize = req.query.pageSize ? req.query.pageSize : null;
 
     isNotEveryQueryNull = () => {
-      return req.query.businessId || req.query.name;
+      return req.query.name || req.query.businessId || req.query.categoryId;
     };
 
     return new Promise((resolve, reject) => {
@@ -96,12 +116,15 @@ module.exports = {
             status: { $ne: "deleted" },
             $or: [
               {
-                businessId: req.query.businessId ? req.query.businessId : null,
-              },
-              {
                 name: req.query.name
                   ? { $regex: req.query.name, $options: "i" }
                   : null,
+              },
+              {
+                businessId: req.query.businessId ? req.query.businessId : null,
+              },
+              {
+                categoryId: req.query.categoryId ? req.query.categoryId : null,
               },
             ],
           }
@@ -110,14 +133,16 @@ module.exports = {
           };
 
       pageController
-        .paginate(pageKey, pageSize, pipeline, Outlet)
-        .then((outlets) => {
-          Outlet.populate(outlets.data, { path: "businessId" })
+        .paginate(pageKey, pageSize, pipeline, Component)
+        .then((components) => {
+          Component.populate(components.data, {
+            path: "businessId categoryId",
+          })
             .then((data) => {
               resolve({
                 error: false,
                 data: data,
-                count: outlets.count,
+                count: components.count,
               });
             })
             .catch((err) => {
@@ -132,56 +157,64 @@ module.exports = {
 
   update: async (req) => {
     let body = req.body;
+    let dateISOString = new Date().toISOString();
     const bearerHeader = req.headers["authorization"];
     const bearerToken = bearerHeader.split(" ")[1];
 
     let userByToken = await User.findOne({
       "auth.accessToken": bearerToken,
     });
-    let dateISOString = new Date().toISOString();
-    let nameIsExist = await dataController.isExist(
-      { businessId: body.data.businessId, name: body.data.name },
-      Outlet
-    );
 
-    if (nameIsExist) {
-      return Promise.reject({
-        error: true,
-        message: errorMessages.NAME_ALREADY_EXISTS,
-      });
-    }
-
-    if (!body.outletId) {
+    if (!body.componentId) {
       return Promise.reject({
         error: true,
         message: errorMessages.INVALID_DATA,
       });
-    } else {
-      body.data["updatedAt"] = dateISOString;
-      return new Promise((resolve, reject) => {
-        Outlet.findByIdAndUpdate(body.outletId, body.data, { new: true })
-          .then((result) => {
-            // logController.create({
-            //   by: userByToken._id,
-            //   data: result,
-            //   from: result._id,
-            //   note: body.note ? body.note : null,
-            //   title: "Update Outlet",
-            //   type: "outlet",
-            //   // timestamp
-            //   createdAt: dateISOString,
-            // });
-
-            resolve({
-              error: false,
-              data: result,
-              message: successMessages.DATA_SUCCESS_UPDATED,
-            });
-          })
-          .catch((err) => {
-            reject({ error: true, message: err });
-          });
-      });
     }
+
+    body.data["updatedAt"] = dateISOString;
+    body.data["changedBy"] = userByToken._id;
+
+    if (body.data.qty) {
+      let component = await Component.findOne({ _id: body.componentId });
+
+      let qtyData = body.data.qty;
+
+      let qtyStatusData = "";
+
+      if (qtyData.last < 0) {
+        qtyStatusData = "outOfStock";
+      } else if (qtyData.last <= component.qty.min) {
+        qtyStatusData = "almostOut";
+      } else {
+        qtyStatusData = "available";
+      }
+
+      body.data["qty"]["status"] = qtyStatusData;
+    }
+
+    return new Promise((resolve, reject) => {
+      Component.findByIdAndUpdate(body.componentId, body.data, { new: true })
+        .then((result) => {
+          // logController.create({
+          //   by: userByToken._id,
+          //   data: result,
+          //   from: result._id,
+          //   note: body.note ? body.note : null,
+          //   title: "Update Component",
+          //   type: "component",
+          //   // timestamp
+          //   createdAt: dateISOString,
+          // });
+          resolve({
+            error: false,
+            data: result,
+            message: successMessages.DATA_SUCCESS_UPDATED,
+          });
+        })
+        .catch((err) => {
+          reject({ error: true, message: err });
+        });
+    });
   },
 };

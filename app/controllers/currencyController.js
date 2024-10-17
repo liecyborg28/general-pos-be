@@ -92,16 +92,16 @@ module.exports = {
         new Currency(payload)
           .save()
           .then((result) => {
-            logController.createLog({
-              by: userByToken._id,
-              data: result,
-              from: result._id,
-              note: body.note ? body.note : null,
-              title: "Create Currency",
-              type: "currency",
-              // timestamp
-              createdAt: dateISOString,
-            });
+            // logController.create({
+            //   by: userByToken._id,
+            //   data: result,
+            //   from: result._id,
+            //   note: body.note ? body.note : null,
+            //   title: "Create Currency",
+            //   type: "currency",
+            //   // timestamp
+            //   createdAt: dateISOString,
+            // });
 
             resolve({
               error: false,
@@ -162,16 +162,16 @@ module.exports = {
       return new Promise((resolve, reject) => {
         Currency.findByIdAndUpdate(body.currencyId, body.data, { new: true })
           .then((result) => {
-            logController.createLog({
-              by: userByToken._id,
-              data: result,
-              from: result._id,
-              note: body.note ? body.note : null,
-              title: "Update Currency",
-              type: "currency",
-              // timestamp
-              createdAt: dateISOString,
-            });
+            // logController.create({
+            //   by: userByToken._id,
+            //   data: result,
+            //   from: result._id,
+            //   note: body.note ? body.note : null,
+            //   title: "Update Currency",
+            //   type: "currency",
+            //   // timestamp
+            //   createdAt: dateISOString,
+            // });
 
             resolve({
               error: false,

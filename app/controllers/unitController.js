@@ -61,16 +61,16 @@ module.exports = {
         new Unit(payload)
           .save()
           .then((result) => {
-            logController.createLog({
-              by: userByToken._id,
-              data: result,
-              from: result._id,
-              note: body.note ? body.note : null,
-              title: "Create Unit",
-              type: "unit",
-              // timestamp
-              createdAt: dateISOString,
-            });
+            // logController.create({
+            //   by: userByToken._id,
+            //   data: result,
+            //   from: result._id,
+            //   note: body.note ? body.note : null,
+            //   title: "Create Unit",
+            //   type: "unit",
+            //   // timestamp
+            //   createdAt: dateISOString,
+            // });
 
             resolve({
               error: false,
@@ -131,16 +131,16 @@ module.exports = {
       return new Promise((resolve, reject) => {
         Unit.findByIdAndUpdate(body.unitId, body.data, { new: true })
           .then((result) => {
-            logController.createLog({
-              by: userByToken._id,
-              data: result,
-              from: result._id,
-              note: body.note ? body.note : null,
-              title: "Update Unit",
-              type: "unit",
-              // timestamp
-              createdAt: dateISOString,
-            });
+            // logController.create({
+            //   by: userByToken._id,
+            //   data: result,
+            //   from: result._id,
+            //   note: body.note ? body.note : null,
+            //   title: "Update Unit",
+            //   type: "unit",
+            //   // timestamp
+            //   createdAt: dateISOString,
+            // });
 
             resolve({
               error: false,

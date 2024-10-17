@@ -56,16 +56,16 @@ module.exports = {
         new Business(payload)
           .save()
           .then((result) => {
-            logController.createLog({
-              by: userByToken._id,
-              data: result,
-              from: result._id,
-              note: body.note ? body.note : null,
-              title: "Create Business",
-              type: "business",
-              // timestamp
-              createdAt: dateISOString,
-            });
+            // logController.create({
+            //   by: userByToken._id,
+            //   data: result,
+            //   from: result._id,
+            //   note: body.note ? body.note : null,
+            //   title: "Create Business",
+            //   type: "business",
+            //   // timestamp
+            //   createdAt: dateISOString,
+            // });
 
             resolve({
               error: false,
@@ -126,16 +126,16 @@ module.exports = {
           new: true,
         })
           .then((result) => {
-            logController.createLog({
-              by: userByToken._id,
-              data: result,
-              from: result._id,
-              note: body.note ? body.note : null,
-              title: "Update Business",
-              type: "business",
-              // timestamp
-              createdAt: dateISOString,
-            });
+            // logController.create({
+            //   by: userByToken._id,
+            //   data: result,
+            //   from: result._id,
+            //   note: body.note ? body.note : null,
+            //   title: "Update Business",
+            //   type: "business",
+            //   // timestamp
+            //   createdAt: dateISOString,
+            // });
 
             resolve({
               error: false,

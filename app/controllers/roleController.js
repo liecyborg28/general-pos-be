@@ -65,16 +65,16 @@ module.exports = {
 
       return new Promise((resolve) => {
         new Role(payload).save().then((result) => {
-          logController.createLog({
-            by: userByToken._id,
-            data: result,
-            from: result._id,
-            note: body.note ? body.note : null,
-            title: "Create Role",
-            type: "role",
-            // timestamp
-            createdAt: dateISOString,
-          });
+          // logController.create({
+          //   by: userByToken._id,
+          //   data: result,
+          //   from: result._id,
+          //   note: body.note ? body.note : null,
+          //   title: "Create Role",
+          //   type: "role",
+          //   // timestamp
+          //   createdAt: dateISOString,
+          // });
 
           resolve({
             error: false,
@@ -92,8 +92,26 @@ module.exports = {
     let pageKey = req.query.pageKey ? req.query.pageKey : 1;
     let pageSize = req.query.pageSize ? req.query.pageSize : null;
 
+    isNotEveryQueryNull = () => {
+      return req.query.businessId || req.query.name;
+    };
+
     return new Promise((resolve, reject) => {
-      let pipeline = { status: { $ne: "deleted" } };
+      let pipeline = isNotEveryQueryNull()
+        ? {
+            status: { $ne: "deleted" },
+            $or: [
+              {
+                businessId: req.query.businessId ? req.query.businessId : null,
+              },
+              {
+                name: req.query.name
+                  ? { $regex: req.query.name, $options: "i" }
+                  : null,
+              },
+            ],
+          }
+        : { status: { $ne: "deleted" } };
 
       pageController
         .paginate(pageKey, pageSize, pipeline, Role)
@@ -131,16 +149,16 @@ module.exports = {
       return new Promise((resolve, reject) => {
         Role.findByIdAndUpdate(body.roleId, body.data, { new: true })
           .then((result) => {
-            logController.createLog({
-              by: userByToken._id,
-              data: result,
-              from: result._id,
-              note: body.note ? body.note : null,
-              title: "Update Role",
-              type: "role",
-              // timestamp
-              createdAt: dateISOString,
-            });
+            // logController.create({
+            //   by: userByToken._id,
+            //   data: result,
+            //   from: result._id,
+            //   note: body.note ? body.note : null,
+            //   title: "Update Role",
+            //   type: "role",
+            //   // timestamp
+            //   createdAt: dateISOString,
+            // });
             resolve({
               error: false,
               data: result,

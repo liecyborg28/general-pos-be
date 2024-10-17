@@ -3,7 +3,7 @@ const pageController = require("./utils/pageController");
 const successMessages = require("../repository/messages/successMessages");
 
 module.exports = {
-  createLog: async (req) => {
+  create: async (req) => {
     new Log(req)
       .save()
       .then((result) => {
@@ -18,7 +18,7 @@ module.exports = {
       });
   },
 
-  getLogs: async (req) => {
+  get: async (req) => {
     let pageKey = req.pageKey ? req.pageKey : 1;
     let pageSize = req.pageSize ? req.pageSize : null;
 
