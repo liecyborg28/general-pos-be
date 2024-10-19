@@ -4,10 +4,12 @@ const authUtils = require("../utility/authUtils");
 // models
 const Business = require("../models/businessModel");
 const Category = require("../models/categoryModel");
+const Charge = require("../models/chargeModel");
 const Component = require("../models/componentModel");
 const Currency = require("../models/currencyModel");
 const Outlet = require("../models/outletModel");
 const Product = require("../models/productModel");
+const Promotion = require("../models/promotionModel");
 const Role = require("../models/roleModel");
 const Unit = require("../models/unitModel");
 const User = require("../models/userModel");
@@ -66,6 +68,10 @@ module.exports = {
           // );
           // const productIsEmpty = await dataController.isCollectionEmpty(
           //   Product
+          // );
+          // const chargeIsEmpty = await dataController.isCollectionEmpty(Charge);
+          // const promotionIsEmpty = await dataController.isCollectionEmpty(
+          //   Promotion
           // );
 
           // if (

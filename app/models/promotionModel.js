@@ -4,7 +4,7 @@ const dbConfig = require("../../config/dbConfig");
 
 mongoose.connect(dbConfig.url);
 
-const Offer = mongoose.Schema({
+const Promotion = mongoose.Schema({
   amount: Number,
   businessId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -14,4 +14,4 @@ const Offer = mongoose.Schema({
   type: String,
 });
 
-module.exports = mongoose.model("Offer", Offer);
+module.exports = mongoose.model("Promotion", Promotion);

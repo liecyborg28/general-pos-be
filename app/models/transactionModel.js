@@ -10,38 +10,40 @@ const Transaction = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Business",
   },
-  charge: Number,
-  costs: [{ title: String, amount: Number }],
   customerId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Customer",
   },
+  charges: [{ title: String, amount: Number }],
   details: [
     {
-      extras: [
+      additionals: [
         {
+          cost: Number,
+          price: Number,
           productId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "Product",
           },
-          inventoryId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Inventory",
-          },
-          qty: Number,
-          price: Number,
         },
       ],
-      note: String,
+      cost: Number,
       price: Number,
       productId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Product",
       },
-      qty: Number,
     },
   ],
-  offers: [{ title: String, amount: Number }],
+  promotions: [
+    {
+      amount: Number,
+      promotionId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Promotion",
+      },
+    },
+  ],
   outletId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Outlet",
