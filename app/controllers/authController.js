@@ -6,6 +6,7 @@ const Business = require("../models/businessModel");
 const Category = require("../models/categoryModel");
 const Charge = require("../models/chargeModel");
 const Component = require("../models/componentModel");
+const Customer = require("../models/customerModel");
 const Currency = require("../models/currencyModel");
 const Outlet = require("../models/outletModel");
 const Product = require("../models/productModel");
@@ -47,6 +48,7 @@ module.exports = {
       }
     });
   },
+
   createAccess: (req) => {
     return new Promise(async (resolve, reject) => {
       const body = req.body;
@@ -55,240 +57,340 @@ module.exports = {
 
       if (body.key) {
         if (body.key === key) {
-          // Sesuai dengan urutan pembuatan
-          // const businessIsEmpty = await dataController.isCollectionEmpty(Business);
-          // const outletIsEmpty = await dataController.isCollectionEmpty(Outlet);
-          // const roleIsEmpty = await dataController.isCollectionEmpty(Role);
-          // const userIsEmpty = await dataController.isCollectionEmpty(Business);
-          // const categoryIsEmpty = await dataController.isCollectionEmpty(Business);
-          // const unitIsEmpty = await dataController.isCollectionEmpty(Unit);
-          // const currencyIsEmpty = await dataController.isCollectionEmpty(Currency);
-          // const componentIsEmpty = await dataController.isCollectionEmpty(
-          //   Component
-          // );
-          // const productIsEmpty = await dataController.isCollectionEmpty(
-          //   Product
-          // );
-          // const chargeIsEmpty = await dataController.isCollectionEmpty(Charge);
-          // const promotionIsEmpty = await dataController.isCollectionEmpty(
-          //   Promotion
-          // );
-
-          // if (
-          //   businessIsEmpty &&
-          //   outletIsEmpty &&
-          //   roleIsEmpty &&
-          //   userIsEmpty &&
-          //   categoryIsEmpty &&
-          //   unitIsEmpty &&
-          //   currencyIsEmpty &&
-          // componentIsEmpty &&
-          // productIsEmpty &&
-          // ) {
           const dateISOString = new Date().toISOString();
 
-          const businessPayload = {
-            status: "active",
-            imageUrl: null,
-            name: "Business Name Example",
-            createdAt: dateISOString,
-            updatedAt: dateISOString,
-          };
+          const businessesPayload = [
+            {
+              status: "active",
+              imageUrl: null,
+              name: "Business Name",
+              createdAt: dateISOString,
+              updatedAt: dateISOString,
+            },
+          ];
 
-          new Business(businessPayload)
+          new Business(businessesPayload)
             .save()
-            .then((business) => {
-              const outletPayload = {
-                address: "Outlet Address",
-                businessId: business._id.toString(),
-                name: "Outlet Name Example",
+            .then((businesses) => {
+              const outletsPayload = {
+                address:
+                  "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+                businessId: businesses[0]._id.toString(),
+                name: "Outlet Name",
                 status: "active",
                 // timestamp
                 createdAt: dateISOString,
                 updatedAt: dateISOString,
               };
 
-              new Outlet(outletPayload)
+              new Outlet(outletsPayload)
                 .save()
-                .then((outlet) => {
-                  const rolePayload = {
-                    access: ["feature1", "feature2", "feature3"],
-                    businessId: business._id.toString(),
-                    name: "administrator",
-                    status: "active",
-                    createdAt: dateISOString,
-                    updatedAt: dateISOString,
-                  };
+                .then((outlets) => {
+                  const rolesPayload = [
+                    {
+                      access: ["feature1", "feature2", "feature3"],
+                      businessId: businesses[0]._id.toString(),
+                      name: "administrator",
+                      status: "active",
+                      createdAt: dateISOString,
+                      updatedAt: dateISOString,
+                    },
+                  ];
 
-                  new Role(rolePayload)
+                  Role.insertMany(rolesPayload, { ordered: false })
                     .save()
-                    .then((role) => {
-                      const userPayload = {
-                        auth: {
-                          accessToken: authUtils.generateAccessToken(),
-                          expiredAt: authUtils.generateExpirationDate(7),
+                    .then((roles) => {
+                      const usersPayload = [
+                        {
+                          auth: {
+                            accessToken: authUtils.generateAccessToken(),
+                            expiredAt: authUtils.generateExpirationDate(7),
+                          },
+                          businessId: businesses[0]._id.toString(),
+                          email: null,
+                          gender: "male",
+                          imageUrl: null,
+                          name: "User Name",
+                          password: "12345678",
+                          phone: null,
+                          roleId: roles[0]._id.toString(),
+                          settings: {
+                            theme: "light",
+                            language: "id",
+                          },
+                          status: "active",
+                          username: "admin",
+                          // timestamp
+                          createdAt: dateISOString,
+                          updatedAt: dateISOString,
                         },
-                        businessId: business._id.toString(),
-                        email: null,
-                        gender: "male",
-                        imageUrl: null,
-                        name: "User Name",
-                        password: "12345678",
-                        phone: null,
-                        roleId: role._id.toString(),
-                        settings: {
-                          theme: "light",
-                          language: "id",
-                        },
-                        status: "active",
-                        username: "admin",
-                        // timestamp
-                        createdAt: dateISOString,
-                        updatedAt: dateISOString,
-                      };
+                      ];
 
-                      new User(userPayload)
+                      User.insertMany(usersPayload)
                         .save()
-                        .then((user) => {
-                          const categoryPayload = {
-                            businessId: business._id.toString(),
+                        .then((users) => {
+                          const categoriesPayload = {
+                            businessId: businesses[0]._id.toString(),
                             name: "Category Name",
                             status: "active",
                             createdAt: dateISOString,
                             updatedAt: dateISOString,
                           };
-                          new Category(categoryPayload)
+
+                          Category.insertMany(categoriesPayload)
                             .save()
-                            .then((category) => {
-                              const unitPayload = [
+                            .then((categories) => {
+                              const unitsPayload = [
                                 {
-                                  businessId: business._id.toString(),
+                                  businessId: businesses[0]._id.toString(),
                                   name: "Gram",
                                   status: "active",
                                   symbol: "gr",
+                                  createdAt: dateISOString,
+                                  updatedAt: dateISOString,
                                 },
                                 {
-                                  businessId: business._id.toString(),
+                                  businessId: businesses[0]._id.toString(),
                                   name: "Kilogram",
                                   status: "active",
                                   symbol: "kg",
+                                  createdAt: dateISOString,
+                                  updatedAt: dateISOString,
                                 },
                                 {
-                                  businessId: business._id.toString(),
+                                  businessId: businesses[0]._id.toString(),
                                   name: "Liter",
                                   status: "active",
                                   symbol: "L",
+                                  createdAt: dateISOString,
+                                  updatedAt: dateISOString,
                                 },
                                 {
-                                  businessId: business._id.toString(),
+                                  businessId: businesses[0]._id.toString(),
                                   name: "Lusin",
                                   status: "active",
                                   symbol: "lusin",
+                                  createdAt: dateISOString,
+                                  updatedAt: dateISOString,
                                 },
                                 {
-                                  businessId: business._id.toString(),
+                                  businessId: businesses[0]._id.toString(),
                                   name: "Pieces",
                                   status: "active",
                                   symbol: "pcs",
+                                  createdAt: dateISOString,
+                                  updatedAt: dateISOString,
                                 },
                               ];
 
-                              Unit.insertMany(unitPayload, { ordered: false })
-                                .then((insertedUnits) => {
-                                  const currencyPayload = [
+                              Unit.insertMany(unitsPayload, { ordered: false })
+                                .then((units) => {
+                                  const currenciesPayload = [
                                     {
-                                      businessId: business._id.toString(),
+                                      businessId: businesses[0]._id.toString(),
                                       decimal: ",",
                                       name: "Rupiah",
                                       separator: ".",
                                       status: "active",
                                       symbol: "Rp",
                                       totalDecimal: 2,
+                                      createdAt: dateISOString,
+                                      updatedAt: dateISOString,
                                     },
                                     {
-                                      businessId: business._id.toString(),
+                                      businessId: businesses[0]._id.toString(),
                                       decimal: ".",
                                       name: "Dollar",
                                       separator: ",",
                                       status: "active",
                                       symbol: "$",
                                       totalDecimal: 2,
+                                      createdAt: dateISOString,
+                                      updatedAt: dateISOString,
                                     },
                                   ];
 
-                                  return Currency.insertMany(currencyPayload, {
+                                  Currency.insertMany(currenciesPayload, {
                                     ordered: false,
-                                  }).then((insertedCurrencies) => {
-                                    const componentPayload = {
-                                      businessId: business._id.toString(),
-                                      categoryId: category._id.toString(),
-                                      changedBy: user._id.toString(),
-                                      imageUrl: null,
-                                      name: "Component Name Example",
-                                      status: "active",
-                                      unitId: insertedUnits[0]._id.toString(),
-                                      qty: {
-                                        current: 20,
-                                        max: 100,
-                                        min: 5,
-                                        status: "available",
+                                  }).then((currencies) => {
+                                    const componentsPayload = [
+                                      {
+                                        businessId:
+                                          businesses[0]._id.toString(),
+                                        categoryId:
+                                          categories[0]._id.toString(),
+                                        changedBy: users[0]._id.toString(),
+                                        imageUrl: null,
+                                        name: "Component Name",
+                                        status: "active",
+                                        unitId: units[0]._id.toString(),
+                                        qty: {
+                                          current: 20,
+                                          max: 100,
+                                          min: 5,
+                                          status: "available",
+                                        },
+                                        createdAt: dateISOString,
+                                        updatedAt: dateISOString,
                                       },
-                                      createdAt: dateISOString,
-                                      updatedAt: dateISOString,
-                                    };
+                                    ];
 
-                                    new Component(componentPayload)
+                                    Component.insertMany(componentsPayload, {
+                                      ordered: false,
+                                    })
                                       .save()
-                                      .then((component) => {
-                                        const productPayload = {
-                                          businessId: business._id.toString(),
-                                          categoryId: category._id.toString(),
-                                          changedBy: user._id.toString(),
-                                          countable: true,
-                                          charged: false,
-                                          name: "Product Name Example",
-                                          status: "active",
-                                          unitId:
-                                            insertedUnits[0]._id.toString(),
-                                          taxed: false,
-                                          variants: [
-                                            {
-                                              components: [
-                                                {
-                                                  componentId:
-                                                    component._id.toString(),
-                                                  qty: 1,
-                                                },
-                                              ],
-                                              cost: 5000,
-                                              default: true,
-                                              imageUrl: null,
-                                              name: "Variant 1",
-                                              price: 10000,
-                                              qty: 10,
-                                            },
-                                          ],
-                                        };
-
-                                        new Product(productPayload)
-                                          .save()
-                                          .then((product) => {
-                                            resolve({
-                                              error: false,
-                                              data: {
-                                                business,
-                                                outlet,
-                                                role,
-                                                user,
-                                                category,
-                                                unit: insertedUnits,
-                                                currency: insertedCurrencies,
-                                                component,
-                                                product,
+                                      .then((components) => {
+                                        const productsPayload = [
+                                          {
+                                            businessId:
+                                              businesses[0]._id.toString(),
+                                            categoryId:
+                                              categories[0]._id.toString(),
+                                            changedBy: users[0]._id.toString(),
+                                            countable: true,
+                                            charged: false,
+                                            name: "Product Name",
+                                            status: "active",
+                                            unitId: units[0]._id.toString(),
+                                            taxed: false,
+                                            variants: [
+                                              {
+                                                components: [
+                                                  {
+                                                    componentId:
+                                                      components[0]._id.toString(),
+                                                    qty: 1,
+                                                  },
+                                                ],
+                                                cost: 5000,
+                                                default: true,
+                                                imageUrl: null,
+                                                name: "Variant 1",
+                                                price: 10000,
+                                                qty: 10,
                                               },
-                                              message:
-                                                successMessages.ACCESS_CREATED_SUCCESS,
-                                            });
+                                            ],
+                                            createdAt: dateISOString,
+                                            updatedAt: dateISOString,
+                                          },
+                                        ];
+
+                                        Product.insertMany(productsPayload, {
+                                          ordered: false,
+                                        })
+                                          .save()
+                                          .then((products) => {
+                                            const chargesPayload = [
+                                              {
+                                                amount: 0.15,
+                                                businessId:
+                                                  businesses[0]._id.toString(),
+                                                name: "Persentage Charge",
+                                                createdAt: dateISOString,
+                                                updatedAt: dateISOString,
+                                              },
+                                              {
+                                                amount: 7000,
+                                                businessId:
+                                                  businesses[0]._id.toString(),
+                                                name: "Fixed Charge",
+                                                createdAt: dateISOString,
+                                                updatedAt: dateISOString,
+                                              },
+                                            ];
+
+                                            Charge.insertMany(chargesPayload, {
+                                              ordered: false,
+                                            })
+                                              .then((charges) => {
+                                                const promotionsPayload = [
+                                                  {
+                                                    amount: 0.1,
+                                                    businessId:
+                                                      businesses[0]._id.toString(),
+                                                    name: "Persentage Promotion",
+                                                    createdAt: dateISOString,
+                                                    updatedAt: dateISOString,
+                                                  },
+                                                  {
+                                                    amount: 7000,
+                                                    businessId:
+                                                      businesses[0]._id.toString(),
+                                                    name: "Fixed Promotion",
+                                                    createdAt: dateISOString,
+                                                    updatedAt: dateISOString,
+                                                  },
+                                                ];
+
+                                                Promotion.insertMany(
+                                                  promotionsPayload,
+                                                  { ordered: false }
+                                                )
+                                                  .then((promotions) => {
+                                                    const customersPayload = [
+                                                      {
+                                                        balance: 0,
+                                                        email:
+                                                          "example@gmail.com",
+                                                        imageUrl: null,
+                                                        name: "Customer Name",
+                                                        phone:
+                                                          "+62852123456789",
+                                                        point: 0,
+                                                        status: "active",
+                                                        // timestamp
+                                                        createdAt:
+                                                          dateISOString,
+                                                        updatedAt:
+                                                          dateISOString,
+                                                      },
+                                                    ];
+
+                                                    Customer.insertMany(
+                                                      customersPayload,
+                                                      { ordered: false }
+                                                    )
+                                                      .then((customers) => {
+                                                        resolve({
+                                                          error: false,
+                                                          data: {
+                                                            businesses,
+                                                            outlets,
+                                                            roles,
+                                                            users,
+                                                            categories,
+                                                            units,
+                                                            currencies,
+                                                            components,
+                                                            products,
+                                                            charges,
+                                                            promotions,
+                                                            customers,
+                                                          },
+                                                          message:
+                                                            successMessages.ACCESS_CREATED_SUCCESS,
+                                                        });
+                                                      })
+                                                      .catch((err) => {
+                                                        reject({
+                                                          error: true,
+                                                          message: err,
+                                                        });
+                                                      });
+                                                  })
+                                                  .catch((err) => {
+                                                    reject({
+                                                      error: true,
+                                                      message: err,
+                                                    });
+                                                  });
+                                              })
+                                              .catch((err) => {
+                                                reject({
+                                                  error: true,
+                                                  message: err,
+                                                });
+                                              });
                                           })
                                           .catch((err) => {
                                             reject({
@@ -325,12 +427,6 @@ module.exports = {
             .catch((err) => {
               reject({ error: true, message: err });
             });
-          // } else {
-          //   reject({
-          //     error: true,
-          //     message: errorMessages.ACCESS_ALREADY_SAVED,
-          //   });
-          // }
         } else {
           reject({
             error: true,

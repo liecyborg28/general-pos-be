@@ -10,7 +10,7 @@ const Promotion = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Business",
   },
-  title: String,
+  name: String,
   type: String,
 });
 
