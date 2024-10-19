@@ -26,10 +26,9 @@ const Component = mongoose.Schema({
   },
   qty: {
     current: Number,
-    last: Number,
-    status: String,
     max: Number,
     min: Number,
+    status: String,
   },
   // timestamp
   createdAt: String,

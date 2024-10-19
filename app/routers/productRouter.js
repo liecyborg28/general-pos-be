@@ -1,56 +1,17 @@
 const router = require("express").Router();
 
+// controllers
 const authController = require("../controllers/authController");
 const productController = require("../controllers/productController");
-
-const multer = require("multer");
-const storage = multer.memoryStorage();
-const upload = multer({ storage: storage });
-
-router.get("/products/bulk/template", (req, res) => {
-  authController
-    .checkAccessToken(req)
-    .then(() => {
-      productController
-        .getBulkProductTemplate(req)
-        .then((value) => {
-          res.status(200).send(value);
-        })
-        .catch((err) => {
-          res.status(500).send(err);
-        });
-    })
-    .catch((err) => {
-      res.status(500).send(err);
-    });
-});
-
-router.post("/products/bulk", upload.single("file"), (req, res) => {
-  authController
-    .checkAccessToken(req)
-    .then(() => {
-      productController
-        .createBulkProduct(req)
-        .then((value) => {
-          res.status(200).send(value);
-        })
-        .catch((err) => {
-          res.status(500).send(err);
-        });
-    })
-    .catch((err) => {
-      res.status(500).send(err);
-    });
-});
 
 router
   .route("/products")
   .get((req, res) => {
     authController
-      .checkAccessToken(req)
+      .checkAccess(req)
       .then(() => {
         productController
-          .getProducts(req)
+          .get(req)
           .then((value) => {
             res.status(200).send(value);
           })
@@ -64,10 +25,10 @@ router
   })
   .post((req, res) => {
     authController
-      .checkAccessToken(req)
+      .checkAccess(req)
       .then(() => {
         productController
-          .createProduct(req)
+          .create(req)
           .then((value) => {
             res.status(200).send(value);
           })
@@ -81,10 +42,10 @@ router
   })
   .patch((req, res) => {
     authController
-      .checkAccessToken(req)
+      .checkAccess(req)
       .then(() => {
         productController
-          .updateProduct(req)
+          .update(req)
           .then((value) => {
             res.status(200).send(value);
           })

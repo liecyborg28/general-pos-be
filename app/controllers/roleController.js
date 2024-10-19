@@ -65,16 +65,16 @@ module.exports = {
 
       return new Promise((resolve) => {
         new Role(payload).save().then((result) => {
-          // logController.create({
-          //   by: userByToken._id,
-          //   data: result,
-          //   from: result._id,
-          //   note: body.note ? body.note : null,
-          //   title: "Create Role",
-          //   type: "role",
-          //   // timestamp
-          //   createdAt: dateISOString,
-          // });
+          logController.create({
+            by: userByToken._id,
+            data: result,
+            from: result._id,
+            note: body.note ? body.note : null,
+            title: "Create Role",
+            type: "role",
+            // timestamp
+            createdAt: dateISOString,
+          });
 
           resolve({
             error: false,

@@ -19,6 +19,13 @@ const Product = mongoose.Schema({
   },
   countable: Boolean,
   charged: Boolean,
+  name: String,
+  status: String,
+  unitId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Unit",
+  },
+  taxed: Boolean,
   variants: [
     {
       components: [
@@ -31,25 +38,13 @@ const Product = mongoose.Schema({
         },
       ],
       cost: Number,
+      default: Boolean,
       imageUrl: String,
       name: String,
       price: Number,
       qty: Number,
     },
   ],
-  status: String,
-  unitId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Unit",
-  },
-  qty: {
-    current: Number,
-    last: Number,
-    status: String,
-    max: Number,
-    min: Number,
-  },
-  taxed: Boolean,
   // timestamp
   createdAt: String,
   updatedAt: String,

@@ -1,10 +1,14 @@
-const User = require("../models/userModel");
 const Product = require("../models/productModel");
+const User = require("../models/userModel");
+
+// controllers
 const dataController = require("./utils/dataController");
+const logController = require("./logController");
 const pageController = require("./utils/pageController");
+
+// repositories
 const errorMessages = require("../repository/messages/errorMessages");
 const successMessages = require("../repository/messages/successMessages");
-const logController = require("./logController");
 
 module.exports = {
   create: async (req) => {
@@ -14,10 +18,14 @@ module.exports = {
     let isBodyValid = () => {
       return (
         body.businessId &&
-        body.status &&
         body.categoryId &&
+        body.countable !== null &&
+        body.charged !== null &&
         body.name &&
-        body.price
+        body.status &&
+        body.unitId &&
+        body.taxed !== null &&
+        body.variants
       );
     };
 
@@ -30,18 +38,18 @@ module.exports = {
 
     let payload = isBodyValid()
       ? {
-          status: body.status,
           businessId: body.businessId,
-          name: body.name,
-          imageUrl: body.imageUrl ? body.imageUrl : null,
           categoryId: body.categoryId,
-          price: body.price,
           changedBy: userByToken._id,
+          countable: body.countable,
+          charged: body.charged,
+          name: body.name,
+          status: body.status,
+          unitId: body.unitId,
+          taxed: body.taxed,
+          variants: body.variants,
           createdAt: dateISOString,
           updatedAt: dateISOString,
-          ingredients: body.ingredients ? body.ingredients : [],
-          taxed: body.taxed,
-          charged: body.charged,
         }
       : {
           error: true,
@@ -69,19 +77,21 @@ module.exports = {
         new Product(payload)
           .save()
           .then((result) => {
-            logController.createLog({
-              createdAt: dateISOString,
-              title: "Create Product",
-              note: "",
-              type: "Product",
-              from: result._id,
-              by: userByToken._id,
-              data: result,
-            });
+            // logController.create({
+            //   by: userByToken._id,
+            //   data: result,
+            //   from: result._id,
+            //   note: body.note ? body.note : null,
+            //   title: "Create Product",
+            //   type: "product",
+            //   // timestamp
+            //   createdAt: dateISOString,
+            // });
+
             resolve({
               error: false,
               data: result,
-              message: successMessages.Product_CREATED_SUCCESS,
+              message: successMessages.PRODUCT_CREATED_SUCCESS,
             });
           })
           .catch((err) => {
@@ -98,12 +108,7 @@ module.exports = {
     let pageSize = req.query.pageSize ? req.query.pageSize : null;
 
     isNotEveryQueryNull = () => {
-      return (
-        req.query.keyword ||
-        req.query.name ||
-        req.query.businessId ||
-        req.query.categoryId
-      );
+      return req.query.businessId || req.query.categoryId || req.query.name;
     };
 
     return new Promise((resolve, reject) => {
@@ -112,9 +117,10 @@ module.exports = {
             status: { $ne: "deleted" },
             $or: [
               {
-                name: req.query.keyword
-                  ? { $regex: req.query.keyword, $options: "i" }
-                  : null,
+                businessId: req.query.businessId ? req.query.businessId : null,
+              },
+              {
+                categoryId: req.query.categoryId ? req.query.categoryId : null,
               },
               {
                 name: req.query.name
@@ -126,12 +132,6 @@ module.exports = {
                   ? { $regex: req.query.price, $options: "i" }
                   : null,
               },
-              {
-                categoryId: req.query.categoryId ? req.query.categoryId : null,
-              },
-              {
-                businessId: req.query.businessId ? req.query.businessId : null,
-              },
             ],
           }
         : {
@@ -141,7 +141,9 @@ module.exports = {
       pageController
         .paginate(pageKey, pageSize, pipeline, Product)
         .then((products) => {
-          Product.populate(products.data, { path: "businessId categoryId" })
+          Product.populate(products.data, {
+            path: "businessId categoryId unitId",
+          })
             .then((data) => {
               resolve({
                 error: false,
@@ -182,7 +184,7 @@ module.exports = {
       });
     }
 
-    if (!body.ProductId) {
+    if (!body.productId) {
       return Promise.reject({
         error: true,
         message: errorMessages.INVALID_DATA,
@@ -193,17 +195,18 @@ module.exports = {
     body.data["changedBy"] = userByToken._id;
 
     return new Promise((resolve, reject) => {
-      Product.findByIdAndUpdate(body.ProductId, body.data, { new: true })
+      Product.findByIdAndUpdate(body.productId, body.data, { new: true })
         .then((result) => {
-          logController.createLog({
-            createdAt: dateISOString,
-            title: "Update Product",
-            note: body.note ? body.note : "",
-            type: "Product",
-            from: body.ProductId,
-            by: userByToken._id,
-            data: body.data,
-          });
+          // logController.create({
+          //   by: userByToken._id,
+          //   data: result,
+          //   from: result._id,
+          //   note: body.note ? body.note : null,
+          //   title: "Update Product",
+          //   type: "product",
+          //   // timestamp
+          //   createdAt: dateISOString,
+          // });
 
           resolve({
             error: false,

@@ -26,6 +26,10 @@ module.exports = {
     en: "Currency created successfully!",
     id: "Mata uang berhasil dibuat!",
   },
+  COMPONENT_CREATED_SUCCESS: {
+    en: "Component created successfully!",
+    id: "Komponen berhasil dibuat!",
+  },
   // D
   DATA_SUCCESS_UPDATED: {
     en: "Data has been successfully updated!",
@@ -43,14 +47,7 @@ module.exports = {
   // H
 
   // I
-  INVENTORY_CREATED_SUCCESS: {
-    en: "Inventory created successfully!",
-    id: "Persediaan berhasil dibuat!",
-  },
-  ITEM_CREATED_SUCCESS: {
-    en: "Item created successfully!",
-    id: "Item berhasil dibuat!",
-  },
+
   // J
 
   // K
@@ -75,7 +72,10 @@ module.exports = {
     id: "Outlet berhasil dibuat!",
   },
   // P
-
+  PRODUCT_CREATED_SUCCESS: {
+    en: "Product created successfully!",
+    id: "Produk berhasil dibuat!",
+  },
   // Q
 
   // R

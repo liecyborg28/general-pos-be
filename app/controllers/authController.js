@@ -4,8 +4,10 @@ const authUtils = require("../utility/authUtils");
 // models
 const Business = require("../models/businessModel");
 const Category = require("../models/categoryModel");
+const Component = require("../models/componentModel");
 const Currency = require("../models/currencyModel");
 const Outlet = require("../models/outletModel");
+const Product = require("../models/productModel");
 const Role = require("../models/roleModel");
 const Unit = require("../models/unitModel");
 const User = require("../models/userModel");
@@ -59,6 +61,12 @@ module.exports = {
           // const categoryIsEmpty = await dataController.isCollectionEmpty(Business);
           // const unitIsEmpty = await dataController.isCollectionEmpty(Unit);
           // const currencyIsEmpty = await dataController.isCollectionEmpty(Currency);
+          // const componentIsEmpty = await dataController.isCollectionEmpty(
+          //   Component
+          // );
+          // const productIsEmpty = await dataController.isCollectionEmpty(
+          //   Product
+          // );
 
           // if (
           //   businessIsEmpty &&
@@ -67,7 +75,9 @@ module.exports = {
           //   userIsEmpty &&
           //   categoryIsEmpty &&
           //   unitIsEmpty &&
-          //   currencyIsEmpty
+          //   currencyIsEmpty &&
+          // componentIsEmpty &&
+          // productIsEmpty &&
           // ) {
           const dateISOString = new Date().toISOString();
 
@@ -136,7 +146,7 @@ module.exports = {
                         .then((user) => {
                           const categoryPayload = {
                             businessId: business._id.toString(),
-                            name: "category name",
+                            name: "Category Name",
                             status: "active",
                             createdAt: dateISOString,
                             updatedAt: dateISOString,
@@ -179,7 +189,6 @@ module.exports = {
 
                               Unit.insertMany(unitPayload, { ordered: false })
                                 .then((insertedUnits) => {
-                                  // `insertedUnits` berisi dokumen yang berhasil diinsert
                                   const currencyPayload = [
                                     {
                                       businessId: business._id.toString(),
@@ -201,25 +210,90 @@ module.exports = {
                                     },
                                   ];
 
-                                  // Lanjutkan untuk Currency
                                   return Currency.insertMany(currencyPayload, {
                                     ordered: false,
                                   }).then((insertedCurrencies) => {
-                                    // `insertedCurrencies` berisi dokumen yang berhasil diinsert
-                                    resolve({
-                                      error: false,
-                                      data: {
-                                        business,
-                                        outlet,
-                                        role,
-                                        user,
-                                        category,
-                                        unit: insertedUnits, // Data unit yang berhasil diinsert
-                                        currency: insertedCurrencies, // Data currency yang berhasil diinsert
+                                    const componentPayload = {
+                                      businessId: business._id.toString(),
+                                      categoryId: category._id.toString(),
+                                      changedBy: user._id.toString(),
+                                      imageUrl: null,
+                                      name: "Component Name Example",
+                                      status: "active",
+                                      unitId: insertedUnits[0]._id.toString(),
+                                      qty: {
+                                        current: 20,
+                                        max: 100,
+                                        min: 5,
+                                        status: "available",
                                       },
-                                      message:
-                                        successMessages.ACCESS_CREATED_SUCCESS,
-                                    });
+                                      createdAt: dateISOString,
+                                      updatedAt: dateISOString,
+                                    };
+
+                                    new Component(componentPayload)
+                                      .save()
+                                      .then((component) => {
+                                        const productPayload = {
+                                          businessId: business._id.toString(),
+                                          categoryId: category._id.toString(),
+                                          changedBy: user._id.toString(),
+                                          countable: true,
+                                          charged: false,
+                                          name: "Product Name Example",
+                                          status: "active",
+                                          unitId:
+                                            insertedUnits[0]._id.toString(),
+                                          taxed: false,
+                                          variants: [
+                                            {
+                                              components: [
+                                                {
+                                                  componentId:
+                                                    component._id.toString(),
+                                                  qty: 1,
+                                                },
+                                              ],
+                                              cost: 5000,
+                                              default: true,
+                                              imageUrl: null,
+                                              name: "Variant 1",
+                                              price: 10000,
+                                              qty: 10,
+                                            },
+                                          ],
+                                        };
+
+                                        new Product(productPayload)
+                                          .save()
+                                          .then((product) => {
+                                            resolve({
+                                              error: false,
+                                              data: {
+                                                business,
+                                                outlet,
+                                                role,
+                                                user,
+                                                category,
+                                                unit: insertedUnits,
+                                                currency: insertedCurrencies,
+                                                component,
+                                                product,
+                                              },
+                                              message:
+                                                successMessages.ACCESS_CREATED_SUCCESS,
+                                            });
+                                          })
+                                          .catch((err) => {
+                                            reject({
+                                              error: true,
+                                              message: err,
+                                            });
+                                          });
+                                      })
+                                      .catch((err) => {
+                                        reject({ error: true, message: err });
+                                      });
                                   });
                                 })
                                 .catch((err) => {

@@ -1,6 +1,8 @@
+require("dotenv").config();
+
 const MongoDBConfig = {
   // test
-  url: "mongodb://localhost:27017/test",
+  url: process.env.DB_URL,
   connectOption: {
     useNewUrlParser: true,
     useUnifiedTopology: true,

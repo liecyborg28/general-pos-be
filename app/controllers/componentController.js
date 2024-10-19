@@ -15,10 +15,10 @@ module.exports = {
       return (
         body.businessId &&
         body.categoryId &&
-        body.current &&
-        body.last &&
-        body.max &&
-        body.min &&
+        body.current !== null &&
+        body.last !== null &&
+        body.max !== null &&
+        body.min !== null &&
         body.name &&
         body.status &&
         body.unitId
@@ -32,22 +32,31 @@ module.exports = {
       "auth.accessToken": bearerToken,
     });
 
+    let qtyStatusData = "";
+
+    if (body.current <= 0) {
+      qtyStatusData = "outOfStock";
+    } else if (body.current <= body.min) {
+      qtyStatusData = "almostOut";
+    } else {
+      qtyStatusData = "available";
+    }
+
     let payload = isBodyValid()
       ? {
           businessId: body.businessId,
           categoryId: body.categoryId,
+          changedBy: userByToken._id,
           imageUrl: body.imageUrl ? body.imageUrl : null,
           name: body.name,
           status: body.status,
           unitId: body.unitId,
           qty: {
-            status: "available",
-            early: body.current,
-            last: body.last,
+            current: body.current,
             max: body.max,
             min: body.min,
+            status: qtyStatusData,
           },
-          changedBy: userByToken._id,
           createdAt: dateISOString,
           updatedAt: dateISOString,
         }
@@ -90,7 +99,7 @@ module.exports = {
             resolve({
               error: false,
               data: result,
-              message: successMessages.INVENTORY_CREATED_SUCCESS,
+              message: successMessages.COMPONENT_CREATED_SUCCESS,
             });
           })
           .catch((err) => {
@@ -180,11 +189,13 @@ module.exports = {
 
       let qtyData = body.data.qty;
 
+      let componentQty = component.qty;
+
       let qtyStatusData = "";
 
-      if (qtyData.last < 0) {
+      if (qtyData.current < 0) {
         qtyStatusData = "outOfStock";
-      } else if (qtyData.last <= component.qty.min) {
+      } else if (qtyData.current <= componentQty.min) {
         qtyStatusData = "almostOut";
       } else {
         qtyStatusData = "available";

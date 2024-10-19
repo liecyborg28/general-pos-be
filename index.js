@@ -1,10 +1,9 @@
+require("dotenv").config();
+
 // [MODE LOCAL]
 // core
 const cors = require("cors");
 const express = require("express");
-const fs = require("fs");
-const http = require("http");
-const https = require("https");
 const mongoose = require("mongoose");
 
 // custom
@@ -13,7 +12,7 @@ const dbConfig = require("./config/dbConfig");
 const errorMessages = require("./app/repository/messages/errorMessages");
 const routes = require("./app/routers/routers/routers");
 
-const port = 8081;
+const port = process.env.PORT;
 
 // Koneksi ke MongoDB
 mongoose
