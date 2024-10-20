@@ -1,16 +1,17 @@
 const router = require("express").Router();
 
+// controllers
 const authController = require("../controllers/authController");
-const offerController = require("../controllers/offerController");
+const customerController = require("../controllers/customerController");
 
 router
-  .route("/offers")
+  .route("/users")
   .get((req, res) => {
     authController
-      .checkAccessToken(req)
+      .checkAccess(req)
       .then(() => {
-        offerController
-          .getOffers(req)
+        customerController
+          .get(req)
           .then((value) => {
             res.status(200).send(value);
           })
@@ -24,10 +25,10 @@ router
   })
   .post((req, res) => {
     authController
-      .checkAccessToken(req)
+      .checkAccess(req)
       .then(() => {
-        offerController
-          .createOffer(req)
+        customerController
+          .create(req)
           .then((value) => {
             res.status(200).send(value);
           })
@@ -41,10 +42,10 @@ router
   })
   .patch((req, res) => {
     authController
-      .checkAccessToken(req)
+      .checkAccess(req)
       .then(() => {
-        offerController
-          .updateOffer(req)
+        customerController
+          .update(req)
           .then((value) => {
             res.status(200).send(value);
           })

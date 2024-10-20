@@ -20,7 +20,6 @@ module.exports = {
         body.businessId &&
         body.categoryId &&
         body.countable !== null &&
-        body.charged !== null &&
         body.name &&
         body.status &&
         body.unitId &&
@@ -42,7 +41,6 @@ module.exports = {
           categoryId: body.categoryId,
           changedBy: userByToken._id,
           countable: body.countable,
-          charged: body.charged,
           name: body.name,
           status: body.status,
           unitId: body.unitId,

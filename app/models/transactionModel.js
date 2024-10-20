@@ -14,7 +14,16 @@ const Transaction = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Customer",
   },
-  charges: [{ title: String, amount: Number }],
+  charges: [
+    {
+      amount: Number,
+      chargeId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Charge",
+      },
+      type: String,
+    },
+  ],
   details: [
     {
       additionals: [
@@ -42,12 +51,23 @@ const Transaction = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: "Promotion",
       },
+      type: String,
     },
   ],
   outletId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Outlet",
   },
+  taxes: [
+    {
+      amount: Number,
+      taxId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Tax",
+      },
+      type: String,
+    },
+  ],
   userId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",

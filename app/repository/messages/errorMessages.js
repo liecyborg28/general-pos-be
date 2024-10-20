@@ -87,8 +87,8 @@ module.exports = {
   },
   // P
   PHONE_ALREADY_EXISTS: {
-    en: "Phone number already exists",
-    id: "Nomor telepon sudah terdaftar",
+    en: "Phone already exists",
+    id: "Nomor sudah terdaftar",
   },
   // Q
 

@@ -1,13 +1,17 @@
-const Offer = require("../models/promotionModel");
+const Promotion = require("../models/promotionModel");
 const User = require("../models/userModel");
+
+// controllers
 const dataController = require("./utils/dataController");
+const logController = require("./logController");
 const pageController = require("./utils/pageController");
+
+// repositories
 const errorMessages = require("../repository/messages/errorMessages");
 const successMessages = require("../repository/messages/successMessages");
-const logController = require("./logController");
 
 module.exports = {
-  createOffer: async (req) => {
+  create: async (req) => {
     let body = req.body;
     const bearerHeader = req.headers["authorization"];
     const bearerToken = bearerHeader.split(" ")[1];
@@ -17,16 +21,27 @@ module.exports = {
     });
 
     let dateISOString = new Date().toISOString();
+
     let isBodyValid = () => {
-      return body.title && body.type && body.amount && body.businessId;
+      return (
+        body.amount !== null &&
+        body.businessId &&
+        body.default !== null &&
+        body.name &&
+        body.type
+      );
     };
 
     let payload = isBodyValid()
       ? {
-          title: body.title,
-          businessId: body.businessId,
           amount: body.amount,
+          businessId: body.businessId,
+          changedBy: userByToken._id,
+          default: body.default,
+          name: body.name,
           type: body.type,
+          createdAt: dateISOString,
+          updatedAt: dateISOString,
         }
       : {
           error: true,
@@ -35,8 +50,8 @@ module.exports = {
 
     if (isBodyValid()) {
       let nameIsExist = await dataController.isExist(
-        { title: body.title, businessId: body.businessId },
-        Offer
+        { name: body.name, businessId: body.businessId },
+        Promotion
       );
 
       if (nameIsExist) {
@@ -47,23 +62,24 @@ module.exports = {
       }
 
       return new Promise((resolve, reject) => {
-        new Offer(payload)
+        new Promotion(payload)
           .save()
           .then((result) => {
-            logController.createLog({
-              createdAt: dateISOString,
-              title: "Create Offer",
-              note: "",
-              type: "offer",
-              from: result._id,
-              by: userByToken._id,
-              data: result,
-            });
+            // logController.create({
+            //   by: userByToken._id,
+            //   data: result,
+            //   from: result._id,
+            //   note: body.note ? body.note : null,
+            //   title: "Create Promotion",
+            //   type: "promotion",
+            //   // timestamp
+            //   createdAt: dateISOString,
+            // });
 
             resolve({
               error: false,
               data: result,
-              message: successMessages.OFFER_CREATED_SUCCESS,
+              message: successMessages.PROMOTION_CREATED_SUCCESS,
             });
           })
           .catch((err) => {
@@ -75,12 +91,12 @@ module.exports = {
     }
   },
 
-  getOffers: (req) => {
+  get: (req) => {
     let pageKey = req.query.pageKey ? req.query.pageKey : 1;
     let pageSize = req.query.pageSize ? req.query.pageSize : null;
 
     isNotEveryQueryNull = () => {
-      return req.query.keyword || req.query.title || req.query.businessId;
+      return req.query.businessId || req.query.title;
     };
 
     return new Promise((resolve, reject) => {
@@ -89,29 +105,24 @@ module.exports = {
             status: { $ne: "deleted" },
             $or: [
               {
-                title: req.query.keyword
-                  ? { $regex: req.query.keyword, $options: "i" }
-                  : null,
-              },
-              {
-                title: req.query.title
-                  ? { $regex: req.query.title, $options: "i" }
-                  : null,
-              },
-              {
                 businessId: req.query.businessId ? req.query.businessId : null,
+              },
+              {
+                name: req.query.name
+                  ? { $regex: req.query.name, $options: "i" }
+                  : null,
               },
             ],
           }
         : {};
 
       pageController
-        .paginate(pageKey, pageSize, pipeline, Offer)
-        .then((offers) => {
+        .paginate(pageKey, pageSize, pipeline, Promotion)
+        .then((promotions) => {
           resolve({
             error: false,
-            data: offers.data,
-            count: offers.count,
+            data: promotions.data,
+            count: promotions.count,
           });
         })
         .catch((err) => {
@@ -120,7 +131,7 @@ module.exports = {
     });
   },
 
-  updateOffer: async (req) => {
+  update: async (req) => {
     let body = req.body;
     const bearerHeader = req.headers["authorization"];
     const bearerToken = bearerHeader.split(" ")[1];
@@ -131,25 +142,29 @@ module.exports = {
 
     let dateISOString = new Date().toISOString();
 
-    if (!body.offerId) {
+    if (!body.promotionId) {
       return Promise.reject({
         error: true,
         message: errorMessages.INVALID_DATA,
       });
     } else {
       body.data["updatedAt"] = dateISOString;
+      body.data["changedBy"] = userByToken._id;
+
       return new Promise((resolve, reject) => {
-        Offer.findByIdAndUpdate(body.offerId, body.data, { new: true })
+        Promotion.findByIdAndUpdate(body.promotionId, body.data, { new: true })
           .then(() => {
-            logController.createLog({
-              createdAt: dateISOString,
-              title: "Update Offer",
-              note: body.note ? body.note : "",
-              type: "offer",
-              from: body.offerId,
-              by: userByToken._id,
-              data: body.data,
-            });
+            // logController.create({
+            //   by: userByToken._id,
+            //   data: result,
+            //   from: result._id,
+            //   note: body.note ? body.note : null,
+            //   title: "Update Promotion",
+            //   type: "promotion",
+            //   // timestamp
+            //   createdAt: dateISOString,
+            // });
+
             resolve({
               error: false,
               message: successMessages.DATA_SUCCESS_UPDATED,

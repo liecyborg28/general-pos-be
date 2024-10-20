@@ -18,14 +18,12 @@ const Product = mongoose.Schema({
     ref: "User",
   },
   countable: Boolean,
-  charged: Boolean,
   name: String,
   status: String,
   unitId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Unit",
   },
-  taxed: Boolean,
   variants: [
     {
       components: [

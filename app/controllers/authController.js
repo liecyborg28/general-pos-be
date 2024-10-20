@@ -284,6 +284,9 @@ module.exports = {
                                                 amount: 0.15,
                                                 businessId:
                                                   businesses[0]._id.toString(),
+                                                changedBy:
+                                                  users[0]._id.toString(),
+                                                default: false,
                                                 name: "Persentage Charge",
                                                 createdAt: dateISOString,
                                                 updatedAt: dateISOString,
@@ -292,6 +295,9 @@ module.exports = {
                                                 amount: 7000,
                                                 businessId:
                                                   businesses[0]._id.toString(),
+                                                changedBy:
+                                                  users[0]._id.toString(),
+                                                default: false,
                                                 name: "Fixed Charge",
                                                 createdAt: dateISOString,
                                                 updatedAt: dateISOString,
@@ -307,6 +313,9 @@ module.exports = {
                                                     amount: 0.1,
                                                     businessId:
                                                       businesses[0]._id.toString(),
+                                                    changedBy:
+                                                      users[0]._id.toString(),
+                                                    default: false,
                                                     name: "Persentage Promotion",
                                                     createdAt: dateISOString,
                                                     updatedAt: dateISOString,
@@ -315,6 +324,9 @@ module.exports = {
                                                     amount: 7000,
                                                     businessId:
                                                       businesses[0]._id.toString(),
+                                                    changedBy:
+                                                      users[0]._id.toString(),
+                                                    default: false,
                                                     name: "Fixed Promotion",
                                                     createdAt: dateISOString,
                                                     updatedAt: dateISOString,

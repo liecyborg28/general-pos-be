@@ -10,6 +10,11 @@ const Promotion = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Business",
   },
+  changedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+  },
+  default: Boolean,
   name: String,
   type: String,
 });
