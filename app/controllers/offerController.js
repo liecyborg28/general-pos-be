@@ -1,4 +1,4 @@
-const Offer = require("../models/offerModel");
+const Offer = require("../models/promotionModel");
 const User = require("../models/userModel");
 const dataController = require("./utils/dataController");
 const pageController = require("./utils/pageController");
@@ -86,7 +86,7 @@ module.exports = {
     return new Promise((resolve, reject) => {
       let pipeline = isNotEveryQueryNull()
         ? {
-          status: { $ne: "deleted" },
+            status: { $ne: "deleted" },
             $or: [
               {
                 title: req.query.keyword
