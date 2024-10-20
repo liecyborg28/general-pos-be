@@ -11,7 +11,7 @@ const Customer = mongoose.Schema({
   imageUrl: String,
   name: String,
   phone: String,
-  point: String,
+  point: Number,
   status: String,
   // timestamp
   createdAt: String,

@@ -69,22 +69,22 @@ module.exports = {
             },
           ];
 
-          new Business(businessesPayload)
-            .save()
+          Business.insertMany(businessesPayload, { ordered: false })
             .then((businesses) => {
-              const outletsPayload = {
-                address:
-                  "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
-                businessId: businesses[0]._id.toString(),
-                name: "Outlet Name",
-                status: "active",
-                // timestamp
-                createdAt: dateISOString,
-                updatedAt: dateISOString,
-              };
+              const outletsPayload = [
+                {
+                  address:
+                    "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+                  businessId: businesses[0]._id.toString(),
+                  name: "Outlet Name",
+                  status: "active",
+                  // timestamp
+                  createdAt: dateISOString,
+                  updatedAt: dateISOString,
+                },
+              ];
 
-              new Outlet(outletsPayload)
-                .save()
+              Outlet.insertMany(outletsPayload, { ordered: false })
                 .then((outlets) => {
                   const rolesPayload = [
                     {
@@ -98,7 +98,6 @@ module.exports = {
                   ];
 
                   Role.insertMany(rolesPayload, { ordered: false })
-                    .save()
                     .then((roles) => {
                       const usersPayload = [
                         {
@@ -126,19 +125,21 @@ module.exports = {
                         },
                       ];
 
-                      User.insertMany(usersPayload)
-                        .save()
+                      User.insertMany(usersPayload, { ordered: false })
                         .then((users) => {
-                          const categoriesPayload = {
-                            businessId: businesses[0]._id.toString(),
-                            name: "Category Name",
-                            status: "active",
-                            createdAt: dateISOString,
-                            updatedAt: dateISOString,
-                          };
+                          const categoriesPayload = [
+                            {
+                              businessId: businesses[0]._id.toString(),
+                              name: "Category Name",
+                              status: "active",
+                              createdAt: dateISOString,
+                              updatedAt: dateISOString,
+                            },
+                          ];
 
-                          Category.insertMany(categoriesPayload)
-                            .save()
+                          Category.insertMany(categoriesPayload, {
+                            ordered: false,
+                          })
                             .then((categories) => {
                               const unitsPayload = [
                                 {
@@ -238,7 +239,6 @@ module.exports = {
                                     Component.insertMany(componentsPayload, {
                                       ordered: false,
                                     })
-                                      .save()
                                       .then((components) => {
                                         const productsPayload = [
                                           {
@@ -278,7 +278,6 @@ module.exports = {
                                         Product.insertMany(productsPayload, {
                                           ordered: false,
                                         })
-                                          .save()
                                           .then((products) => {
                                             const chargesPayload = [
                                               {
