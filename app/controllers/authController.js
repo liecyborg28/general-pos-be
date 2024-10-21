@@ -12,6 +12,7 @@ const Outlet = require("../models/outletModel");
 const Product = require("../models/productModel");
 const Promotion = require("../models/promotionModel");
 const Role = require("../models/roleModel");
+const Tax = require("../models/taxModel");
 const Unit = require("../models/unitModel");
 const User = require("../models/userModel");
 
@@ -176,6 +177,14 @@ module.exports = {
                                 },
                                 {
                                   businessId: businesses[0]._id.toString(),
+                                  name: "Ons",
+                                  status: "active",
+                                  symbol: "ons",
+                                  createdAt: dateISOString,
+                                  updatedAt: dateISOString,
+                                },
+                                {
+                                  businessId: businesses[0]._id.toString(),
                                   name: "Pieces",
                                   status: "active",
                                   symbol: "pcs",
@@ -333,54 +342,90 @@ module.exports = {
                                                   },
                                                 ];
 
-                                                Promotion.insertMany(
-                                                  promotionsPayload,
-                                                  { ordered: false }
-                                                )
-                                                  .then((promotions) => {
-                                                    const customersPayload = [
-                                                      {
-                                                        balance: 0,
-                                                        email:
-                                                          "example@gmail.com",
-                                                        imageUrl: null,
-                                                        name: "Customer Name",
-                                                        phone:
-                                                          "+62852123456789",
-                                                        point: 0,
-                                                        status: "active",
-                                                        // timestamp
-                                                        createdAt:
-                                                          dateISOString,
-                                                        updatedAt:
-                                                          dateISOString,
-                                                      },
-                                                    ];
+                                                const taxesPayload = [
+                                                  {
+                                                    amount: 0.1,
+                                                    businessId:
+                                                      businesses[0]._id.toString(),
+                                                    changedBy:
+                                                      users[0]._id.toString(),
+                                                    default: false,
+                                                    name: "Persentage Tax",
+                                                    createdAt: dateISOString,
+                                                    updatedAt: dateISOString,
+                                                  },
+                                                  {
+                                                    amount: 5000,
+                                                    businessId:
+                                                      businesses[0]._id.toString(),
+                                                    changedBy:
+                                                      users[0]._id.toString(),
+                                                    default: false,
+                                                    name: "Fixed Tax",
+                                                    createdAt: dateISOString,
+                                                    updatedAt: dateISOString,
+                                                  },
+                                                ];
 
-                                                    Customer.insertMany(
-                                                      customersPayload,
+                                                Tax.insertMany(taxesPayload)
+                                                  .then((taxes) => {
+                                                    Promotion.insertMany(
+                                                      promotionsPayload,
                                                       { ordered: false }
                                                     )
-                                                      .then((customers) => {
-                                                        resolve({
-                                                          error: false,
-                                                          data: {
-                                                            businesses,
-                                                            outlets,
-                                                            roles,
-                                                            users,
-                                                            categories,
-                                                            units,
-                                                            currencies,
-                                                            components,
-                                                            products,
-                                                            charges,
-                                                            promotions,
-                                                            customers,
-                                                          },
-                                                          message:
-                                                            successMessages.ACCESS_CREATED_SUCCESS,
-                                                        });
+                                                      .then((promotions) => {
+                                                        const customersPayload =
+                                                          [
+                                                            {
+                                                              balance: 0,
+                                                              email:
+                                                                "example@gmail.com",
+                                                              imageUrl: null,
+                                                              name: "Customer Name",
+                                                              phone:
+                                                                "+62852123456789",
+                                                              point: 0,
+                                                              status: "active",
+                                                              // timestamp
+                                                              createdAt:
+                                                                dateISOString,
+                                                              updatedAt:
+                                                                dateISOString,
+                                                            },
+                                                          ];
+
+                                                        Customer.insertMany(
+                                                          customersPayload,
+                                                          { ordered: false }
+                                                        )
+                                                          .then((customers) => {
+                                                            resolve({
+                                                              error: false,
+                                                              data: {
+                                                                businesses,
+                                                                outlets,
+                                                                roles,
+                                                                users,
+                                                                categories,
+                                                                units,
+                                                                currencies,
+                                                                components,
+                                                                products,
+                                                                charges,
+                                                                taxes,
+                                                                promotions,
+                                                                customers,
+                                                              },
+                                                              message:
+                                                                successMessages.ACCESS_CREATED_SUCCESS,
+                                                            });
+                                                          })
+                                                          .catch((err) => {
+                                                            reject({
+                                                              error: true,
+                                                              message: err,
+                                                            });
+                                                          });
                                                       })
                                                       .catch((err) => {
                                                         reject({

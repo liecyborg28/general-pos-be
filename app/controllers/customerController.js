@@ -1,5 +1,5 @@
 // models
-const User = require("../models/userModel");
+const Customer = require("../models/customerModel");
 
 // controllers
 const authController = require("./authController");
@@ -10,38 +10,23 @@ const pageController = require("./utils/pageController");
 const errorMessages = require("../repository/messages/errorMessages");
 const successMessages = require("../repository/messages/successMessages");
 
-const UserController = {
+const CustomerController = {
   create: async (req) => {
     let body = req.body;
     let dateISOString = new Date().toISOString();
     let isBodyValid = () => {
-      return (
-        body.businessId &&
-        // body.email &&
-        body.gender &&
-        body.name &&
-        body.password &&
-        // body.phone &&
-        body.roleId &&
-        body.settings &&
-        body.status
-      );
+      return body.email && body.name && body.phone && body.status;
     };
 
     let payload = isBodyValid()
       ? {
-          auth: authController.generateAuth(),
-          businessId: body.businessId,
-          email: null,
-          gender: body.gender,
+          balance: 0,
+          email: body.email,
           imageUrl: body.imageUrl ? body.imageUrl : null,
           name: body.name,
-          password: body.password,
-          phone: null,
-          roleId: body.roleId,
-          settings: body.settings,
+          phone: body.phone,
+          point: 0,
           status: body.status,
-          username: body.username,
           // timestamp
           createdAt: dateISOString,
           updatedAt: dateISOString,
@@ -52,44 +37,29 @@ const UserController = {
         };
 
     if (isBodyValid()) {
-      // let phoneIsExist = await dataController.isExist(
-      //   {
-      //     phone: body.phone,
-      //     status: { $ne: "deleted" },
-      //   },
-      //   User
-      // );
-
-      let usernameIsExist = await dataController.isExist(
+      let phoneIsExist = await dataController.isExist(
         {
-          username: body.username,
+          phone: body.phone,
           status: { $ne: "deleted" },
         },
-        User
+        Customer
       );
 
-      // if (phoneIsExist) {
-      //   return Promise.reject({
-      //     error: true,
-      //     message: errorMessages.PHONE_ALREADY_EXISTS,
-      //   });
-      // }
-
-      if (usernameIsExist) {
+      if (phoneIsExist) {
         return Promise.reject({
           error: true,
-          message: errorMessages.USERNAME_ALREADY_EXISTS,
+          message: errorMessages.PHONE_ALREADY_EXISTS,
         });
       }
 
       return new Promise((resolve, reject) => {
-        new User(payload)
+        new Customer(payload)
           .save()
           .then((result) => {
             resolve({
               error: false,
               data: result,
-              message: successMessages.USER_CREATED_SUCCESS,
+              message: successMessages.CUSTOMER_CREATED_SUCCESS,
             });
           })
           .catch((err) => {
@@ -111,12 +81,12 @@ const UserController = {
       };
 
       pageController
-        .paginate(pageKey, pageSize, pipeline, User)
-        .then((users) => {
+        .paginate(pageKey, pageSize, pipeline, Customer)
+        .then((customers) => {
           resolve({
             error: false,
-            data: users.data,
-            count: users.count,
+            data: customers.data,
+            count: customers.count,
           });
         })
         .catch((err) => {
@@ -129,7 +99,7 @@ const UserController = {
     let body = req.body;
     let dateISOString = new Date().toISOString();
 
-    if (!body.userId) {
+    if (!body.customerId) {
       return Promise.reject({
         error: true,
         message: errorMessages.INVALID_DATA,
@@ -138,7 +108,7 @@ const UserController = {
       body.data["updatedAt"] = dateISOString;
 
       return new Promise((resolve, reject) => {
-        User.findByIdAndUpdate(body.userId, body.data, { new: true })
+        Customer.findByIdAndUpdate(body.customerId, body.data, { new: true })
           .then((result) => {
             resolve({
               error: false,
@@ -154,4 +124,4 @@ const UserController = {
   },
 };
 
-module.exports = UserController;
+module.exports = CustomerController;

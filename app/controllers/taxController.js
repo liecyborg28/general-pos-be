@@ -1,4 +1,4 @@
-const Charge = require("../models/chargeModel");
+const Tax = require("../models/taxModel");
 const User = require("../models/userModel");
 
 // controllers
@@ -51,7 +51,7 @@ module.exports = {
     if (isBodyValid()) {
       let nameIsExist = await dataController.isExist(
         { name: body.name, businessId: body.businessId },
-        Charge
+        Tax
       );
 
       if (nameIsExist) {
@@ -62,7 +62,7 @@ module.exports = {
       }
 
       return new Promise((resolve, reject) => {
-        new Charge(payload)
+        new Tax(payload)
           .save()
           .then((result) => {
             // logController.create({
@@ -70,7 +70,7 @@ module.exports = {
             //   data: result,
             //   from: result._id,
             //   note: body.note ? body.note : null,
-            //   title: "Create Charge",
+            //   title: "Create Tax",
             //   type: "charge",
             //   // timestamp
             //   createdAt: dateISOString,
@@ -117,12 +117,12 @@ module.exports = {
         : {};
 
       pageController
-        .paginate(pageKey, pageSize, pipeline, Charge)
-        .then((charges) => {
+        .paginate(pageKey, pageSize, pipeline, Tax)
+        .then((taxes) => {
           resolve({
             error: false,
-            data: charges.data,
-            count: charges.count,
+            data: taxes.data,
+            count: taxes.count,
           });
         })
         .catch((err) => {
@@ -142,7 +142,7 @@ module.exports = {
 
     let dateISOString = new Date().toISOString();
 
-    if (!body.chargeId) {
+    if (!body.taxId) {
       return Promise.reject({
         error: true,
         message: errorMessages.INVALID_DATA,
@@ -152,14 +152,14 @@ module.exports = {
       body.data["changedBy"] = userByToken._id;
 
       return new Promise((resolve, reject) => {
-        Charge.findByIdAndUpdate(body.chargeId, body.data, { new: true })
+        Tax.findByIdAndUpdate(body.taxId, body.data, { new: true })
           .then(() => {
             // logController.create({
             //   by: userByToken._id,
             //   data: result,
             //   from: result._id,
             //   note: body.note ? body.note : null,
-            //   title: "Update Charge",
+            //   title: "Update Tax",
             //   type: "charge",
             //   // timestamp
             //   createdAt: dateISOString,

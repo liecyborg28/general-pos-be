@@ -30,6 +30,10 @@ module.exports = {
     en: "Currency created successfully!",
     id: "Mata uang berhasil dibuat!",
   },
+  CUSTOMER_CREATED_SUCCESS: {
+    en: "Customer created successfully!",
+    id: "Pelanggan berhasil dibuat!",
+  },
   COMPONENT_CREATED_SUCCESS: {
     en: "Component created successfully!",
     id: "Komponen berhasil dibuat!",

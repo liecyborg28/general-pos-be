@@ -96,7 +96,7 @@ module.exports = {
     let pageSize = req.query.pageSize ? req.query.pageSize : null;
 
     isNotEveryQueryNull = () => {
-      return req.query.businessId || req.query.title;
+      return req.query.businessId;
     };
 
     return new Promise((resolve, reject) => {
