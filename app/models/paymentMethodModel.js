@@ -5,11 +5,11 @@ const dbConfig = require("./../../config/dbConfig");
 mongoose.connect(dbConfig.url);
 
 const PaymentMethod = mongoose.Schema({
-  address: String,
   businessId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Business",
   },
+  default: Boolean,
   name: String,
   status: String,
   // timestamp

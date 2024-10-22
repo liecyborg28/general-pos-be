@@ -6,7 +6,7 @@ module.exports = {
   },
   ACCESS_CREATED_SUCCESS: {
     en: "Access created successfully!",
-    id: "Akses awal berhasil dibuat!",
+    id: "Akses awal berhasil ditambahkan!",
   },
   AUTHORIZED: {
     en: "Authorized!",
@@ -15,28 +15,28 @@ module.exports = {
   // B
   BUSINESS_CREATED_SUCCESS: {
     en: "Business created successfully!",
-    id: "Bisnis berhasil dibuat!",
+    id: "Bisnis berhasil ditambahkan!",
   },
   // C
   CATEGORY_CREATED_SUCCESS: {
     en: "Item created successfully!",
-    id: "Item berhasil dibuat!",
+    id: "Item berhasil ditambahkan!",
   },
   CHARGE_CREATED_SUCCESS: {
     en: "Charge created successfully!",
-    id: "Biaya berhasil dibuat!",
+    id: "Biaya berhasil ditambahkan!",
   },
   CURRENCY_CREATED_SUCCESS: {
     en: "Currency created successfully!",
-    id: "Mata uang berhasil dibuat!",
+    id: "Mata uang berhasil ditambahkan!",
   },
   CUSTOMER_CREATED_SUCCESS: {
     en: "Customer created successfully!",
-    id: "Pelanggan berhasil dibuat!",
+    id: "Pelanggan berhasil ditambahkan!",
   },
   COMPONENT_CREATED_SUCCESS: {
     en: "Component created successfully!",
-    id: "Komponen berhasil dibuat!",
+    id: "Komponen berhasil ditambahkan!",
   },
   // D
   DATA_SUCCESS_UPDATED: {
@@ -48,7 +48,7 @@ module.exports = {
   // F
   FILE_CREATED_SUCCESS: {
     en: "File created successfully!",
-    id: "File berhasil dibuat!",
+    id: "File berhasil ditambahkan!",
   },
   // G
 
@@ -63,7 +63,7 @@ module.exports = {
   // L
   LOG_CREATED_SUCCESS: {
     en: "Log created successfully!",
-    id: "Log berhasil dibuat!",
+    id: "Log berhasil ditambahkan!",
   },
   // M
 
@@ -72,23 +72,27 @@ module.exports = {
   // 0
   OUTLET_CREATED_SUCCESS: {
     en: "Outlet created successfully!",
-    id: "Outlet berhasil dibuat!",
+    id: "Outlet berhasil ditambahkan!",
   },
   // P
+  PAYMENT_METHOD_CREATED_ACCESS: {
+    en: "Metode pembayaran berhasil ditambahkan!",
+    id: "",
+  },
   PRODUCT_CREATED_SUCCESS: {
     en: "Product created successfully!",
-    id: "Produk berhasil dibuat!",
+    id: "Produk berhasil ditambahkan!",
   },
   PROMOTION_CREATED_SUCCESS: {
     en: "Promotion created successfully!",
-    id: "Promosi berhasil dibuat!",
+    id: "Promosi berhasil ditambahkan!",
   },
   // Q
 
   // R
   ROLE_CREATED_SUCCESS: {
     en: "Role created successfully!",
-    id: "Akses berhasil dibuat!",
+    id: "Akses berhasil ditambahkan!",
   },
   // S
 
@@ -99,16 +103,16 @@ module.exports = {
   },
   TRANSACTION_CREATED_SUCCESS: {
     en: "Transaction created successfully!",
-    id: "Transaksi berhasil dibuat!",
+    id: "Transaksi berhasil ditambahkan!",
   },
   // U
   UNIT_CREATED_SUCCESS: {
     en: "Unit created successfully!",
-    id: "Satuan berhasil dibuat!",
+    id: "Satuan berhasil ditambahkan!",
   },
   USER_CREATED_SUCCESS: {
     en: "User created successfully!",
-    id: "Pengguna berhasil dibuat!",
+    id: "Pengguna berhasil ditambahkan!",
   },
   // V
 
