@@ -2,7 +2,7 @@ const router = require("express").Router();
 
 // controllers
 const authController = require("../controllers/authController");
-const paymentMethodController = require("../controllers/paymentMethodController");
+const serviceMethodController = require("../controllers/serviceMethodController");
 
 router
   .route("/serviceMethods")
@@ -10,7 +10,7 @@ router
     authController
       .checkAccess(req)
       .then(() => {
-        paymentMethodController
+        serviceMethodController
           .get(req)
           .then((value) => {
             res.status(200).send(value);
@@ -27,7 +27,7 @@ router
     authController
       .checkAccess(req)
       .then(() => {
-        paymentMethodController
+        serviceMethodController
           .create(req)
           .then((value) => {
             res.status(200).send(value);
@@ -44,7 +44,7 @@ router
     authController
       .checkAccess(req)
       .then(() => {
-        paymentMethodController
+        serviceMethodController
           .update(req)
           .then((value) => {
             res.status(200).send(value);

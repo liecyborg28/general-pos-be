@@ -76,8 +76,8 @@ module.exports = {
   },
   // P
   PAYMENT_METHOD_CREATED_ACCESS: {
-    en: "Metode pembayaran berhasil ditambahkan!",
-    id: "",
+    en: "Payment method created successfully!",
+    id: "Metode pembayaran berhasil ditambahkan!",
   },
   PRODUCT_CREATED_SUCCESS: {
     en: "Product created successfully!",
@@ -95,6 +95,10 @@ module.exports = {
     id: "Akses berhasil ditambahkan!",
   },
   // S
+  SERVICE_METHOD_CREATED_ACCESS: {
+    en: "Service method created successfully!",
+    id: "Metode penjualan berhasil ditambahkan!",
+  },
 
   // T
   TOKEN_SUCCESS_UPDATED: {

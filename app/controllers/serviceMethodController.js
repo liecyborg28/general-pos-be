@@ -22,12 +22,11 @@ module.exports = {
 
     let dateISOString = new Date().toISOString();
     let isBodyValid = () => {
-      return body.address && body.businessId && body.name && body.status;
+      return body.businessId && body.name && body.status;
     };
 
     let payload = isBodyValid()
       ? {
-          address: body.address,
           businessId: body.businessId,
           name: body.name,
           status: body.status,
@@ -70,7 +69,7 @@ module.exports = {
             resolve({
               error: false,
               data: result,
-              message: successMessages.OUTLET_CREATED_SUCCESS,
+              message: successMessages.SERVICE_METHOD_CREATED_ACCESS,
             });
           })
           .catch((err) => {
@@ -151,7 +150,7 @@ module.exports = {
       });
     }
 
-    if (!body.outletId) {
+    if (!body.serviceMethodId) {
       return Promise.reject({
         error: true,
         message: errorMessages.INVALID_DATA,
