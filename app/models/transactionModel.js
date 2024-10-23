@@ -5,6 +5,7 @@ const dbConfig = require("./../../config/dbConfig");
 mongoose.connect(dbConfig.url);
 
 const Transaction = mongoose.Schema({
+  // Jumlah yang dibayarkan
   amount: Number,
   businessId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -66,6 +67,13 @@ const Transaction = mongoose.Schema({
         ref: "Tax",
       },
       type: String,
+    },
+  ],
+  tips: [
+    {
+      amount: Number,
+
+      note: String,
     },
   ],
   userId: {

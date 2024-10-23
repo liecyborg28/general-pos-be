@@ -4,7 +4,6 @@ const User = require("../models/userModel");
 
 // controllers
 const dataController = require("./utils/dataController");
-const logController = require("./logController");
 const pageController = require("./utils/pageController");
 
 // repositories
@@ -56,17 +55,6 @@ module.exports = {
         new Outlet(payload)
           .save()
           .then((result) => {
-            // logController.create({
-            //   by: userByToken._id,
-            //   data: result,
-            //   from: result._id,
-            //   note: body.note ? body.note : null,
-            //   title: "Create Outlet",
-            //   type: "outlet",
-            //   // timestamp
-            //   createdAt: dateISOString,
-            // });
-
             resolve({
               error: false,
               data: result,
@@ -161,17 +149,6 @@ module.exports = {
       return new Promise((resolve, reject) => {
         Outlet.findByIdAndUpdate(body.outletId, body.data, { new: true })
           .then((result) => {
-            // logController.create({
-            //   by: userByToken._id,
-            //   data: result,
-            //   from: result._id,
-            //   note: body.note ? body.note : null,
-            //   title: "Update Outlet",
-            //   type: "outlet",
-            //   // timestamp
-            //   createdAt: dateISOString,
-            // });
-
             resolve({
               error: false,
               data: result,

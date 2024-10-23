@@ -4,7 +4,6 @@ const dataController = require("./utils/dataController");
 const pageController = require("./utils/pageController");
 const errorMessages = require("../repository/messages/errorMessages");
 const successMessages = require("../repository/messages/successMessages");
-const logController = require("./logController");
 
 module.exports = {
   create: async (req) => {
@@ -86,16 +85,6 @@ module.exports = {
         new Component(payload)
           .save()
           .then((result) => {
-            // logController.create({
-            //   by: userByToken._id,
-            //   data: result,
-            //   from: result._id,
-            //   note: body.note ? body.note : null,
-            //   title: "Create Component",
-            //   type: "component",
-            //   // timestamp
-            //   createdAt: dateISOString,
-            // });
             resolve({
               error: false,
               data: result,
@@ -207,16 +196,6 @@ module.exports = {
     return new Promise((resolve, reject) => {
       Component.findByIdAndUpdate(body.componentId, body.data, { new: true })
         .then((result) => {
-          // logController.create({
-          //   by: userByToken._id,
-          //   data: result,
-          //   from: result._id,
-          //   note: body.note ? body.note : null,
-          //   title: "Update Component",
-          //   type: "component",
-          //   // timestamp
-          //   createdAt: dateISOString,
-          // });
           resolve({
             error: false,
             data: result,

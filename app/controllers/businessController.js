@@ -5,7 +5,6 @@ const User = require("../models/userModel");
 // controllers
 const dataController = require("./utils/dataController");
 const pageController = require("./utils/pageController");
-const logController = require("./logController");
 
 // repositories
 const errorMessages = require("../repository/messages/errorMessages");
@@ -56,17 +55,6 @@ module.exports = {
         new Business(payload)
           .save()
           .then((result) => {
-            // logController.create({
-            //   by: userByToken._id,
-            //   data: result,
-            //   from: result._id,
-            //   note: body.note ? body.note : null,
-            //   title: "Create Business",
-            //   type: "business",
-            //   // timestamp
-            //   createdAt: dateISOString,
-            // });
-
             resolve({
               error: false,
               data: result,
@@ -126,17 +114,6 @@ module.exports = {
           new: true,
         })
           .then((result) => {
-            // logController.create({
-            //   by: userByToken._id,
-            //   data: result,
-            //   from: result._id,
-            //   note: body.note ? body.note : null,
-            //   title: "Update Business",
-            //   type: "business",
-            //   // timestamp
-            //   createdAt: dateISOString,
-            // });
-
             resolve({
               error: false,
               data: result,

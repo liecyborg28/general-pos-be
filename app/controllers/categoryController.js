@@ -4,7 +4,6 @@ const Category = require("../models/categoryModel");
 
 // controllers
 const dataController = require("./utils/dataController");
-const logController = require("./logController");
 const pageController = require("./utils/pageController");
 
 // repositories
@@ -58,17 +57,6 @@ module.exports = {
         new Category(payload)
           .save()
           .then((result) => {
-            // logController.create({
-            //   by: userByToken._id,
-            //   data: result,
-            //   from: result._id,
-            //   note: body.note ? body.note : null,
-            //   title: "Create Category",
-            //   type: "category",
-            //   // timestamp
-            //   createdAt: dateISOString,
-            // });
-
             resolve({
               error: false,
               data: result,
@@ -145,17 +133,6 @@ module.exports = {
       return new Promise((resolve, reject) => {
         Category.findByIdAndUpdate(body.categoryId, body.data, { new: true })
           .then((result) => {
-            // logController.create({
-            //   by: userByToken._id,
-            //   data: result,
-            //   from: result._id,
-            //   note: body.note ? body.note : null,
-            //   title: "Create Category",
-            //   type: "category",
-            //   // timestamp
-            //   createdAt: dateISOString,
-            // });
-
             resolve({
               error: false,
               data: result,

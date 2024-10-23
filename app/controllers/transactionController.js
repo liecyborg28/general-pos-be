@@ -6,7 +6,6 @@ const pageController = require("./utils/pageController");
 const inventoryController = require("./componentController");
 const errorMessages = require("../repository/messages/errorMessages");
 const successMessages = require("../repository/messages/successMessages");
-const logController = require("./logController");
 
 function generateRequestCodes() {
   const viewCode = Math.floor(100000 + Math.random() * 900000);

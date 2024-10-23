@@ -3,7 +3,6 @@ const User = require("../models/userModel");
 
 // controllers
 const dataController = require("./utils/dataController");
-const logController = require("./logController");
 const pageController = require("./utils/pageController");
 
 // repositories
@@ -65,17 +64,6 @@ module.exports = {
         new Promotion(payload)
           .save()
           .then((result) => {
-            // logController.create({
-            //   by: userByToken._id,
-            //   data: result,
-            //   from: result._id,
-            //   note: body.note ? body.note : null,
-            //   title: "Create Promotion",
-            //   type: "promotion",
-            //   // timestamp
-            //   createdAt: dateISOString,
-            // });
-
             resolve({
               error: false,
               data: result,
@@ -154,17 +142,6 @@ module.exports = {
       return new Promise((resolve, reject) => {
         Promotion.findByIdAndUpdate(body.promotionId, body.data, { new: true })
           .then(() => {
-            // logController.create({
-            //   by: userByToken._id,
-            //   data: result,
-            //   from: result._id,
-            //   note: body.note ? body.note : null,
-            //   title: "Update Promotion",
-            //   type: "promotion",
-            //   // timestamp
-            //   createdAt: dateISOString,
-            // });
-
             resolve({
               error: false,
               message: successMessages.DATA_SUCCESS_UPDATED,
