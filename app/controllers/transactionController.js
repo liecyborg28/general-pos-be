@@ -6,6 +6,8 @@ const pageController = require("./utils/pageController");
 const inventoryController = require("./componentController");
 const errorMessages = require("../repository/messages/errorMessages");
 const successMessages = require("../repository/messages/successMessages");
+const paymentMethodModel = require("../models/paymentMethodModel");
+const serviceMethodModel = require("../models/serviceMethodModel");
 
 function generateRequestCodes() {
   const viewCode = Math.floor(100000 + Math.random() * 900000);
@@ -21,24 +23,35 @@ function generateRequestCodes() {
   return { status: "initial", viewCode, valueCode: reversedValueCode };
 }
 
+function getDateWithOffset(date = new Date()) {
+  const offset = -date.getTimezoneOffset();
+  const sign = offset >= 0 ? "+" : "-";
+  const hours = String(Math.floor(Math.abs(offset) / 60)).padStart(2, "0");
+  const minutes = String(Math.abs(offset) % 60).padStart(2, "0");
+
+  return date.toISOString().slice(0, -1) + sign + hours + ":" + minutes;
+}
+
 function convertToLocaleISOString(date, type) {
   if (type !== "start" && type !== "end") {
     throw new Error('Parameter "type" harus "start" atau "end"');
   }
 
-  // if (type === "start") date.setDate(date.getDate() + 1);
+  // Format bagian tanggal (tanpa timezone) dari input date
+  const [year, month, day] = date.slice(0, 10).split("-");
 
-  return date
-    .toISOString()
-    .replace(
-      /T\d{2}:\d{2}:\d{2}.\d{3}Z/,
-      type === "start" ? "T00:00:00.000Z" : "T23:59:59.999Z"
-    );
+  // Menentukan waktu berdasarkan type
+  const time = type === "start" ? "00:00:00.000" : "23:59:59.999";
+
+  // Menambahkan offset dari date input
+  const offset = date.slice(19);
+
+  // Menghasilkan string ISO dengan offset yang sudah didapat
+  return `${year}-${month}-${day}T${time}${offset}`;
 }
 
 module.exports = {
-  createTransaction: async (req) => {
-    console.log("payload", req.body);
+  create: async (req) => {
     let dateISOString = new Date().toISOString();
     let body = req.body;
 
@@ -49,49 +62,41 @@ module.exports = {
       "auth.accessToken": bearerToken,
     });
 
-    let customer = null;
-
-    if (body.customerId) {
-      customer = await User.findOne({ _id: body.customerId });
-    }
-
     let isBodyValid = () => {
       return (
+        body.amount !== null &&
         body.businessId &&
-        body.outletId &&
-        body.userId &&
-        body.status &&
-        body.orderStatus &&
+        body.charges &&
+        body.date &&
         body.details &&
-        // body.tax &&
-        // body.paymentAmount &&
-        // body.paymentMethod &&
-        body.details.length > 0
+        body.promotions &&
+        body.outletId &&
+        body.taxes &&
+        body.tips &&
+        body.userId &&
+        body.status
       );
     };
 
     let payload = isBodyValid()
       ? {
-          status: body.status,
+          amount: body.amount,
           businessId: body.businessId,
           customerId: body.customerId,
-          outletId: body.outletId,
-          userId: body.userId,
+          charges: body.charges,
           details: body.details,
-          tax: body.tax ? body.tax : 0,
-          paymentAmount: body.paymentAmount,
-          paymentMethod: body.paymentMethod,
-          charge: body.charge ? body.charge : 0,
-          costs: body.costs ? body.costs : [],
-          discounts: body.discounts ? body.discounts : [],
-          customer: body.customer ? body.customer : null,
-          table: body.table ? body.table : null,
-          floor: body.floor ? body.floor : null,
-          note: body.note ? body.note : null,
+          note: body.note,
+          outletId: body.outletId,
+          paymentMethodId: body.paymentMethodId,
+          promotions: body.promotions,
           request: generateRequestCodes(),
-          changedBy: userByToken._id,
-          createdAt: dateISOString,
-          updatedAt: dateISOString,
+          status: body.status,
+          serviceMethodId: body.serviceMethodId,
+          taxes: body.taxes,
+          tips: body.tips,
+          userId: body.userId,
+          createdAt: body.date,
+          updatedAt: body.date,
         }
       : {
           error: true,
@@ -241,7 +246,7 @@ module.exports = {
     }
   },
 
-  getTransactions: (req) => {
+  get: (req) => {
     let pageKey = req.query.pageKey ? req.query.pageKey : 1;
     let pageSize = req.query.pageSize ? req.query.pageSize : null;
 
@@ -310,7 +315,7 @@ module.exports = {
     });
   },
 
-  getTransactionsByPeriod: (req) => {
+  getByPeriod: (req) => {
     let pageKey = req.query.pageKey ? req.query.pageKey : 1;
     let pageSize = req.query.pageSize
       ? req.query.pageSize
@@ -385,7 +390,7 @@ module.exports = {
     });
   },
 
-  updateTransaction: async (req) => {
+  update: async (req) => {
     let dateISOString = new Date().toISOString();
 
     const bearerHeader = req.headers["authorization"];

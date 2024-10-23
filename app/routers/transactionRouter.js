@@ -1,13 +1,15 @@
 const router = require("express").Router();
+
+// controllers
 const authController = require("../controllers/authController");
 const transactionController = require("../controllers/transactionController");
 
 router.get("/transactions/period", (req, res) => {
   authController
-    .checkAccessToken(req)
+    .checkAccess(req)
     .then(() => {
       transactionController
-        .getTransactionsByPeriod(req)
+        .getByPeriod(req)
         .then((value) => {
           res.status(200).send(value);
         })
@@ -24,10 +26,10 @@ router
   .route("/transactions")
   .get((req, res) => {
     authController
-      .checkAccessToken(req)
+      .checkAccess(req)
       .then(() => {
         transactionController
-          .getTransactions(req)
+          .get(req)
           .then((value) => {
             res.status(200).send(value);
           })
@@ -41,10 +43,10 @@ router
   })
   .post((req, res) => {
     authController
-      .checkAccessToken(req)
+      .checkAccess(req)
       .then(() => {
         transactionController
-          .createTransaction(req)
+          .create(req)
           .then((value) => {
             res.status(200).send(value);
           })
@@ -58,10 +60,10 @@ router
   })
   .patch((req, res) => {
     authController
-      .checkAccessToken(req)
+      .checkAccess(req)
       .then(() => {
         transactionController
-          .updateTransaction(req)
+          .update(req)
           .then((value) => {
             res.status(200).send(value);
           })

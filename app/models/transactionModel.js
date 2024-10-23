@@ -45,6 +45,15 @@ const Transaction = mongoose.Schema({
       },
     },
   ],
+  note: String,
+  outletId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Outlet",
+  },
+  paymentMethodId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "PaymentMethod",
+  },
   promotions: [
     {
       amount: Number,
@@ -55,9 +64,18 @@ const Transaction = mongoose.Schema({
       type: String,
     },
   ],
-  outletId: {
+  request: {
+    status: String,
+    viewCode: Number,
+    valueCode: Number,
+  },
+  status: {
+    order: String,
+    payment: String,
+  },
+  serviceMethodId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Outlet",
+    ref: "ServiceMethod",
   },
   taxes: [
     {
@@ -72,7 +90,7 @@ const Transaction = mongoose.Schema({
   tips: [
     {
       amount: Number,
-
+      name: String,
       note: String,
     },
   ],
@@ -80,18 +98,6 @@ const Transaction = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
-  request: {
-    status: String,
-    viewCode: Number,
-    valueCode: Number,
-  },
-  status: {
-    order: String,
-    payment: String,
-  },
-  method: String,
-  note: String,
-  tax: Number,
   // timestamp
   createdAt: String,
   updatedAt: String,
