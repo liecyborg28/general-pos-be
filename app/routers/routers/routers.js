@@ -38,7 +38,7 @@ router.use(serviceMethodRouter);
 // router.use(reportRouter);
 // router.use(resourceRouter);
 router.use(roleRouter);
-// router.use(transactionRouter);
+router.use(transactionRouter);
 router.use(taxRouter);
 router.use(unitRouter);
 router.use(userRouter);

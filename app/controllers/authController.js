@@ -396,6 +396,7 @@ module.exports = {
                                                         users[0]._id.toString(),
                                                       default: false,
                                                       name: "Persentage Charge",
+                                                      type: "persentage",
                                                       createdAt: dateISOString,
                                                       updatedAt: dateISOString,
                                                     },
@@ -407,6 +408,7 @@ module.exports = {
                                                         users[0]._id.toString(),
                                                       default: false,
                                                       name: "Fixed Charge",
+                                                      type: "fixed",
                                                       createdAt: dateISOString,
                                                       updatedAt: dateISOString,
                                                     },
@@ -492,6 +494,8 @@ module.exports = {
                                                                   [
                                                                     {
                                                                       balance: 0,
+                                                                      businessId:
+                                                                        businesses[0]._id.toString(),
                                                                       email:
                                                                         "example@gmail.com",
                                                                       imageUrl:

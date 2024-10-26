@@ -29,6 +29,15 @@ const Transaction = mongoose.Schema({
     {
       additionals: [
         {
+          components: [
+            {
+              componentId: {
+                type: mongoose.Schema.Types.ObjectId,
+                ref: "Component",
+              },
+              qty: Number,
+            },
+          ],
           cost: Number,
           price: Number,
           productId: {
@@ -37,7 +46,17 @@ const Transaction = mongoose.Schema({
           },
         },
       ],
+      components: [
+        {
+          componentId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Component",
+          },
+          qty: Number,
+        },
+      ],
       cost: Number,
+      note: String,
       price: Number,
       productId: {
         type: mongoose.Schema.Types.ObjectId,

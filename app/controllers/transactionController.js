@@ -1,13 +1,18 @@
-const User = require("../models/userModel");
+// models
+const Component = require("../models/componentModel");
+const PaymentMethod = require("../models/paymentMethodModel");
 const Product = require("../models/productModel");
-const Inventory = require("../models/componentModel");
+const ServiceMethod = require("../models/serviceMethodModel");
 const Transaction = require("../models/transactionModel");
+const User = require("../models/userModel");
+
+// controllers
+const componentController = require("./componentController");
 const pageController = require("./utils/pageController");
-const inventoryController = require("./componentController");
+
+// messages
 const errorMessages = require("../repository/messages/errorMessages");
 const successMessages = require("../repository/messages/successMessages");
-const paymentMethodModel = require("../models/paymentMethodModel");
-const serviceMethodModel = require("../models/serviceMethodModel");
 
 function generateRequestCodes() {
   const viewCode = Math.floor(100000 + Math.random() * 900000);
@@ -47,202 +52,97 @@ function convertToLocaleISOString(date, type) {
   const offset = date.slice(19);
 
   // Menghasilkan string ISO dengan offset yang sudah didapat
-  return `${year}-${month}-${day}T${time}${offset}`;
+  // return `${year}-${month}-${day}T${time}${offset}`;
+  return `${year}-${month}-${day}T${time}`;
 }
 
 module.exports = {
   create: async (req) => {
-    let dateISOString = new Date().toISOString();
-    let body = req.body;
+    const { body } = req;
+    const { order, payment } = body.status;
+    const isStockDecrease =
+      (order === "queued" || order === "completed") && payment === "completed";
+    const isStockIncrease = order === "returned" && payment === "completed";
+    const outOfStocks = [];
 
-    const bearerHeader = req.headers["authorization"];
-    const bearerToken = bearerHeader.split(" ")[1];
+    // Validasi body
+    const isBodyValid =
+      body.amount !== null &&
+      body.businessId &&
+      body.charges &&
+      body.date &&
+      body.details &&
+      body.paymentMethodId &&
+      body.promotions &&
+      body.outletId &&
+      body.taxes &&
+      body.tips &&
+      body.userId &&
+      body.status &&
+      body.serviceMethodId;
 
-    let userByToken = await User.findOne({
-      "auth.accessToken": bearerToken,
-    });
+    if (!isBodyValid) {
+      return { error: true, message: errorMessages.INVALID_DATA };
+    }
 
-    let isBodyValid = () => {
-      return (
-        body.amount !== null &&
-        body.businessId &&
-        body.charges &&
-        body.date &&
-        body.details &&
-        body.promotions &&
-        body.outletId &&
-        body.taxes &&
-        body.tips &&
-        body.userId &&
-        body.status
-      );
-    };
+    // Gabung komponen dan additionals, lalu cek stoknya
+    const componentsList = body.details.flatMap(
+      ({ productId, components, additionals = [] }) =>
+        [...components, ...additionals.flatMap((a) => a.components)].map(
+          (c) => ({ ...c, productId })
+        )
+    );
 
-    let payload = isBodyValid()
-      ? {
-          amount: body.amount,
-          businessId: body.businessId,
-          customerId: body.customerId,
-          charges: body.charges,
-          details: body.details,
-          note: body.note,
-          outletId: body.outletId,
-          paymentMethodId: body.paymentMethodId,
-          promotions: body.promotions,
-          request: generateRequestCodes(),
-          status: body.status,
-          serviceMethodId: body.serviceMethodId,
-          taxes: body.taxes,
-          tips: body.tips,
-          userId: body.userId,
-          createdAt: body.date,
-          updatedAt: body.date,
-        }
-      : {
-          error: true,
-          message: errorMessages.INVALID_DATA,
-        };
+    for (const { componentId, qty, productId } of componentsList) {
+      const componentData = await Component.findById(componentId);
+      const currentStock = componentData?.qty.current || 0;
 
-    if (isBodyValid()) {
-      return new Promise(async (resolve, reject) => {
-        if (
-          body.status === "completed" &&
-          body.customerId &&
-          body.paymentMethod === "accountBalance" &&
-          customer.balance < body.paymentAmount
-        ) {
-          reject({
-            error: true,
-            message: errorMessages.BALANCE_NOT_ENOUGH,
-          });
+      if (currentStock < qty) {
+        outOfStocks.push({
+          productName: productId,
+          componentName: componentData?.name || "Unknown",
+          requiredQty: qty,
+          availableQty: currentStock,
+        });
+      } else if (isStockDecrease || isStockIncrease) {
+        // Update stok
+        componentData.qty.current += isStockIncrease ? qty : -qty;
+
+        // Update status stok
+        if (componentData.qty.current <= 0) {
+          componentData.qty.status = "outOfStock";
+        } else if (componentData.qty.current <= componentData.qty.min) {
+          componentData.qty.status = "almostOut";
         } else {
-          let outOfStockList = [];
-          let almostOutList = [];
-          let availableList = [];
-
-          const promises = body.details.map(async (detail) => {
-            try {
-              const item = await Item.findOne({
-                _id: detail.itemId,
-              });
-
-              await Inventory.populate(item, {
-                path: "ingredients.inventoryId",
-              })
-                .then((item) => {
-                  item.ingredients.forEach((e) => {
-                    if (e.inventoryId.qty.last - e.qty * detail.qty < 0) {
-                      outOfStockList.push(e);
-                    } else if (
-                      e.inventoryId.qty.last - e.qty * detail.qty <=
-                      e.inventoryId.qty.min
-                    ) {
-                      almostOutList.push(e);
-                    } else {
-                      availableList.push(e);
-                    }
-                  });
-                })
-                .catch((err) => {
-                  reject({ error: true, message: err });
-                });
-
-              if (outOfStockList.length > 0) {
-                reject({
-                  error: true,
-                  message: errorMessages.TRANSACTION_FAILED_OUT_OF_STOCK,
-                });
-              }
-
-              if (almostOutList.length > 0) {
-                almostOutList.forEach((e) => {
-                  inventoryController.updateInventory({
-                    headers: req.headers,
-                    body: {
-                      inventoryId: e.inventoryId._id,
-                      note: "Create Transaction",
-                      data: {
-                        qty: {
-                          status: "almostOut",
-                          last: e.inventoryId.qty.last - e.qty * detail.qty,
-                          early: e.inventoryId.qty.early,
-                          min: e.inventoryId.qty.min,
-                          max: e.inventoryId.qty.max,
-                        },
-                      },
-                    },
-                  });
-                });
-              }
-
-              if (availableList.length > 0) {
-                availableList.forEach((e) => {
-                  inventoryController.updateInventory({
-                    headers: req.headers,
-                    body: {
-                      inventoryId: e.inventoryId._id,
-                      note: "Create Transaction",
-                      data: {
-                        qty: {
-                          status: "available",
-                          last: e.inventoryId.qty.last - e.qty * detail.qty,
-                          early: e.inventoryId.qty.early,
-                          min: e.inventoryId.qty.min,
-                          max: e.inventoryId.qty.max,
-                        },
-                      },
-                    },
-                  });
-                });
-              }
-            } catch (error) {
-              reject({
-                error: true,
-                message: errorMessages.FAILED_SAVED_DATA,
-              });
-            }
-          });
-
-          await Promise.all(promises);
-
-          new Transaction(payload).save().then(async (result) => {
-            logController.createLog({
-              createdAt: dateISOString,
-              title: "Create Transaction",
-              note: "",
-              type: "transaction",
-              from: result._id,
-              by: userByToken._id,
-              data: result,
-            });
-
-            if (
-              body.status === "completed" &&
-              body.customerId &&
-              body.paymentMethod === "accountBalance" &&
-              customer.balance >= body.paymentAmount
-            ) {
-              await balanceTransactionController.createBalanceTransaction({
-                headers: req.headers,
-                body: {
-                  customerId: body.customerId,
-                  amount: body.paymentAmount,
-                  tag: "out",
-                  note: "Order Menu",
-                },
-              });
-            }
-
-            resolve({
-              error: false,
-              data: result,
-              message: successMessages.TRANSACTION_CREATED_SUCCESS,
-            });
-          });
+          componentData.qty.status = "available";
         }
-      });
-    } else {
-      return Promise.reject(payload);
+
+        await componentData.save();
+      }
+    }
+
+    // Return error jika ada out of stock
+    if (outOfStocks.length) {
+      return {
+        error: true,
+        message: {
+          id: `Bahan baku untuk ${outOfStocks[0].productName} tidak mencukupi`,
+        },
+        data: outOfStocks,
+      };
+    }
+
+    try {
+      const payload = {
+        ...body,
+        request: generateRequestCodes(),
+        createdAt: body.date,
+        updatedAt: body.date,
+      };
+      const transaction = await Transaction.create(payload);
+      return { error: false, data: transaction };
+    } catch (err) {
+      return { error: true, message: err };
     }
   },
 
@@ -252,41 +152,28 @@ module.exports = {
 
     isNotEveryQueryNull = () => {
       return (
-        req.query.keyword ||
-        req.query.customer ||
         req.query.businessId ||
+        req.query.createdAt ||
         req.query.outletId ||
-        req.query.userId ||
-        req.query.createdAt
+        req.query.userId
       );
     };
 
     return new Promise((resolve, reject) => {
       let pipeline = isNotEveryQueryNull()
         ? {
-            // status: transactionResource.STATUS.COMPLETED.value,
             $or: [
               {
-                customer: req.query.keyword
-                  ? { $regex: req.query.keyword, $options: "i" }
-                  : null,
-              },
-              {
-                customer: req.query.customer
-                  ? { $regex: req.query.customer, $options: "i" }
-                  : null,
-              },
-              {
                 businessId: req.query.businessId ? req.query.businessId : null,
+              },
+              {
+                createdAt: req.query.createdAt ? req.query.createdAt : null,
               },
               {
                 outletId: req.query.outletId ? req.query.outletId : null,
               },
               {
                 userId: req.query.userId ? req.query.userId : null,
-              },
-              {
-                createdAt: req.query.createdAt ? req.query.createdAt : null,
               },
             ],
           }
@@ -296,7 +183,7 @@ module.exports = {
         .paginate(pageKey, pageSize, pipeline, Transaction)
         .then((transactions) => {
           Transaction.populate(transactions.data, {
-            path: "businessId outletId userId details.itemId",
+            path: "businessId outletId userId details.productId",
           })
             .then((data) => {
               resolve({
@@ -371,7 +258,7 @@ module.exports = {
         .paginate(pageKey, pageSize, pipeline, Transaction, -1)
         .then((transactions) => {
           Transaction.populate(transactions.data, {
-            path: "businessId outletId userId details.itemId",
+            path: "businessId outletId userId details.productId",
           })
             .then((data) => {
               resolve({
@@ -411,82 +298,10 @@ module.exports = {
       body.data["updatedAt"] = dateISOString;
       body.data["changedBy"] = userByToken._id;
       return new Promise(async (resolve, reject) => {
-        if (body.data.status && body.data.status === "canceled") {
-          let transaction = await Transaction.findOne({
-            _id: body.transactionId,
-          });
-
-          const promises = transaction.details.map(async (detail) => {
-            try {
-              const item = await Item.findOne({ _id: detail.itemId });
-
-              await Inventory.populate(item, {
-                path: "ingredients.inventoryId",
-              })
-                .then((item) => {
-                  item.ingredients.forEach((e) => {
-                    inventoryController.updateInventory({
-                      headers: req.headers,
-                      body: {
-                        inventoryId: e.inventoryId._id,
-                        note: "Update Transaction",
-                        data: {
-                          qty: {
-                            last: e.inventoryId.qty.last + e.qty * detail.qty,
-                            early: e.inventoryId.qty.early,
-                            min: e.inventoryId.qty.min,
-                            max: e.inventoryId.qty.max,
-                          },
-                        },
-                      },
-                    });
-                  });
-                })
-                .catch((err) => {
-                  reject({ error: true, message: err });
-                });
-            } catch (err) {
-              reject({
-                error: true,
-                message: errorMessages.FAILED_SAVED_DATA,
-              });
-            }
-          });
-
-          await Promise.all(promises);
-        }
-
         Transaction.findByIdAndUpdate(body.transactionId, body.data, {
           new: true,
         })
-          .then(async (result) => {
-            logController.createLog({
-              createdAt: dateISOString,
-              title: "Update Transaction",
-              note: body.note ? body.note : "",
-              type: "transaction",
-              from: body.transactionId,
-              by: userByToken._id,
-              data: body.data,
-            });
-
-            if (
-              body.data.status === "completed" &&
-              body.data.customerId &&
-              body.data.paymentMethod === "accountBalance" &&
-              customer.balance >= body.data.paymentAmount
-            ) {
-              await balanceTransactionController.createBalanceTransaction({
-                headers: req.headers,
-                body: {
-                  customerId: body.customerId,
-                  amount: body.paymentAmount,
-                  tag: "out",
-                  note: "Order Menu",
-                },
-              });
-            }
-
+          .then((result) => {
             resolve({
               error: false,
               data: result,
