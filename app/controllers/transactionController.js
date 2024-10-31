@@ -9,6 +9,7 @@ const User = require("../models/userModel");
 // controllers
 const componentController = require("./componentController");
 const pageController = require("./utils/pageController");
+const slackController = require("./utils/slackController");
 
 // messages
 const errorMessages = require("../repository/messages/errorMessages");
@@ -58,92 +59,108 @@ function convertToLocaleISOString(date, type) {
 
 module.exports = {
   create: async (req) => {
-    const { body } = req;
-    const { order, payment } = body.status;
-    const isStockDecrease =
-      (order === "queued" || order === "completed") && payment === "completed";
-    const isStockIncrease = order === "returned" && payment === "completed";
-    const outOfStocks = [];
+    const body = req.body;
 
-    // Validasi body
-    const isBodyValid =
-      body.amount !== null &&
-      body.businessId &&
-      body.charges &&
-      body.date &&
-      body.details &&
-      body.paymentMethodId &&
-      body.promotions &&
-      body.outletId &&
-      body.taxes &&
-      body.tips &&
-      body.userId &&
-      body.status &&
-      body.serviceMethodId;
-
-    if (!isBodyValid) {
-      return { error: true, message: errorMessages.INVALID_DATA };
+    if (!Array.isArray(body.details) || body.details.length === 0) {
+      throw new Error("Data detail transaksi tidak valid.");
     }
 
-    // Gabung komponen dan additionals, lalu cek stoknya
-    const componentsList = body.details.flatMap(
-      ({ productId, components, additionals = [] }) =>
-        [...components, ...additionals.flatMap((a) => a.components)].map(
-          (c) => ({ ...c, productId })
-        )
-    );
+    for (const detail of body.details) {
+      const product = await Product.findById(detail.productId);
 
-    for (const { componentId, qty, productId } of componentsList) {
-      const componentData = await Component.findById(componentId);
-      const currentStock = componentData?.qty.current || 0;
+      if (!product) {
+        return {
+          error: true,
+          message: {
+            id: `Produk dengan ID ${detail.productId} tidak ditemukan.`,
+          },
+          data: { productId: detail.productId },
+        };
+      }
 
-      if (currentStock < qty) {
-        outOfStocks.push({
-          productName: productId,
-          componentName: componentData?.name || "Unknown",
-          requiredQty: qty,
-          availableQty: currentStock,
-        });
-      } else if (isStockDecrease || isStockIncrease) {
-        // Update stok
-        componentData.qty.current += isStockIncrease ? qty : -qty;
+      // 1. Cek qty produk
+      if (product.countable && product.qty < detail.qty) {
+        return {
+          error: true,
+          message: {
+            id: `Persediaan untuk produk ${product.name} tidak mencukupi.`,
+          },
+          data: { productId: detail.productId, availableQty: product.qty },
+        };
+      }
 
-        // Update status stok
-        if (componentData.qty.current <= 0) {
-          componentData.qty.status = "outOfStock";
-        } else if (componentData.qty.current <= componentData.qty.min) {
-          componentData.qty.status = "almostOut";
-        } else {
-          componentData.qty.status = "available";
+      // 2. Cek qty setiap komponen dalam `components` dan `additionals`
+      for (const componentDetail of [
+        ...detail.components,
+        ...detail.additionals.flatMap((a) => a.components),
+      ]) {
+        const component = await Component.findById(componentDetail.componentId);
+
+        if (!component) {
+          return {
+            error: true,
+            message: {
+              id: `Komponen dengan ID ${componentDetail.componentId} tidak ditemukan.`,
+            },
+            data: { componentId: componentDetail.componentId },
+          };
         }
 
-        await componentData.save();
+        // Hitung total qty yang dibutuhkan untuk komponen ini
+        const totalQtyNeeded = componentDetail.qty * detail.qty;
+
+        if (component.qty.current < totalQtyNeeded) {
+          return {
+            error: true,
+            message: { id: `Bahan baku untuk ${product.name} tidak mencukupi` },
+            data: {
+              componentId: componentDetail.componentId,
+              requiredQty: totalQtyNeeded,
+              availableQty: component.qty.current,
+            },
+          };
+        }
+      }
+
+      // Jika semua pengecekan qty produk dan komponen mencukupi, lanjutkan update qty
+      if (product.countable) {
+        product.qty -= detail.qty;
+        await product.save();
+      }
+
+      for (const componentDetail of [
+        ...detail.components,
+        ...detail.additionals.flatMap((a) => a.components),
+      ]) {
+        const component = await Component.findById(componentDetail.componentId);
+        component.qty.current -= componentDetail.qty * detail.qty;
+        await component.save();
       }
     }
 
-    // Return error jika ada out of stock
-    if (outOfStocks.length) {
-      return {
-        error: true,
-        message: {
-          id: `Bahan baku untuk ${outOfStocks[0].productName} tidak mencukupi`,
-        },
-        data: outOfStocks,
-      };
-    }
+    const payload = {
+      amount: body.amount,
+      businessId: body.businessId,
+      customerId: body.customerId,
+      details: body.details,
+      charges: body.charges,
+      promotions: body.promotions,
+      status: body.status,
+      taxes: body.taxes,
+      tips: body.tips,
+      userId: body.userId,
+      request: generateRequestCodes(),
+      createdAt: getDateWithOffset(new Date()),
+      updatedAt: getDateWithOffset(new Date()),
+    };
 
-    try {
-      const payload = {
-        ...body,
-        request: generateRequestCodes(),
-        createdAt: body.date,
-        updatedAt: body.date,
-      };
-      const transaction = await Transaction.create(payload);
-      return { error: false, data: transaction };
-    } catch (err) {
-      return { error: true, message: err };
-    }
+    const transaction = await Transaction.create(payload);
+
+    return {
+      error: false,
+      message: successMessages.TRANSACTION_CREATED_SUCCESS,
+      data: transaction,
+    };
   },
 
   get: (req) => {
@@ -295,22 +312,30 @@ module.exports = {
         message: errorMessages.INVALID_DATA,
       });
     } else {
-      body.data["updatedAt"] = dateISOString;
       body.data["changedBy"] = userByToken._id;
+      body.data["updatedAt"] = dateISOString;
+
       return new Promise(async (resolve, reject) => {
-        Transaction.findByIdAndUpdate(body.transactionId, body.data, {
-          new: true,
-        })
-          .then((result) => {
-            resolve({
-              error: false,
-              data: result,
-              message: successMessages.DATA_SUCCESS_UPDATED,
-            });
+        if (body.data.status.order === "canceled") {
+          Transaction.findByIdAndUpdate(body.transactionId, body.data, {
+            new: true,
           })
-          .catch((err) => {
-            reject({ error: true, message: err });
+            .then((result) => {
+              resolve({
+                error: false,
+                data: result,
+                message: successMessages.DATA_SUCCESS_UPDATED,
+              });
+            })
+            .catch((err) => {
+              reject({ error: true, message: err });
+            });
+          resolve({
+            error: false,
+            data: data,
+            count: data.count,
           });
+        }
       });
     }
   },

@@ -72,7 +72,7 @@ module.exports = {
             },
           ];
 
-          Business.insertMany(businessesPayload, { ordered: false })
+          Business.insertMany(businessesPayload, { ordered: true })
             .then((businesses) => {
               const outletsPayload = [
                 {
@@ -131,7 +131,7 @@ module.exports = {
               ];
 
               PaymentMethod.insertMany(paymentMethodsPayload, {
-                ordered: false,
+                ordered: true,
               })
                 .then((paymentMethods) => {
                   const serviceMethodsPayload = [
@@ -162,9 +162,9 @@ module.exports = {
                   ];
 
                   ServiceMethod.insertMany(serviceMethodsPayload, {
-                    ordered: false,
-                  }).then((serviceMethodsPayload) => {
-                    Outlet.insertMany(outletsPayload, { ordered: false }).then(
+                    ordered: true,
+                  }).then((serviceMethods) => {
+                    Outlet.insertMany(outletsPayload, { ordered: true }).then(
                       (outlets) => {
                         const rolesPayload = [
                           {
@@ -177,7 +177,7 @@ module.exports = {
                           },
                         ];
 
-                        Role.insertMany(rolesPayload, { ordered: false })
+                        Role.insertMany(rolesPayload, { ordered: true })
                           .then((roles) => {
                             const usersPayload = [
                               {
@@ -206,7 +206,7 @@ module.exports = {
                               },
                             ];
 
-                            User.insertMany(usersPayload, { ordered: false })
+                            User.insertMany(usersPayload, { ordered: true })
                               .then((users) => {
                                 const categoriesPayload = [
                                   {
@@ -219,7 +219,7 @@ module.exports = {
                                 ];
 
                                 Category.insertMany(categoriesPayload, {
-                                  ordered: false,
+                                  ordered: true,
                                 })
                                   .then((categories) => {
                                     const unitsPayload = [
@@ -280,7 +280,7 @@ module.exports = {
                                     ];
 
                                     Unit.insertMany(unitsPayload, {
-                                      ordered: false,
+                                      ordered: true,
                                     })
                                       .then((units) => {
                                         const currenciesPayload = [
@@ -311,7 +311,7 @@ module.exports = {
                                         ];
 
                                         Currency.insertMany(currenciesPayload, {
-                                          ordered: false,
+                                          ordered: true,
                                         }).then((currencies) => {
                                           const componentsPayload = [
                                             {
@@ -339,7 +339,7 @@ module.exports = {
                                           Component.insertMany(
                                             componentsPayload,
                                             {
-                                              ordered: false,
+                                              ordered: true,
                                             }
                                           )
                                             .then((components) => {
@@ -375,6 +375,7 @@ module.exports = {
                                                       qty: 10,
                                                     },
                                                   ],
+                                                  qty: 0,
                                                   createdAt: dateISOString,
                                                   updatedAt: dateISOString,
                                                 },
@@ -383,7 +384,7 @@ module.exports = {
                                               Product.insertMany(
                                                 productsPayload,
                                                 {
-                                                  ordered: false,
+                                                  ordered: true,
                                                 }
                                               )
                                                 .then((products) => {
@@ -417,7 +418,7 @@ module.exports = {
                                                   Charge.insertMany(
                                                     chargesPayload,
                                                     {
-                                                      ordered: false,
+                                                      ordered: true,
                                                     }
                                                   )
                                                     .then((charges) => {
@@ -486,7 +487,7 @@ module.exports = {
                                                         .then((taxes) => {
                                                           Promotion.insertMany(
                                                             promotionsPayload,
-                                                            { ordered: false }
+                                                            { ordered: true }
                                                           )
                                                             .then(
                                                               (promotions) => {
@@ -517,13 +518,112 @@ module.exports = {
                                                                 Customer.insertMany(
                                                                   customersPayload,
                                                                   {
-                                                                    ordered: false,
+                                                                    ordered: true,
                                                                   }
                                                                 )
                                                                   .then(
                                                                     (
                                                                       customers
                                                                     ) => {
+                                                                      const transactions =
+                                                                        [
+                                                                          {
+                                                                            amount: 25000,
+                                                                            businessId:
+                                                                              businesses[0]._id.toString(),
+                                                                            customerId:
+                                                                              customers[0]._id.toString(),
+                                                                            charges:
+                                                                              [
+                                                                                {
+                                                                                  amount: 0.15,
+                                                                                  chargeId:
+                                                                                    charges[0]._id.toString(),
+                                                                                  type: "persentage",
+                                                                                },
+                                                                              ],
+                                                                            details:
+                                                                              [
+                                                                                {
+                                                                                  additionals:
+                                                                                    [
+                                                                                      {
+                                                                                        components:
+                                                                                          [
+                                                                                            {
+                                                                                              componentId:
+                                                                                                components[0]._id.toString(),
+                                                                                              qty: 2,
+                                                                                            },
+                                                                                          ],
+                                                                                        cost: 3000,
+                                                                                        price: 4000,
+                                                                                        productId:
+                                                                                          products[0]._id.toString(),
+                                                                                      },
+                                                                                    ],
+                                                                                  components:
+                                                                                    [
+                                                                                      {
+                                                                                        componentId:
+                                                                                          components[0]._id.toString(),
+                                                                                        qty: 2,
+                                                                                      },
+                                                                                    ],
+                                                                                  cost: 8000,
+                                                                                  note: "Note Untuk Produk",
+                                                                                  price: 22000,
+                                                                                  productId:
+                                                                                    products[0]._id.toString(),
+                                                                                  qty: 2,
+                                                                                },
+                                                                              ],
+                                                                            note: "Note untuk transaksi",
+                                                                            outletId:
+                                                                              outlets[0]._id.toString(),
+                                                                            paymentMethodId:
+                                                                              paymentMethods[0]._id.toString(),
+                                                                            promotions:
+                                                                              [
+                                                                                {
+                                                                                  amount: 0.1,
+                                                                                  promotionId:
+                                                                                    promotions[0]._id.toString(),
+                                                                                  type: "persentage",
+                                                                                },
+                                                                              ],
+                                                                            status:
+                                                                              {
+                                                                                order:
+                                                                                  "queued",
+                                                                                payment:
+                                                                                  "completed",
+                                                                              },
+                                                                            serviceMethodId:
+                                                                              serviceMethods[0]._id.toString(),
+                                                                            taxes:
+                                                                              [
+                                                                                {
+                                                                                  amount: 0.1,
+                                                                                  taxId:
+                                                                                    taxes[0]._id.toString(),
+                                                                                  type: "persentage",
+                                                                                },
+                                                                              ],
+                                                                            tips: [
+                                                                              {
+                                                                                amount: 15000,
+                                                                                name: "Tip Service",
+                                                                                note: "Untuk pelayan baju merah servicenya oke banget!",
+                                                                              },
+                                                                            ],
+                                                                            userId:
+                                                                              users[0]._id.toString(),
+                                                                            // timestamp
+                                                                            date: "2024-10-26T17:33:06.115+07:00",
+                                                                          },
+                                                                        ];
+
                                                                       resolve({
                                                                         error: false,
                                                                         data: {
@@ -540,6 +640,9 @@ module.exports = {
                                                                           taxes,
                                                                           promotions,
                                                                           customers,
+                                                                          paymentMethods,
+                                                                          serviceMethods,
+                                                                          transactions,
                                                                         },
                                                                         message:
                                                                           successMessages.ACCESS_CREATED_SUCCESS,

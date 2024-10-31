@@ -19,7 +19,8 @@
   },
   "homepage": "https://github.com/liecyborg28/general-pos-be#readme",
   "dependencies": {
-    "axios": "^1.7.2",
+    "@slack/web-api": "^7.7.0",
+    "axios": "^1.7.7",
     "cors": "^2.8.5",
     "docx": "^8.5.0",
     "dotenv": "^16.4.5",

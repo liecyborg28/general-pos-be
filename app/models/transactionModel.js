@@ -16,53 +16,55 @@ const Transaction = mongoose.Schema({
     ref: "Customer",
   },
   charges: [
-    {
-      amount: Number,
-      chargeId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Charge",
-      },
-      type: String,
-    },
+    // {
+    //   amount: Number,
+    //   chargeId: String,
+    //   chargeId: {
+    //     type: mongoose.Schema.Types.ObjectId,
+    //     ref: "Charge",
+    //   },
+    //   type: String,
+    // },
   ],
   details: [
-    {
-      additionals: [
-        {
-          components: [
-            {
-              componentId: {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: "Component",
-              },
-              qty: Number,
-            },
-          ],
-          cost: Number,
-          price: Number,
-          productId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Product",
-          },
-        },
-      ],
-      components: [
-        {
-          componentId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Component",
-          },
-          qty: Number,
-        },
-      ],
-      cost: Number,
-      note: String,
-      price: Number,
-      productId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Product",
-      },
-    },
+    // {
+    //   additionals: [
+    //     {
+    //       components: [
+    //         {
+    //           componentId: {
+    //             type: mongoose.Schema.Types.ObjectId,
+    //             ref: "Component",
+    //           },
+    //           qty: Number,
+    //         },
+    //       ],
+    //       cost: Number,
+    //       price: Number,
+    //       productId: {
+    //         type: mongoose.Schema.Types.ObjectId,
+    //         ref: "Product",
+    //       },
+    //     },
+    //   ],
+    //   components: [
+    //     {
+    //       componentId: {
+    //         type: mongoose.Schema.Types.ObjectId,
+    //         ref: "Component",
+    //       },
+    //       qty: Number,
+    //     },
+    //   ],
+    //   cost: Number,
+    //   note: String,
+    //   price: Number,
+    //   productId: {
+    //     type: mongoose.Schema.Types.ObjectId,
+    //     ref: "Product",
+    //   },
+    //   qty: Number,
+    // },
   ],
   note: String,
   outletId: {
@@ -74,14 +76,14 @@ const Transaction = mongoose.Schema({
     ref: "PaymentMethod",
   },
   promotions: [
-    {
-      amount: Number,
-      promotionId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Promotion",
-      },
-      type: String,
-    },
+    // {
+    //   amount: Number,
+    //   promotionId: {
+    //     type: mongoose.Schema.Types.ObjectId,
+    //     ref: "Promotion",
+    //   },
+    //   type: String,
+    // },
   ],
   request: {
     status: String,
@@ -97,14 +99,14 @@ const Transaction = mongoose.Schema({
     ref: "ServiceMethod",
   },
   taxes: [
-    {
-      amount: Number,
-      taxId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Tax",
-      },
-      type: String,
-    },
+    // {
+    //   amount: Number,
+    //   taxId: {
+    //     type: mongoose.Schema.Types.ObjectId,
+    //     ref: "Tax",
+    //   },
+    //   type: String,
+    // },
   ],
   tips: [
     {
