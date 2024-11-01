@@ -1,13 +1,20 @@
 // models
+const Business = require("../models/businessModel");
 const Component = require("../models/componentModel");
+const Charge = require("../models/chargeModel");
+const Customer = require("../models/customerModel");
+const Outlet = require("../models/outletModel");
 const PaymentMethod = require("../models/paymentMethodModel");
 const Product = require("../models/productModel");
+const Promotion = require("../models/promotionModel");
 const ServiceMethod = require("../models/serviceMethodModel");
+const Tax = require("../models/taxModel");
 const Transaction = require("../models/transactionModel");
 const User = require("../models/userModel");
 
 // controllers
 const componentController = require("./componentController");
+const dataController = require("./utils/dataController");
 const pageController = require("./utils/pageController");
 const slackController = require("./utils/slackController");
 
@@ -29,14 +36,14 @@ function generateRequestCodes() {
   return { status: "initial", viewCode, valueCode: reversedValueCode };
 }
 
-function getDateWithOffset(date = new Date()) {
-  const offset = -date.getTimezoneOffset();
-  const sign = offset >= 0 ? "+" : "-";
-  const hours = String(Math.floor(Math.abs(offset) / 60)).padStart(2, "0");
-  const minutes = String(Math.abs(offset) % 60).padStart(2, "0");
+// function getDateWithOffset(date = new Date()) {
+//   const offset = -date.getTimezoneOffset();
+//   const sign = offset >= 0 ? "+" : "-";
+//   const hours = String(Math.floor(Math.abs(offset) / 60)).padStart(2, "0");
+//   const minutes = String(Math.abs(offset) % 60).padStart(2, "0");
 
-  return date.toISOString().slice(0, -1) + sign + hours + ":" + minutes;
-}
+//   return date.toISOString().slice(0, -1) + sign + hours + ":" + minutes;
+// }
 
 function convertToLocaleISOString(date, type) {
   if (type !== "start" && type !== "end") {
@@ -60,6 +67,8 @@ function convertToLocaleISOString(date, type) {
 module.exports = {
   create: async (req) => {
     const body = req.body;
+
+    let dateISOString = new Date().toISOString();
 
     if (!Array.isArray(body.details) || body.details.length === 0) {
       throw new Error("Data detail transaksi tidak valid.");
@@ -150,8 +159,8 @@ module.exports = {
       tips: body.tips,
       userId: body.userId,
       request: generateRequestCodes(),
-      createdAt: getDateWithOffset(new Date()),
-      updatedAt: getDateWithOffset(new Date()),
+      createdAt: dateISOString,
+      updatedAt: dateISOString,
     };
 
     const transaction = await Transaction.create(payload);
@@ -163,135 +172,146 @@ module.exports = {
     };
   },
 
-  get: (req) => {
-    let pageKey = req.query.pageKey ? req.query.pageKey : 1;
-    let pageSize = req.query.pageSize ? req.query.pageSize : null;
+  get: async (req) => {
+    let dateISOString = new Date().toISOString();
 
-    isNotEveryQueryNull = () => {
-      return (
-        req.query.businessId ||
-        req.query.createdAt ||
-        req.query.outletId ||
-        req.query.userId
-      );
-    };
-
-    return new Promise((resolve, reject) => {
-      let pipeline = isNotEveryQueryNull()
-        ? {
-            $or: [
-              {
-                businessId: req.query.businessId ? req.query.businessId : null,
-              },
-              {
-                createdAt: req.query.createdAt ? req.query.createdAt : null,
-              },
-              {
-                outletId: req.query.outletId ? req.query.outletId : null,
-              },
-              {
-                userId: req.query.userId ? req.query.userId : null,
-              },
-            ],
-          }
-        : {};
-
-      pageController
-        .paginate(pageKey, pageSize, pipeline, Transaction)
-        .then((transactions) => {
-          Transaction.populate(transactions.data, {
-            path: "businessId outletId userId details.productId",
-          })
-            .then((data) => {
-              resolve({
-                error: false,
-                data: data,
-                count: transactions.count,
-              });
-            })
-            .catch((err) => {
-              reject({ error: true, message: err });
-            });
-        })
-        .catch((err) => {
-          reject({ error: true, message: err });
-        });
-    });
-  },
-
-  getByPeriod: (req) => {
     let pageKey = req.query.pageKey ? req.query.pageKey : 1;
     let pageSize = req.query.pageSize
       ? req.query.pageSize
       : 1 * 1000 * 1000 * 1000;
 
-    let defaultFrom = convertToLocaleISOString(new Date(), "start");
-    let defaultTo = convertToLocaleISOString(new Date(), "end");
+    let defaultFrom = convertToLocaleISOString(dateISOString, "start");
+    let defaultTo = convertToLocaleISOString(dateISOString, "end");
 
-    isNotEveryQueryNull = () => {
+    const isNotEveryQueryNull = () => {
       return req.query.from || req.query.to;
     };
 
-    return new Promise((resolve, reject) => {
-      let pipeline = isNotEveryQueryNull()
-        ? req.query.outletId
-          ? {
-              outletId: req.query.outletId,
-              createdAt: {
-                $gte: req.query.from
-                  ? convertToLocaleISOString(new Date(req.query.from), "start")
-                  : defaultFrom,
-                $lte: req.query.to
-                  ? convertToLocaleISOString(new Date(req.query.to), "end")
-                  : defaultTo,
-              },
-            }
-          : {
-              createdAt: {
-                $gte: req.query.from
-                  ? convertToLocaleISOString(new Date(req.query.from), "start")
-                  : defaultFrom,
-                $lte: req.query.to
-                  ? convertToLocaleISOString(new Date(req.query.to), "end")
-                  : defaultTo,
-              },
-            }
-        : req.query.outletId
+    let pipeline = isNotEveryQueryNull()
+      ? req.query.outletId
         ? {
             outletId: req.query.outletId,
             createdAt: {
-              $gte: defaultFrom,
-              $lte: defaultTo,
+              $gte: req.query.from
+                ? convertToLocaleISOString(new Date(req.query.from), "start")
+                : defaultFrom,
+              $lte: req.query.to
+                ? convertToLocaleISOString(new Date(req.query.to), "end")
+                : defaultTo,
             },
           }
         : {
             createdAt: {
-              $gte: defaultFrom,
-              $lte: defaultTo,
+              $gte: req.query.from
+                ? convertToLocaleISOString(new Date(req.query.from), "start")
+                : defaultFrom,
+              $lte: req.query.to
+                ? convertToLocaleISOString(new Date(req.query.to), "end")
+                : defaultTo,
             },
-          };
+          }
+      : req.query.outletId
+      ? {
+          outletId: req.query.outletId,
+          createdAt: {
+            $gte: defaultFrom,
+            $lte: defaultTo,
+          },
+        }
+      : {
+          createdAt: {
+            $gte: defaultFrom,
+            $lte: defaultTo,
+          },
+        };
 
-      pageController
-        .paginate(pageKey, pageSize, pipeline, Transaction, -1)
-        .then((transactions) => {
-          Transaction.populate(transactions.data, {
-            path: "businessId outletId userId details.productId",
-          })
-            .then((data) => {
-              resolve({
-                error: false,
-                data: data,
-                count: transactions.count,
-              });
-            })
-            .catch((err) => {
-              reject({ error: true, message: err });
-            });
-        })
-        .catch((err) => {
-          reject({ error: true, message: err });
-        });
-    });
+    try {
+      // Fetch data transaksi berdasarkan periode
+      const transactions = await pageController.paginate(
+        pageKey,
+        pageSize,
+        pipeline,
+        Transaction,
+        -1
+      );
+
+      // Loop untuk melakukan populate pada setiap transaksi
+      for (const transaction of transactions.data) {
+        // Populate businessId, userId, customerId, outletId, serviceMethodId, dan paymentMethodId
+        transaction.businessId = await dataController.populateFieldById(
+          Business,
+          transaction.businessId
+        );
+        transaction.userId = await dataController.populateFieldById(
+          User,
+          transaction.userId
+        );
+        transaction.customerId = await dataController.populateFieldById(
+          Customer,
+          transaction.customerId
+        );
+        transaction.outletId = await dataController.populateFieldById(
+          Outlet,
+          transaction.outletId
+        );
+        transaction.serviceMethodId = await dataController.populateFieldById(
+          ServiceMethod,
+          transaction.serviceMethodId
+        );
+        transaction.paymentMethodId = await dataController.populateFieldById(
+          PaymentMethod,
+          transaction.paymentMethodId
+        );
+
+        // Populate charges
+        for (const charge of transaction.charges) {
+          charge.chargeId = await dataController.populateFieldById(
+            Charge,
+            charge.chargeId
+          );
+        }
+
+        // Populate promotions
+        for (const promotion of transaction.promotions) {
+          promotion.promotionId = await dataController.populateFieldById(
+            Promotion,
+            promotion.promotionId
+          );
+        }
+
+        // Populate taxes
+        for (const tax of transaction.taxes) {
+          tax.taxId = await dataController.populateFieldById(Tax, tax.taxId);
+        }
+
+        // Populate componentId di dalam details
+        for (const detail of transaction.details) {
+          for (const component of detail.components) {
+            component.componentId = await dataController.populateFieldById(
+              Component,
+              component.componentId
+            );
+          }
+          // Jika ada additionals yang memiliki components, populate juga componentId di dalam additionals
+          for (const additional of detail.additionals || []) {
+            for (const component of additional.components) {
+              component.componentId = await dataController.populateFieldById(
+                Component,
+                component.componentId
+              );
+            }
+          }
+        }
+      }
+
+      return {
+        error: false,
+        data: transactions.data,
+        count: transactions.count,
+      };
+    } catch (err) {
+      return { error: true, message: err.message || "Unknown error" };
+    }
   },
 
   update: async (req) => {

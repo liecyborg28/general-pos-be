@@ -619,8 +619,6 @@ module.exports = {
                                                                             ],
                                                                             userId:
                                                                               users[0]._id.toString(),
-                                                                            // timestamp
-                                                                            date: "2024-10-26T17:33:06.115+07:00",
                                                                           },
                                                                         ];
 

@@ -21,4 +21,21 @@ module.exports = {
         });
     });
   },
+
+  populateFieldById: async (model, id) => {
+    try {
+      const result = await model.findById(id);
+      if (!result)
+        console.error(
+          `Data not found for ID: ${id} in model ${model.modelName}`
+        );
+      return result;
+    } catch (error) {
+      console.error(
+        `Error populating ${model.modelName} with ID: ${id}`,
+        error
+      );
+      return null;
+    }
+  },
 };

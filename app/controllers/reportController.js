@@ -1,14 +1,20 @@
 const ExcelJS = require("exceljs");
-const excelController = require("./utils/excelController");
-const Transaction = require("../models/transactionModel");
+
+// models
 const Product = require("../models/productModel");
+const Transaction = require("../models/transactionModel");
+
+// controllers
+const dataController = require("./utils/dataController");
+const excelController = require("./utils/excelController");
 const pageController = require("./utils/pageController");
-const errorMessages = require("../repository/messages/errorMessages");
-const successMessages = require("../repository/messages/successMessages");
 const productController = require("./productController");
 const productResource = require("../repository/resources/productResource");
 const transactionResource = require("../repository/resources/transactionResource");
-const dataController = require("./utils/dataController");
+
+// repositories
+const errorMessages = require("../repository/messages/errorMessages");
+const successMessages = require("../repository/messages/successMessages");
 
 function convertToLocaleISOString(date, type) {
   let isoString = new Date(date).toISOString();
