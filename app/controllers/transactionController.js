@@ -15,6 +15,7 @@ const User = require("../models/userModel");
 // controllers
 const componentController = require("./componentController");
 const dataController = require("./utils/dataController");
+const formatController = require("./utils/formatController");
 const pageController = require("./utils/pageController");
 const slackController = require("./utils/slackController");
 
@@ -44,25 +45,6 @@ function generateRequestCodes() {
 
 //   return date.toISOString().slice(0, -1) + sign + hours + ":" + minutes;
 // }
-
-function convertToLocaleISOString(date, type) {
-  if (type !== "start" && type !== "end") {
-    throw new Error('Parameter "type" harus "start" atau "end"');
-  }
-
-  // Format bagian tanggal (tanpa timezone) dari input date
-  const [year, month, day] = date.slice(0, 10).split("-");
-
-  // Menentukan waktu berdasarkan type
-  const time = type === "start" ? "00:00:00.000" : "23:59:59.999";
-
-  // Menambahkan offset dari date input
-  const offset = date.slice(19);
-
-  // Menghasilkan string ISO dengan offset yang sudah didapat
-  // return `${year}-${month}-${day}T${time}${offset}`;
-  return `${year}-${month}-${day}T${time}`;
-}
 
 module.exports = {
   create: async (req) => {
@@ -183,8 +165,14 @@ module.exports = {
       ? req.query.pageSize
       : 1 * 1000 * 1000 * 1000;
 
-    let defaultFrom = convertToLocaleISOString(dateISOString, "start");
-    let defaultTo = convertToLocaleISOString(dateISOString, "end");
+    let defaultFrom = formatController.convertToLocaleISOString(
+      dateISOString,
+      "start"
+    );
+    let defaultTo = formatController.convertToLocaleISOString(
+      dateISOString,
+      "end"
+    );
 
     const isNotEveryQueryNull = () => {
       return req.query.from || req.query.to;
@@ -196,20 +184,32 @@ module.exports = {
             outletId: req.query.outletId,
             createdAt: {
               $gte: req.query.from
-                ? convertToLocaleISOString(new Date(req.query.from), "start")
+                ? formatController.convertToLocaleISOString(
+                    new Date(req.query.from),
+                    "start"
+                  )
                 : defaultFrom,
               $lte: req.query.to
-                ? convertToLocaleISOString(new Date(req.query.to), "end")
+                ? formatController.convertToLocaleISOString(
+                    new Date(req.query.to),
+                    "end"
+                  )
                 : defaultTo,
             },
           }
         : {
             createdAt: {
               $gte: req.query.from
-                ? convertToLocaleISOString(new Date(req.query.from), "start")
+                ? formatController.convertToLocaleISOString(
+                    new Date(req.query.from),
+                    "start"
+                  )
                 : defaultFrom,
               $lte: req.query.to
-                ? convertToLocaleISOString(new Date(req.query.to), "end")
+                ? formatController.convertToLocaleISOString(
+                    new Date(req.query.to),
+                    "end"
+                  )
                 : defaultTo,
             },
           }

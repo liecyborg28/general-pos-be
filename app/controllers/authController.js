@@ -204,6 +204,30 @@ module.exports = {
                                 createdAt: dateISOString,
                                 updatedAt: dateISOString,
                               },
+                              {
+                                auth: {
+                                  accessToken: authUtils.generateAccessToken(),
+                                  expiredAt:
+                                    authUtils.generateExpirationDate(7),
+                                },
+                                businessId: businesses[0]._id.toString(),
+                                email: null,
+                                gender: "female",
+                                imageUrl: null,
+                                name: "User Name 2",
+                                password: "12345678",
+                                phone: null,
+                                roleId: roles[0]._id.toString(),
+                                settings: {
+                                  theme: "light",
+                                  language: "id",
+                                },
+                                status: "active",
+                                username: "admin2",
+                                // timestamp
+                                createdAt: dateISOString,
+                                updatedAt: dateISOString,
+                              },
                             ];
 
                             User.insertMany(usersPayload, { ordered: true })
@@ -461,6 +485,7 @@ module.exports = {
                                                             users[0]._id.toString(),
                                                           default: false,
                                                           name: "Persentage Tax",
+                                                          type: "persentage",
                                                           createdAt:
                                                             dateISOString,
                                                           updatedAt:
@@ -474,6 +499,7 @@ module.exports = {
                                                             users[0]._id.toString(),
                                                           default: false,
                                                           name: "Fixed Tax",
+                                                          type: "fixed",
                                                           createdAt:
                                                             dateISOString,
                                                           updatedAt:
@@ -560,6 +586,7 @@ module.exports = {
                                                                                         price: 4000,
                                                                                         productId:
                                                                                           products[0]._id.toString(),
+                                                                                        qty: 1,
                                                                                       },
                                                                                     ],
                                                                                   components:
