@@ -49,12 +49,14 @@ function generateRequestCodes() {
 module.exports = {
   create: async (req) => {
     const body = req.body;
-
     let dateISOString = new Date().toISOString();
 
     if (!Array.isArray(body.details) || body.details.length === 0) {
       throw new Error("Data detail transaksi tidak valid.");
     }
+
+    // Inisialisasi objek untuk menyimpan total kebutuhan setiap component
+    const componentRequirements = {};
 
     for (const detail of body.details) {
       const product = await Product.findById(detail.productId);
@@ -69,7 +71,7 @@ module.exports = {
         };
       }
 
-      // 1. Cek qty produk
+      // Cek qty produk
       if (product.countable && product.qty < detail.qty) {
         return {
           error: true,
@@ -80,53 +82,66 @@ module.exports = {
         };
       }
 
-      // 2. Cek qty setiap komponen dalam `components` dan `additionals`
+      // Tambahkan kebutuhan qty untuk setiap komponen di detail dan additionals
       for (const componentDetail of [
         ...detail.components,
         ...detail.additionals.flatMap((a) => a.components),
       ]) {
-        const component = await Component.findById(componentDetail.componentId);
+        const componentId = componentDetail.componentId;
+        const neededQty = componentDetail.qty * detail.qty;
 
-        if (!component) {
-          return {
-            error: true,
-            message: {
-              id: `Komponen dengan ID ${componentDetail.componentId} tidak ditemukan.`,
-            },
-            data: { componentId: componentDetail.componentId },
-          };
-        }
-
-        // Hitung total qty yang dibutuhkan untuk komponen ini
-        const totalQtyNeeded = componentDetail.qty * detail.qty;
-
-        if (component.qty.current < totalQtyNeeded) {
-          return {
-            error: true,
-            message: { id: `Bahan baku untuk ${product.name} tidak mencukupi` },
-            data: {
-              componentId: componentDetail.componentId,
-              requiredQty: totalQtyNeeded,
-              availableQty: component.qty.current,
-            },
-          };
+        if (componentRequirements[componentId]) {
+          componentRequirements[componentId] += neededQty;
+        } else {
+          componentRequirements[componentId] = neededQty;
         }
       }
+    }
 
-      // Jika semua pengecekan qty produk dan komponen mencukupi, lanjutkan update qty
+    // Cek apakah setiap komponen memiliki qty yang mencukupi
+    for (const [componentId, totalQtyNeeded] of Object.entries(
+      componentRequirements
+    )) {
+      const component = await Component.findById(componentId);
+
+      if (!component) {
+        return {
+          error: true,
+          message: { id: `Komponen dengan ID ${componentId} tidak ditemukan.` },
+          data: { componentId },
+        };
+      }
+
+      if (component.qty.current < totalQtyNeeded) {
+        return {
+          error: true,
+          message: { id: `Bahan baku untuk komponen tidak mencukupi.` },
+          data: {
+            componentId,
+            requiredQty: totalQtyNeeded,
+            availableQty: component.qty.current,
+          },
+        };
+      }
+    }
+
+    // Update qty produk dan komponen jika semua kebutuhan mencukupi
+    for (const detail of body.details) {
+      const product = await Product.findById(detail.productId);
+
       if (product.countable) {
         product.qty -= detail.qty;
         await product.save();
       }
+    }
 
-      for (const componentDetail of [
-        ...detail.components,
-        ...detail.additionals.flatMap((a) => a.components),
-      ]) {
-        const component = await Component.findById(componentDetail.componentId);
-        component.qty.current -= componentDetail.qty * detail.qty;
-        await component.save();
-      }
+    // Update qty komponen berdasarkan total kebutuhan
+    for (const [componentId, totalQtyNeeded] of Object.entries(
+      componentRequirements
+    )) {
+      const component = await Component.findById(componentId);
+      component.qty.current -= totalQtyNeeded;
+      await component.save();
     }
 
     const payload = {
