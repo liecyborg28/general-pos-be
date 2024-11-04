@@ -1,9 +1,4 @@
 const ExcelJS = require("exceljs");
-const fs = require("fs");
-
-// repositories
-const errorMessages = require("../../repository/messages/errorMessages");
-const successMessages = require("../../repository/messages/successMessages");
 
 module.exports = {
   generateExcel: async function (data) {
@@ -95,11 +90,12 @@ module.exports = {
         });
       });
 
-      const filePath = `./${book.name}.xlsx`;
-      await workbook.xlsx.writeFile(filePath);
-      console.log(`File saved as ${filePath}`);
+      // Return the Excel file as a buffer instead of saving it
+      const buffer = await workbook.xlsx.writeBuffer();
+      return buffer;
     } catch (error) {
       console.error("Error generating Excel file:", error);
+      throw error;
     }
   },
 };
