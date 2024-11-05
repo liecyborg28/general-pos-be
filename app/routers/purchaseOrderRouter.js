@@ -4,26 +4,8 @@ const router = require("express").Router();
 const authController = require("../controllers/authController");
 const purchaseOrderController = require("../controllers/purchaseOrderController");
 
-router.get("/transactions/period", (req, res) => {
-  authController
-    .checkAccess(req)
-    .then(() => {
-      purchaseOrderController
-        .getByPeriod(req)
-        .then((value) => {
-          res.status(200).send(value);
-        })
-        .catch((err) => {
-          res.status(500).send(err);
-        });
-    })
-    .catch((err) => {
-      res.status(500).send(err);
-    });
-});
-
 router
-  .route("/transactions")
+  .route("/purchaseOrders")
   .get((req, res) => {
     authController
       .checkAccess(req)
