@@ -32,7 +32,7 @@ const Component = mongoose.Schema({
   },
   // timestamp
   createdAt: String,
-  uodatedAt: String,
+  updatedAt: String,
 });
 
 module.exports = mongoose.model("Component", Component);

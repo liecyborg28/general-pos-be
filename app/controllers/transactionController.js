@@ -13,11 +13,9 @@ const Transaction = require("../models/transactionModel");
 const User = require("../models/userModel");
 
 // controllers
-const componentController = require("./componentController");
 const dataController = require("./utils/dataController");
 const formatController = require("./utils/formatController");
 const pageController = require("./utils/pageController");
-const slackController = require("./utils/slackController");
 
 // messages
 const errorMessages = require("../repository/messages/errorMessages");
@@ -55,8 +53,8 @@ module.exports = {
       throw new Error("Data detail transaksi tidak valid.");
     }
 
-    // Inisialisasi objek untuk menyimpan total kebutuhan setiap component
-    const componentRequirements = {};
+    // Inisialisasi objek untuk menyimpan total kebutuhan atau pengembalian setiap komponen
+    const componentAdjustments = {};
 
     for (const detail of body.details) {
       const product = await Product.findById(detail.productId);
@@ -71,36 +69,53 @@ module.exports = {
         };
       }
 
-      // Cek qty produk
-      if (product.countable && product.qty < detail.qty) {
-        return {
-          error: true,
-          message: {
-            id: `Persediaan untuk produk ${product.name} tidak mencukupi.`,
-          },
-          data: { productId: detail.productId, availableQty: product.qty },
-        };
+      // Cek apakah transaksi adalah retur berdasarkan status pesanan
+      const isReturnTransaction =
+        body.status && body.status.order === "returned";
+
+      // Jika bukan retur, cek qty produk untuk transaksi reguler
+      if (!isReturnTransaction) {
+        if (product.countable && product.qty < detail.qty) {
+          return {
+            error: true,
+            message: {
+              id: `Persediaan untuk produk ${product.name} tidak mencukupi.`,
+            },
+            data: { productId: detail.productId, availableQty: product.qty },
+          };
+        }
       }
 
-      // Tambahkan kebutuhan qty untuk setiap komponen di detail dan additionals
+      // Proses komponen berdasarkan jenis transaksi (penambahan atau pengurangan qty komponen)
       for (const componentDetail of [
         ...detail.components,
         ...detail.additionals.flatMap((a) => a.components),
       ]) {
         const componentId = componentDetail.componentId;
-        const neededQty = componentDetail.qty * detail.qty;
+        const adjustedQty = componentDetail.qty * detail.qty;
 
-        if (componentRequirements[componentId]) {
-          componentRequirements[componentId] += neededQty;
+        // Tambahkan qty jika transaksi retur, kurangi qty jika transaksi biasa
+        if (componentAdjustments[componentId]) {
+          componentAdjustments[componentId] += isReturnTransaction
+            ? adjustedQty
+            : -adjustedQty;
         } else {
-          componentRequirements[componentId] = neededQty;
+          componentAdjustments[componentId] = isReturnTransaction
+            ? adjustedQty
+            : -adjustedQty;
         }
+      }
+
+      // Kurangi qty produk untuk transaksi reguler, atau tambahkan qty untuk retur
+      if (product.countable) {
+        product.qty += isReturnTransaction ? detail.qty : -detail.qty;
+        await product.save();
       }
     }
 
-    // Cek apakah setiap komponen memiliki qty yang mencukupi
-    for (const [componentId, totalQtyNeeded] of Object.entries(
-      componentRequirements
+    // Lakukan penyesuaian qty pada setiap komponen berdasarkan kebutuhan
+    for (const [componentId, qtyAdjustment] of Object.entries(
+      componentAdjustments
     )) {
       const component = await Component.findById(componentId);
 
@@ -112,38 +127,11 @@ module.exports = {
         };
       }
 
-      if (component.qty.current < totalQtyNeeded) {
-        return {
-          error: true,
-          message: { id: `Bahan baku untuk komponen tidak mencukupi.` },
-          data: {
-            componentId,
-            requiredQty: totalQtyNeeded,
-            availableQty: component.qty.current,
-          },
-        };
-      }
-    }
-
-    // Update qty produk dan komponen jika semua kebutuhan mencukupi
-    for (const detail of body.details) {
-      const product = await Product.findById(detail.productId);
-
-      if (product.countable) {
-        product.qty -= detail.qty;
-        await product.save();
-      }
-    }
-
-    // Update qty komponen berdasarkan total kebutuhan
-    for (const [componentId, totalQtyNeeded] of Object.entries(
-      componentRequirements
-    )) {
-      const component = await Component.findById(componentId);
-      component.qty.current -= totalQtyNeeded;
+      component.qty.current += qtyAdjustment;
       await component.save();
     }
 
+    // Siapkan payload untuk pembuatan transaksi
     const payload = {
       amount: body.amount,
       businessId: body.businessId,
@@ -163,6 +151,7 @@ module.exports = {
       updatedAt: dateISOString,
     };
 
+    // Simpan transaksi baru
     const transaction = await Transaction.create(payload);
 
     return {

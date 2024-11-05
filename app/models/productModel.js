@@ -17,6 +17,10 @@ const Product = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
   },
+  code: {
+    bar: String,
+    qr: String,
+  },
   countable: Boolean,
   name: String,
   status: String,

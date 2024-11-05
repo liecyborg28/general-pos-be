@@ -1,0 +1,79 @@
+const router = require("express").Router();
+
+// controllers
+const authController = require("../controllers/authController");
+const purchaseOrderController = require("../controllers/purchaseOrderController");
+
+router.get("/transactions/period", (req, res) => {
+  authController
+    .checkAccess(req)
+    .then(() => {
+      purchaseOrderController
+        .getByPeriod(req)
+        .then((value) => {
+          res.status(200).send(value);
+        })
+        .catch((err) => {
+          res.status(500).send(err);
+        });
+    })
+    .catch((err) => {
+      res.status(500).send(err);
+    });
+});
+
+router
+  .route("/transactions")
+  .get((req, res) => {
+    authController
+      .checkAccess(req)
+      .then(() => {
+        purchaseOrderController
+          .get(req)
+          .then((value) => {
+            res.status(200).send(value);
+          })
+          .catch((err) => {
+            res.status(500).send(err);
+          });
+      })
+      .catch((err) => {
+        res.status(500).send(err);
+      });
+  })
+  .post((req, res) => {
+    authController
+      .checkAccess(req)
+      .then(() => {
+        purchaseOrderController
+          .create(req)
+          .then((value) => {
+            res.status(200).send(value);
+          })
+          .catch((err) => {
+            res.status(500).send(err);
+          });
+      })
+      .catch((err) => {
+        res.status(500).send(err);
+      });
+  })
+  .patch((req, res) => {
+    authController
+      .checkAccess(req)
+      .then(() => {
+        purchaseOrderController
+          .update(req)
+          .then((value) => {
+            res.status(200).send(value);
+          })
+          .catch((err) => {
+            res.status(500).send(err);
+          });
+      })
+      .catch((err) => {
+        res.status(500).send(err);
+      });
+  });
+
+module.exports = router;

@@ -22,12 +22,30 @@ router.get("/reports/sales/by/outlet", (req, res) => {
     });
 });
 
-router.get("/reports/sales/by/user", (req, res) => {
+router.get("/reports/sales/by/payment", (req, res) => {
   authController
     .checkAccess(req)
     .then(() => {
       reportController
-        .generateSalesReportByUser(req)
+        .generateSalesReportByPaymentMethod(req)
+        .then((value) => {
+          res.status(200).send(value);
+        })
+        .catch((err) => {
+          res.status(500).send(err);
+        });
+    })
+    .catch((err) => {
+      res.status(500).send(err);
+    });
+});
+
+router.get("/reports/sales/by/service", (req, res) => {
+  authController
+    .checkAccess(req)
+    .then(() => {
+      reportController
+        .generateSalesReportByServiceMethod(req)
         .then((value) => {
           res.status(200).send(value);
         })
@@ -58,30 +76,12 @@ router.get("/reports/sales/by/transaction", (req, res) => {
     });
 });
 
-router.get("/reports/sales/by/payment", (req, res) => {
+router.get("/reports/sales/by/user", (req, res) => {
   authController
     .checkAccess(req)
     .then(() => {
       reportController
-        .generateSalesReportByPaymentMethod(req)
-        .then((value) => {
-          res.status(200).send(value);
-        })
-        .catch((err) => {
-          res.status(500).send(err);
-        });
-    })
-    .catch((err) => {
-      res.status(500).send(err);
-    });
-});
-
-router.get("/reports/sales/by/service", (req, res) => {
-  authController
-    .checkAccess(req)
-    .then(() => {
-      reportController
-        .generateSalesReportByServiceMethod(req)
+        .generateSalesReportByUser(req)
         .then((value) => {
           res.status(200).send(value);
         })

@@ -87,6 +87,10 @@ module.exports = {
     en: "Promotion created successfully!",
     id: "Promosi berhasil ditambahkan!",
   },
+  PURCHASE_ORDER_SUCCESS: {
+    en: "Purchase order successfully!",
+    id: "Order pembelian berhasil ditambahkan!",
+  },
   // Q
 
   // R
@@ -99,7 +103,10 @@ module.exports = {
     en: "Service method created successfully!",
     id: "Metode penjualan berhasil ditambahkan!",
   },
-
+  SUPPLIER_CREATED_ACCESS: {
+    en: "Supplier created successfully!",
+    id: "Pemasok berhasil ditambahkan!",
+  },
   // T
   TOKEN_SUCCESS_UPDATED: {
     en: "Token updated successfully!",
