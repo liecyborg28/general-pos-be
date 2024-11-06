@@ -128,6 +128,17 @@ module.exports = {
       }
 
       component.qty.current += qtyAdjustment;
+
+      // Tentukan qty.status berdasarkan kondisi qty.current dan qty.min
+      if (component.qty.current <= 0) {
+        component.qty.status = "outOfStock";
+      } else if (component.qty.current <= component.qty.min) {
+        component.qty.status = "almostOut";
+      } else {
+        component.qty.status = "available";
+      }
+
+      // Simpan perubahan pada komponen
       await component.save();
     }
 
@@ -374,6 +385,17 @@ module.exports = {
             if (component) {
               // Tambahkan kembali qty.current dari komponen
               component.qty.current += componentDetail.qty * detail.qty;
+
+              // Tentukan qty.status berdasarkan kondisi qty.current dan qty.min
+              if (component.qty.current <= 0) {
+                component.qty.status = "outOfStock";
+              } else if (component.qty.current <= component.qty.min) {
+                component.qty.status = "almostOut";
+              } else {
+                component.qty.status = "available";
+              }
+
+              // Simpan perubahan pada komponen
               await component.save();
             }
           }

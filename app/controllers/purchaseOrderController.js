@@ -62,6 +62,15 @@ module.exports = {
               status.order === "completed" ? item.qty : -item.qty;
             component.qty.current += qtyChange;
 
+            // Tentukan qty.status berdasarkan kondisi qty.current dan qty.min
+            if (component.qty.current <= 0) {
+              component.qty.status = "outOfStock";
+            } else if (component.qty.current <= component.qty.min) {
+              component.qty.status = "almostOut";
+            } else {
+              component.qty.status = "available";
+            }
+
             // Simpan perubahan pada component
             await component.save();
           }
@@ -250,6 +259,17 @@ module.exports = {
               if (component) {
                 // Kurangi qty.current dari komponen berdasarkan qty yang dipesan
                 component.qty.current -= item.qty;
+
+                // Tentukan qty.status berdasarkan kondisi qty.current dan qty.min
+                if (component.qty.current <= 0) {
+                  component.qty.status = "outOfStock";
+                } else if (component.qty.current <= component.qty.min) {
+                  component.qty.status = "almostOut";
+                } else {
+                  component.qty.status = "available";
+                }
+
+                // Simpan perubahan pada komponen
                 await component.save();
               }
             }
