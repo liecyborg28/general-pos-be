@@ -26,6 +26,7 @@ module.exports = {
       paymentMethodId,
       status,
       supplierId,
+      note,
       taxes,
       userId,
     } = req.body;
@@ -39,6 +40,7 @@ module.exports = {
         paymentMethodId,
         status,
         supplierId,
+        note,
         taxes,
         userId,
         createdAt: dateISOString,
@@ -213,7 +215,7 @@ module.exports = {
       "auth.accessToken": bearerToken,
     });
 
-    let body = req.body;
+    const body = req.body;
 
     // Validasi apakah ada purchaseOrderId
     if (!body.purchaseOrderId) {
@@ -228,8 +230,31 @@ module.exports = {
 
       return new Promise(async (resolve, reject) => {
         try {
-          // Jika status order diubah menjadi 'canceled', maka perbarui data purchase order
+          // Ambil data purchase order yang ada di database
+          const purchaseOrder = await PurchaseOrder.findById(
+            body.purchaseOrderId
+          );
+          if (!purchaseOrder) {
+            return reject({
+              error: true,
+              message: errorMessages.ORDER_NOT_FOUND,
+            });
+          }
+
+          // Jika status order diubah menjadi 'canceled'
           if (body.data.status.order === "canceled") {
+            // Loop setiap komponen dalam detail purchase order
+            for (const item of purchaseOrder.details) {
+              // Dapatkan komponen berdasarkan componentId di detail
+              const component = await Component.findById(item.componentId);
+              if (component) {
+                // Kurangi qty.current dari komponen berdasarkan qty yang dipesan
+                component.qty.current -= item.qty;
+                await component.save();
+              }
+            }
+
+            // Setelah pengurangan, perbarui status order menjadi 'canceled'
             const updatedPurchaseOrder = await PurchaseOrder.findByIdAndUpdate(
               body.purchaseOrderId,
               body.data,
@@ -242,7 +267,7 @@ module.exports = {
               message: successMessages.DATA_SUCCESS_UPDATED,
             });
           } else {
-            // Tambahkan logika lain untuk status order selain 'canceled', jika diperlukan
+            // Untuk status order lain, lakukan update biasa tanpa perubahan qty komponen
             const updatedPurchaseOrder = await PurchaseOrder.findByIdAndUpdate(
               body.purchaseOrderId,
               body.data,

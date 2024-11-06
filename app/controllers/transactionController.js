@@ -323,7 +323,6 @@ module.exports = {
 
   update: async (req) => {
     let dateISOString = new Date().toISOString();
-
     const bearerHeader = req.headers["authorization"];
     const bearerToken = bearerHeader.split(" ")[1];
 
@@ -331,39 +330,70 @@ module.exports = {
       "auth.accessToken": bearerToken,
     });
 
-    let body = req.body;
-
-    if (!body.transactionId) {
+    const { transactionId, data } = req.body;
+    if (!transactionId) {
       return Promise.reject({
         error: true,
         message: errorMessages.INVALID_DATA,
       });
-    } else {
-      body.data["changedBy"] = userByToken._id;
-      body.data["updatedAt"] = dateISOString;
+    }
 
-      return new Promise(async (resolve, reject) => {
-        if (body.data.status.order === "canceled") {
-          Transaction.findByIdAndUpdate(body.transactionId, body.data, {
-            new: true,
-          })
-            .then((result) => {
-              resolve({
-                error: false,
-                data: result,
-                message: successMessages.DATA_SUCCESS_UPDATED,
-              });
-            })
-            .catch((err) => {
-              reject({ error: true, message: err });
-            });
-          resolve({
-            error: false,
-            data: data,
-            count: data.count,
-          });
+    data["changedBy"] = userByToken._id;
+    data["updatedAt"] = dateISOString;
+
+    try {
+      // Dapatkan transaksi yang akan diupdate
+      const transaction = await Transaction.findById(transactionId);
+      if (!transaction) {
+        return { error: true, message: errorMessages.TRANSACTION_NOT_FOUND };
+      }
+
+      // Jika status order adalah "canceled"
+      if (data.status.order === "canceled") {
+        // Loop setiap detail produk untuk mengembalikan qty setiap komponen terkait
+        for (const detail of transaction.details) {
+          // Temukan produk
+          const product = await Product.findById(detail.productId);
+
+          if (product && product.countable) {
+            // Tambahkan kembali qty produk
+            product.qty += detail.qty;
+            await product.save();
+          }
+
+          // Loop komponen utama dan tambahan
+          for (const componentDetail of [
+            ...detail.components,
+            ...detail.additionals.flatMap(
+              (additional) => additional.components
+            ),
+          ]) {
+            const component = await Component.findById(
+              componentDetail.componentId
+            );
+            if (component) {
+              // Tambahkan kembali qty.current dari komponen
+              component.qty.current += componentDetail.qty * detail.qty;
+              await component.save();
+            }
+          }
         }
-      });
+      }
+
+      // Update transaksi dengan data baru
+      const updatedTransaction = await Transaction.findByIdAndUpdate(
+        transactionId,
+        data,
+        { new: true }
+      );
+
+      return {
+        error: false,
+        data: updatedTransaction,
+        message: successMessages.DATA_SUCCESS_UPDATED,
+      };
+    } catch (err) {
+      return { error: true, message: err.message || "Unknown error" };
     }
   },
 };

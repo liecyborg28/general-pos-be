@@ -81,6 +81,10 @@ module.exports = {
   },
 
   // O
+  ORDER_NOT_FOUND: {
+    en: "Purchase order not found!",
+    id: "Order Pembelian tidak ditemukan!",
+  },
   OUTLET_ID_NOT_FOUND: {
     en: "Outlet ID not found!",
     id: "Outlet ID tidak ditemukan!",

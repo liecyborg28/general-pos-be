@@ -1,21 +1,11 @@
-const ExcelJS = require("exceljs");
-
 // models
-const Product = require("../models/productModel");
 const Transaction = require("../models/transactionModel");
 
 // controllers
-const dataController = require("./utils/dataController");
 const excelController = require("./utils/excelController");
 const formatController = require("./utils/formatController");
 const pageController = require("./utils/pageController");
-const productController = require("./productController");
-const productResource = require("../repository/resources/productResource");
-const transactionResource = require("../repository/resources/transactionResource");
-
-// repositories
-const errorMessages = require("../repository/messages/errorMessages");
-const successMessages = require("../repository/messages/successMessages");
+const pdfController = require("./utils/pdfController");
 
 module.exports = {
   generateDocument: async function (req, documentType) {
@@ -43,7 +33,6 @@ module.exports = {
           throw new Error("Invalid report type specified.");
       }
 
-      // Memeriksa apakah laporan memiliki data
       if (reportData.error || !reportData.data) {
         throw new Error("Failed to generate report data.");
       }
@@ -79,7 +68,6 @@ module.exports = {
 
       let documentBuffer;
 
-      // Membuat dokumen berdasarkan jenis dokumen yang diminta
       if (documentType === "pdf") {
         documentBuffer = await pdfController.generatePDF(documentData);
       } else if (documentType === "excel") {
@@ -96,819 +84,108 @@ module.exports = {
   },
 
   generateSalesReportByOutlet: async (req) => {
-    let dateISOString = new Date().toISOString();
-
-    let pageKey = req.query.pageKey ? req.query.pageKey : 1;
-    let pageSize = req.query.pageSize
-      ? req.query.pageSize
-      : 1 * 1000 * 1000 * 1000;
-
-    let defaultFrom = formatController.convertToLocaleISOString(
-      dateISOString,
-      "start"
-    );
-    let defaultTo = formatController.convertToLocaleISOString(
-      dateISOString,
-      "end"
-    );
-
-    const isNotEveryQueryNull = () => {
-      return req.query.from || req.query.to || req.query.userId;
-    };
-
-    let pipeline = isNotEveryQueryNull()
-      ? req.query.userId
-        ? {
-            userId: req.query.userId,
-            createdAt: {
-              $gte: req.query.from
-                ? formatController.convertToLocaleISOString(
-                    new Date(req.query.from),
-                    "start"
-                  )
-                : defaultFrom,
-              $lte: req.query.to
-                ? formatController.convertToLocaleISOString(
-                    new Date(req.query.to),
-                    "end"
-                  )
-                : defaultTo,
-            },
-            ...(req.query.outletId && { outletId: req.query.outletId }),
-          }
-        : {
-            createdAt: {
-              $gte: req.query.from
-                ? formatController.convertToLocaleISOString(
-                    new Date(req.query.from),
-                    "start"
-                  )
-                : defaultFrom,
-              $lte: req.query.to
-                ? formatController.convertToLocaleISOString(
-                    new Date(req.query.to),
-                    "end"
-                  )
-                : defaultTo,
-            },
-            ...(req.query.outletId && { outletId: req.query.outletId }),
-          }
-      : req.query.outletId
-      ? {
-          outletId: req.query.outletId,
-          createdAt: {
-            $gte: defaultFrom,
-            $lte: defaultTo,
-          },
-        }
-      : {
-          createdAt: {
-            $gte: defaultFrom,
-            $lte: defaultTo,
-          },
-        };
-
-    try {
-      let transactions = await pageController.paginate(
-        pageKey,
-        pageSize,
-        pipeline,
-        Transaction,
-        -1
-      );
-
-      transactions = await Transaction.populate(transactions.data, {
-        path: "outletId",
-      });
-
-      const report = transactions.reduce((result, transaction) => {
-        const outletId = transaction.outletId.toString();
-
-        if (!result[outletId]) {
-          result[outletId] = {
-            outletId: transaction.outletId,
-            total: {
-              cost: 0,
-              revenue: 0,
-              grossProfit: 0,
-              tax: 0,
-              charge: 0,
-              tip: 0,
-              netIncome: 0,
-            },
-          };
-        }
-
-        // Menghitung totalCost
-        const totalCost =
-          transaction.details?.reduce((costAcc, detail) => {
-            const detailCost = (detail.cost || 0) * (detail.qty || 0);
-            const additionalCost =
-              detail.additionals?.reduce((addAcc, additional) => {
-                return addAcc + (additional.cost || 0) * (additional.qty || 0);
-              }, 0) || 0;
-
-            return costAcc + detailCost + additionalCost;
-          }, 0) || 0;
-
-        // Menghitung totalRevenue
-        const totalRevenue =
-          transaction.details?.reduce((revenueAcc, detail) => {
-            const detailRevenue = (detail.price || 0) * (detail.qty || 0);
-            const additionalRevenue =
-              detail.additionals?.reduce((addAcc, additional) => {
-                return addAcc + (additional.price || 0) * (additional.qty || 0);
-              }, 0) || 0;
-
-            return revenueAcc + detailRevenue + additionalRevenue;
-          }, 0) || 0;
-
-        const grossProfit = totalRevenue - totalCost;
-
-        const totalTax =
-          transaction.taxes?.reduce((taxAcc, tax) => {
-            const taxAmount =
-              tax.type === "persentage"
-                ? totalRevenue * (tax.amount || 0)
-                : tax.amount || 0;
-            return taxAcc + taxAmount;
-          }, 0) || 0;
-
-        const totalCharge =
-          transaction.charges?.reduce((chargeAcc, charge) => {
-            const chargeAmount =
-              charge.type === "persentage"
-                ? totalRevenue * (charge.amount || 0)
-                : charge.amount || 0;
-            return chargeAcc + chargeAmount;
-          }, 0) || 0;
-
-        const totalTip =
-          transaction.tips?.reduce(
-            (tipAcc, tip) => tipAcc + (tip.amount || 0),
-            0
-          ) || 0;
-
-        const netIncome = grossProfit - totalTax;
-
-        // Tambahkan ke total berdasarkan outletId
-        result[outletId].total.cost += totalCost;
-        result[outletId].total.revenue += totalRevenue;
-        result[outletId].total.grossProfit += grossProfit;
-        result[outletId].total.tax += totalTax;
-        result[outletId].total.charge += totalCharge;
-        result[outletId].total.tip += totalTip;
-        result[outletId].total.netIncome += netIncome;
-
-        return result;
-      }, {});
-
-      const reportArray = Object.values(report);
-
-      return { error: false, data: reportArray };
-    } catch (error) {
-      console.error(error);
-      return { error: true, message: error.message };
-    }
+    return generateReport(req, "outletId");
   },
 
   generateSalesReportByPaymentMethod: async (req) => {
-    let dateISOString = new Date().toISOString();
-
-    let pageKey = req.query.pageKey ? req.query.pageKey : 1;
-    let pageSize = req.query.pageSize
-      ? req.query.pageSize
-      : 1 * 1000 * 1000 * 1000;
-
-    let defaultFrom = formatController.convertToLocaleISOString(
-      dateISOString,
-      "start"
-    );
-    let defaultTo = formatController.convertToLocaleISOString(
-      dateISOString,
-      "end"
-    );
-
-    const isNotEveryQueryNull = () => {
-      return req.query.from || req.query.to || req.query.userId;
-    };
-
-    let pipeline = isNotEveryQueryNull()
-      ? req.query.userId
-        ? {
-            userId: req.query.userId,
-            createdAt: {
-              $gte: req.query.from
-                ? formatController.convertToLocaleISOString(
-                    new Date(req.query.from),
-                    "start"
-                  )
-                : defaultFrom,
-              $lte: req.query.to
-                ? formatController.convertToLocaleISOString(
-                    new Date(req.query.to),
-                    "end"
-                  )
-                : defaultTo,
-            },
-            ...(req.query.paymentMethodId && {
-              paymentMethodId: req.query.paymentMethodId,
-            }),
-          }
-        : {
-            createdAt: {
-              $gte: req.query.from
-                ? formatController.convertToLocaleISOString(
-                    new Date(req.query.from),
-                    "start"
-                  )
-                : defaultFrom,
-              $lte: req.query.to
-                ? formatController.convertToLocaleISOString(
-                    new Date(req.query.to),
-                    "end"
-                  )
-                : defaultTo,
-            },
-            ...(req.query.paymentMethodId && {
-              paymentMethodId: req.query.paymentMethodId,
-            }),
-          }
-      : req.query.paymentMethodId
-      ? {
-          paymentMethodId: req.query.paymentMethodId,
-          createdAt: {
-            $gte: defaultFrom,
-            $lte: defaultTo,
-          },
-        }
-      : {
-          createdAt: {
-            $gte: defaultFrom,
-            $lte: defaultTo,
-          },
-        };
-
-    try {
-      let transactions = await pageController.paginate(
-        pageKey,
-        pageSize,
-        pipeline,
-        Transaction,
-        -1
-      );
-
-      transactions = await Transaction.populate(transactions.data, {
-        path: "paymentMethodId",
-      });
-
-      const report = transactions.reduce((result, transaction) => {
-        const paymentMethodId = transaction.paymentMethodId.toString();
-
-        if (!result[paymentMethodId]) {
-          result[paymentMethodId] = {
-            paymentMethodId: transaction.paymentMethodId,
-            total: {
-              cost: 0,
-              revenue: 0,
-              grossProfit: 0,
-              tax: 0,
-              charge: 0,
-              tip: 0,
-              netIncome: 0,
-            },
-          };
-        }
-
-        // Menghitung totalCost
-        const totalCost =
-          transaction.details?.reduce((costAcc, detail) => {
-            const detailCost = (detail.cost || 0) * (detail.qty || 0);
-            const additionalCost =
-              detail.additionals?.reduce((addAcc, additional) => {
-                return addAcc + (additional.cost || 0) * (additional.qty || 0);
-              }, 0) || 0;
-
-            return costAcc + detailCost + additionalCost;
-          }, 0) || 0;
-
-        // Menghitung totalRevenue
-        const totalRevenue =
-          transaction.details?.reduce((revenueAcc, detail) => {
-            const detailRevenue = (detail.price || 0) * (detail.qty || 0);
-            const additionalRevenue =
-              detail.additionals?.reduce((addAcc, additional) => {
-                return addAcc + (additional.price || 0) * (additional.qty || 0);
-              }, 0) || 0;
-
-            return revenueAcc + detailRevenue + additionalRevenue;
-          }, 0) || 0;
-
-        const grossProfit = totalRevenue - totalCost;
-
-        const totalTax =
-          transaction.taxes?.reduce((taxAcc, tax) => {
-            const taxAmount =
-              tax.type === "persentage"
-                ? totalRevenue * (tax.amount || 0)
-                : tax.amount || 0;
-            return taxAcc + taxAmount;
-          }, 0) || 0;
-
-        const totalCharge =
-          transaction.charges?.reduce((chargeAcc, charge) => {
-            const chargeAmount =
-              charge.type === "persentage"
-                ? totalRevenue * (charge.amount || 0)
-                : charge.amount || 0;
-            return chargeAcc + chargeAmount;
-          }, 0) || 0;
-
-        const totalTip =
-          transaction.tips?.reduce(
-            (tipAcc, tip) => tipAcc + (tip.amount || 0),
-            0
-          ) || 0;
-
-        const netIncome = grossProfit - totalTax;
-
-        // Tambahkan ke total berdasarkan paymentMethodId
-        result[paymentMethodId].total.cost += totalCost;
-        result[paymentMethodId].total.revenue += totalRevenue;
-        result[paymentMethodId].total.grossProfit += grossProfit;
-        result[paymentMethodId].total.tax += totalTax;
-        result[paymentMethodId].total.charge += totalCharge;
-        result[paymentMethodId].total.tip += totalTip;
-        result[paymentMethodId].total.netIncome += netIncome;
-
-        return result;
-      }, {});
-
-      const reportArray = Object.values(report);
-
-      return { error: false, data: reportArray };
-    } catch (error) {
-      console.error(error);
-      return { error: true, message: error.message };
-    }
+    return generateReport(req, "paymentMethodId");
   },
 
   generateSalesReportByServiceMethod: async (req) => {
-    let dateISOString = new Date().toISOString();
-
-    let pageKey = req.query.pageKey ? req.query.pageKey : 1;
-    let pageSize = req.query.pageSize
-      ? req.query.pageSize
-      : 1 * 1000 * 1000 * 1000;
-
-    let defaultFrom = formatController.convertToLocaleISOString(
-      dateISOString,
-      "start"
-    );
-    let defaultTo = formatController.convertToLocaleISOString(
-      dateISOString,
-      "end"
-    );
-
-    const isNotEveryQueryNull = () => {
-      return req.query.from || req.query.to || req.query.userId;
-    };
-
-    let pipeline = isNotEveryQueryNull()
-      ? req.query.userId
-        ? {
-            userId: req.query.userId,
-            createdAt: {
-              $gte: req.query.from
-                ? formatController.convertToLocaleISOString(
-                    new Date(req.query.from),
-                    "start"
-                  )
-                : defaultFrom,
-              $lte: req.query.to
-                ? formatController.convertToLocaleISOString(
-                    new Date(req.query.to),
-                    "end"
-                  )
-                : defaultTo,
-            },
-            ...(req.query.serviceMethodId && {
-              serviceMethodId: req.query.serviceMethodId,
-            }),
-          }
-        : {
-            createdAt: {
-              $gte: req.query.from
-                ? formatController.convertToLocaleISOString(
-                    new Date(req.query.from),
-                    "start"
-                  )
-                : defaultFrom,
-              $lte: req.query.to
-                ? formatController.convertToLocaleISOString(
-                    new Date(req.query.to),
-                    "end"
-                  )
-                : defaultTo,
-            },
-            ...(req.query.serviceMethodId && {
-              serviceMethodId: req.query.serviceMethodId,
-            }),
-          }
-      : req.query.serviceMethodId
-      ? {
-          serviceMethodId: req.query.serviceMethodId,
-          createdAt: {
-            $gte: defaultFrom,
-            $lte: defaultTo,
-          },
-        }
-      : {
-          createdAt: {
-            $gte: defaultFrom,
-            $lte: defaultTo,
-          },
-        };
-
-    try {
-      let transactions = await pageController.paginate(
-        pageKey,
-        pageSize,
-        pipeline,
-        Transaction,
-        -1
-      );
-
-      transactions = await Transaction.populate(transactions.data, {
-        path: "serviceMethodId",
-      });
-
-      const report = transactions.reduce((result, transaction) => {
-        const serviceMethodId = transaction.serviceMethodId.toString();
-
-        if (!result[serviceMethodId]) {
-          result[serviceMethodId] = {
-            serviceMethodId: transaction.serviceMethodId,
-            total: {
-              cost: 0,
-              revenue: 0,
-              grossProfit: 0,
-              tax: 0,
-              charge: 0,
-              tip: 0,
-              netIncome: 0,
-            },
-          };
-        }
-
-        // Menghitung totalCost
-        const totalCost =
-          transaction.details?.reduce((costAcc, detail) => {
-            const detailCost = (detail.cost || 0) * (detail.qty || 0);
-            const additionalCost =
-              detail.additionals?.reduce((addAcc, additional) => {
-                return addAcc + (additional.cost || 0) * (additional.qty || 0);
-              }, 0) || 0;
-
-            return costAcc + detailCost + additionalCost;
-          }, 0) || 0;
-
-        // Menghitung totalRevenue
-        const totalRevenue =
-          transaction.details?.reduce((revenueAcc, detail) => {
-            const detailRevenue = (detail.price || 0) * (detail.qty || 0);
-            const additionalRevenue =
-              detail.additionals?.reduce((addAcc, additional) => {
-                return addAcc + (additional.price || 0) * (additional.qty || 0);
-              }, 0) || 0;
-
-            return revenueAcc + detailRevenue + additionalRevenue;
-          }, 0) || 0;
-
-        const grossProfit = totalRevenue - totalCost;
-
-        const totalTax =
-          transaction.taxes?.reduce((taxAcc, tax) => {
-            const taxAmount =
-              tax.type === "persentage"
-                ? totalRevenue * (tax.amount || 0)
-                : tax.amount || 0;
-            return taxAcc + taxAmount;
-          }, 0) || 0;
-
-        const totalCharge =
-          transaction.charges?.reduce((chargeAcc, charge) => {
-            const chargeAmount =
-              charge.type === "persentage"
-                ? totalRevenue * (charge.amount || 0)
-                : charge.amount || 0;
-            return chargeAcc + chargeAmount;
-          }, 0) || 0;
-
-        const totalTip =
-          transaction.tips?.reduce(
-            (tipAcc, tip) => tipAcc + (tip.amount || 0),
-            0
-          ) || 0;
-
-        const netIncome = grossProfit - totalTax;
-
-        // Tambahkan ke total berdasarkan serviceMethodId
-        result[serviceMethodId].total.cost += totalCost;
-        result[serviceMethodId].total.revenue += totalRevenue;
-        result[serviceMethodId].total.grossProfit += grossProfit;
-        result[serviceMethodId].total.tax += totalTax;
-        result[serviceMethodId].total.charge += totalCharge;
-        result[serviceMethodId].total.tip += totalTip;
-        result[serviceMethodId].total.netIncome += netIncome;
-
-        return result;
-      }, {});
-
-      const reportArray = Object.values(report);
-
-      return { error: false, data: reportArray };
-    } catch (error) {
-      console.error(error);
-      return { error: true, message: error.message };
-    }
+    return generateReport(req, "serviceMethodId");
   },
 
   generateSalesReportByTransaction: async (req) => {
-    let dateISOString = new Date().toISOString();
-
-    let pageKey = req.query.pageKey ? req.query.pageKey : 1;
-    let pageSize = req.query.pageSize
-      ? req.query.pageSize
-      : 1 * 1000 * 1000 * 1000;
-
-    let defaultFrom = formatController.convertToLocaleISOString(
-      dateISOString,
-      "start"
-    );
-    let defaultTo = formatController.convertToLocaleISOString(
-      dateISOString,
-      "end"
-    );
-
-    const isNotEveryQueryNull = () => {
-      return req.query.from || req.query.to || req.query.userId;
-    };
-
-    let pipeline = isNotEveryQueryNull()
-      ? req.query.outletId
-        ? {
-            outletId: req.query.outletId,
-            createdAt: {
-              $gte: req.query.from
-                ? formatController.convertToLocaleISOString(
-                    new Date(req.query.from),
-                    "start"
-                  )
-                : defaultFrom,
-              $lte: req.query.to
-                ? formatController.convertToLocaleISOString(
-                    new Date(req.query.to),
-                    "end"
-                  )
-                : defaultTo,
-            },
-            ...(req.query.userId && { userId: req.query.userId }),
-          }
-        : {
-            createdAt: {
-              $gte: req.query.from
-                ? formatController.convertToLocaleISOString(
-                    new Date(req.query.from),
-                    "start"
-                  )
-                : defaultFrom,
-              $lte: req.query.to
-                ? formatController.convertToLocaleISOString(
-                    new Date(req.query.to),
-                    "end"
-                  )
-                : defaultTo,
-            },
-            ...(req.query.userId && { userId: req.query.userId }),
-          }
-      : req.query.outletId
-      ? {
-          outletId: req.query.outletId,
-          createdAt: {
-            $gte: defaultFrom,
-            $lte: defaultTo,
-          },
-          ...(req.query.userId && { userId: req.query.userId }),
-        }
-      : {
-          createdAt: {
-            $gte: defaultFrom,
-            $lte: defaultTo,
-          },
-          ...(req.query.userId && { userId: req.query.userId }),
-        };
-
-    try {
-      let transactions = await pageController.paginate(
-        pageKey,
-        pageSize,
-        pipeline,
-        Transaction,
-        -1
-      );
-
-      transactions = await Transaction.populate(transactions.data, {
-        path: "userId",
-      });
-
-      const report = transactions.map((transaction) => {
-        const userId = transaction.userId.toString();
-
-        // Menghitung totalCost
-        const totalCost =
-          transaction.details?.reduce((costAcc, detail) => {
-            const detailCost = (detail.cost || 0) * (detail.qty || 0);
-            const additionalCost =
-              detail.additionals?.reduce((addAcc, additional) => {
-                return addAcc + (additional.cost || 0) * (additional.qty || 0);
-              }, 0) || 0;
-
-            return costAcc + detailCost + additionalCost;
-          }, 0) || 0;
-
-        // Menghitung totalRevenue
-        const totalRevenue =
-          transaction.details?.reduce((revenueAcc, detail) => {
-            const detailRevenue = (detail.price || 0) * (detail.qty || 0);
-            const additionalRevenue =
-              detail.additionals?.reduce((addAcc, additional) => {
-                return addAcc + (additional.price || 0) * (additional.qty || 0);
-              }, 0) || 0;
-
-            return revenueAcc + detailRevenue + additionalRevenue;
-          }, 0) || 0;
-
-        const grossProfit = totalRevenue - totalCost;
-
-        const totalTax =
-          transaction.taxes?.reduce((taxAcc, tax) => {
-            const taxAmount =
-              tax.type === "persentage"
-                ? totalRevenue * (tax.amount || 0)
-                : tax.amount || 0;
-            return taxAcc + taxAmount;
-          }, 0) || 0;
-
-        const totalCharge =
-          transaction.charges?.reduce((chargeAcc, charge) => {
-            const chargeAmount =
-              charge.type === "persentage"
-                ? totalRevenue * (charge.amount || 0)
-                : charge.amount || 0;
-            return chargeAcc + chargeAmount;
-          }, 0) || 0;
-
-        const totalTip =
-          transaction.tips?.reduce(
-            (tipAcc, tip) => tipAcc + (tip.amount || 0),
-            0
-          ) || 0;
-
-        const netIncome = grossProfit - totalTax;
-
-        // Laporan untuk setiap transaksi
-        return {
-          transactionId: transaction._id,
-          userId: transaction.userId,
-          total: {
-            cost: totalCost,
-            revenue: totalRevenue,
-            grossProfit,
-            tax: totalTax,
-            charge: totalCharge,
-            tip: totalTip,
-            netIncome,
-          },
-        };
-      });
-
-      return { error: false, data: report };
-    } catch (error) {
-      console.error(error);
-      return { error: true, message: error.message };
-    }
+    return generateReport(req, "userId");
   },
 
   generateSalesReportByUser: async (req) => {
-    let dateISOString = new Date().toISOString();
+    return generateReport(req, "userId");
+  },
+};
 
-    let pageKey = req.query.pageKey ? req.query.pageKey : 1;
-    let pageSize = req.query.pageSize
-      ? req.query.pageSize
-      : 1 * 1000 * 1000 * 1000;
+// Helper function to generate the report based on groupField
+async function generateReport(req, groupField) {
+  let dateISOString = new Date().toISOString();
+  let pageKey = req.query.pageKey ? req.query.pageKey : 1;
+  let pageSize = req.query.pageSize
+    ? req.query.pageSize
+    : 1 * 1000 * 1000 * 1000;
 
-    let defaultFrom = formatController.convertToLocaleISOString(
-      dateISOString,
-      "start"
+  let defaultFrom = formatController.convertToLocaleISOString(
+    dateISOString,
+    "start"
+  );
+  let defaultTo = formatController.convertToLocaleISOString(
+    dateISOString,
+    "end"
+  );
+
+  const isNotEveryQueryNull = () =>
+    req.query.from || req.query.to || req.query[groupField];
+
+  let pipeline = isNotEveryQueryNull()
+    ? {
+        [groupField]: req.query[groupField],
+        createdAt: {
+          $gte: req.query.from
+            ? formatController.convertToLocaleISOString(
+                new Date(req.query.from),
+                "start"
+              )
+            : defaultFrom,
+          $lte: req.query.to
+            ? formatController.convertToLocaleISOString(
+                new Date(req.query.to),
+                "end"
+              )
+            : defaultTo,
+        },
+      }
+    : {
+        createdAt: {
+          $gte: defaultFrom,
+          $lte: defaultTo,
+        },
+      };
+
+  try {
+    let transactions = await pageController.paginate(
+      pageKey,
+      pageSize,
+      pipeline,
+      Transaction,
+      -1
     );
-    let defaultTo = formatController.convertToLocaleISOString(
-      dateISOString,
-      "end"
-    );
+    transactions = await Transaction.populate(transactions.data, {
+      path: groupField,
+    });
 
-    const isNotEveryQueryNull = () => {
-      return req.query.from || req.query.to;
-    };
+    const report = transactions.reduce((result, transaction) => {
+      const groupId = transaction[groupField].toString();
 
-    let pipeline = isNotEveryQueryNull()
-      ? req.query.outletId
-        ? {
-            outletId: req.query.outletId,
-            createdAt: {
-              $gte: req.query.from
-                ? formatController.convertToLocaleISOString(
-                    new Date(req.query.from),
-                    "start"
-                  )
-                : defaultFrom,
-              $lte: req.query.to
-                ? formatController.convertToLocaleISOString(
-                    new Date(req.query.to),
-                    "end"
-                  )
-                : defaultTo,
-            },
-          }
-        : {
-            createdAt: {
-              $gte: req.query.from
-                ? formatController.convertToLocaleISOString(
-                    new Date(req.query.from),
-                    "start"
-                  )
-                : defaultFrom,
-              $lte: req.query.to
-                ? formatController.convertToLocaleISOString(
-                    new Date(req.query.to),
-                    "end"
-                  )
-                : defaultTo,
-            },
-          }
-      : req.query.outletId
-      ? {
-          outletId: req.query.outletId,
-          createdAt: {
-            $gte: defaultFrom,
-            $lte: defaultTo,
-          },
-        }
-      : {
-          createdAt: {
-            $gte: defaultFrom,
-            $lte: defaultTo,
+      if (!result[groupId]) {
+        result[groupId] = {
+          [groupField]: transaction[groupField],
+          total: {
+            cost: 0,
+            revenue: 0,
+            grossProfit: 0,
+            tax: 0,
+            charge: 0,
+            tip: 0,
+            netIncome: 0,
+            refund: 0,
+            canceled: 0,
           },
         };
+      }
 
-    try {
-      let transactions = await pageController.paginate(
-        pageKey,
-        pageSize,
-        pipeline,
-        Transaction,
-        -1
-      );
-
-      transactions = await Transaction.populate(transactions.data, {
-        path: "userId",
-      });
-
-      const report = transactions.reduce((result, transaction) => {
-        const userId = transaction.userId.toString();
-
-        if (!result[userId]) {
-          result[userId] = {
-            userId: transaction.userId,
-            total: {
-              cost: 0,
-              revenue: 0,
-              grossProfit: 0,
-              tax: 0,
-              charge: 0,
-              tip: 0,
-              netIncome: 0,
-            },
-          };
-        }
-
-        // Menghitung totalCost
+      if (transaction.status.order === "completed") {
+        // Calculate totals for completed transactions
         const totalCost =
           transaction.details?.reduce((costAcc, detail) => {
-            // Cost dari produk utama
             const detailCost = (detail.cost || 0) * (detail.qty || 0);
-
-            // Cost dari produk tambahan di additionals
             const additionalCost =
               detail.additionals?.reduce((addAcc, additional) => {
                 return addAcc + (additional.cost || 0) * (additional.qty || 0);
@@ -917,13 +194,9 @@ module.exports = {
             return costAcc + detailCost + additionalCost;
           }, 0) || 0;
 
-        // Menghitung totalRevenue
         const totalRevenue =
           transaction.details?.reduce((revenueAcc, detail) => {
-            // Revenue dari produk utama
             const detailRevenue = (detail.price || 0) * (detail.qty || 0);
-
-            // Revenue dari produk tambahan di additionals
             const additionalRevenue =
               detail.additionals?.reduce((addAcc, additional) => {
                 return addAcc + (additional.price || 0) * (additional.qty || 0);
@@ -937,7 +210,7 @@ module.exports = {
         const totalTax =
           transaction.taxes?.reduce((taxAcc, tax) => {
             const taxAmount =
-              tax.type === "persentage"
+              tax.type === "percentage"
                 ? totalRevenue * (tax.amount || 0)
                 : tax.amount || 0;
             return taxAcc + taxAmount;
@@ -946,7 +219,7 @@ module.exports = {
         const totalCharge =
           transaction.charges?.reduce((chargeAcc, charge) => {
             const chargeAmount =
-              charge.type === "persentage"
+              charge.type === "percentage"
                 ? totalRevenue * (charge.amount || 0)
                 : charge.amount || 0;
             return chargeAcc + chargeAmount;
@@ -960,24 +233,27 @@ module.exports = {
 
         const netIncome = grossProfit - totalTax;
 
-        // Tambahkan ke total berdasarkan userId
-        result[userId].total.cost += totalCost;
-        result[userId].total.revenue += totalRevenue;
-        result[userId].total.grossProfit += grossProfit;
-        result[userId].total.tax += totalTax;
-        result[userId].total.charge += totalCharge;
-        result[userId].total.tip += totalTip;
-        result[userId].total.netIncome += netIncome;
+        // Add calculated totals for completed transactions
+        result[groupId].total.cost += totalCost;
+        result[groupId].total.revenue += totalRevenue;
+        result[groupId].total.grossProfit += grossProfit;
+        result[groupId].total.tax += totalTax;
+        result[groupId].total.charge += totalCharge;
+        result[groupId].total.tip += totalTip;
+        result[groupId].total.netIncome += netIncome;
+      } else if (transaction.status.order === "returned") {
+        result[groupId].total.refund += 1; // Count of returned transactions
+      } else if (transaction.status.order === "canceled") {
+        result[groupId].total.canceled += 1; // Count of canceled transactions
+      }
 
-        return result;
-      }, {});
+      return result;
+    }, {});
 
-      const reportArray = Object.values(report);
-
-      return { error: false, data: reportArray };
-    } catch (error) {
-      console.error(error);
-      return { error: true, message: error.message };
-    }
-  },
-};
+    const reportArray = Object.values(report);
+    return { error: false, data: reportArray };
+  } catch (error) {
+    console.error(error);
+    return { error: true, message: error.message };
+  }
+}

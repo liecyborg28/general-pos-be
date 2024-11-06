@@ -32,6 +32,7 @@ const PurchaseOrder = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Supplier",
   },
+  note: String,
   taxes: [
     // {
     //   amount: Number,

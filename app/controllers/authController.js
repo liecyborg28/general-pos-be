@@ -585,6 +585,46 @@ module.exports = {
                                                                         (
                                                                           customers
                                                                         ) => {
+                                                                          const purchaseOrders =
+                                                                            [
+                                                                              {
+                                                                                amount: 25000,
+                                                                                businessId:
+                                                                                  businesses[0]._id.toString(),
+                                                                                details:
+                                                                                  [
+                                                                                    {
+                                                                                      componentId:
+                                                                                        components[0]._id.toString(),
+                                                                                      price: 2000,
+                                                                                      qty: 2,
+                                                                                    },
+                                                                                  ],
+                                                                                note: "Note untuk order pembelian",
+                                                                                outletId:
+                                                                                  outlets[0]._id.toString(),
+                                                                                paymentMethodId:
+                                                                                  paymentMethods[0]._id.toString(),
+                                                                                status:
+                                                                                  {
+                                                                                    order:
+                                                                                      "completed",
+                                                                                    payment:
+                                                                                      "completed",
+                                                                                  },
+                                                                                taxes:
+                                                                                  [
+                                                                                    {
+                                                                                      amount: 0.1,
+                                                                                      taxId:
+                                                                                        taxes[0]._id.toString(),
+                                                                                      type: "persentage",
+                                                                                    },
+                                                                                  ],
+                                                                                userId:
+                                                                                  users[0]._id.toString(),
+                                                                              },
+                                                                            ];
                                                                           const transactions =
                                                                             [
                                                                               {
@@ -704,6 +744,7 @@ module.exports = {
                                                                                 serviceMethods,
                                                                                 suppliers,
                                                                                 transactions,
+                                                                                purchaseOrders,
                                                                               },
                                                                               message:
                                                                                 successMessages.ACCESS_CREATED_SUCCESS,
