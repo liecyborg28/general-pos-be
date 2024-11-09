@@ -3,7 +3,7 @@ module.exports = {
     try {
       const page = parseInt(pageKey) || 1;
       const limit =
-        parseInt(pageSize) > 0
+        parseInt(pageSize) > 0 && pageSize !== null
           ? parseInt(pageSize)
           : await model.countDocuments();
       const skip = (page - 1) * limit;

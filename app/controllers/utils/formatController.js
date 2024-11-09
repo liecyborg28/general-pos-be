@@ -14,11 +14,14 @@ module.exports = {
     // Menentukan waktu berdasarkan type
     const time = type === "start" ? "00:00:00.000" : "23:59:59.999";
 
-    // Menambahkan offset dari date input
-    const offset = date.slice(19);
-
-    // Menghasilkan string ISO dengan offset yang sudah didapat
-    // return `${year}-${month}-${day}T${time}${offset}`;
     return `${year}-${month}-${day}T${time}`;
+  },
+
+  convertToDateDDMMYYYY(dateISOString) {
+    const date = new Date(dateISOString);
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0"); // getMonth() returns 0-11
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
   },
 };

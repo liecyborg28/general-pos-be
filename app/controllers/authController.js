@@ -446,8 +446,8 @@ module.exports = {
                                                           changedBy:
                                                             users[0]._id.toString(),
                                                           default: false,
-                                                          name: "Persentage Charge",
-                                                          type: "persentage",
+                                                          name: "Percentage Charge",
+                                                          type: "percentage",
                                                           createdAt:
                                                             dateISOString,
                                                           updatedAt:
@@ -485,7 +485,7 @@ module.exports = {
                                                                 changedBy:
                                                                   users[0]._id.toString(),
                                                                 default: false,
-                                                                name: "Persentage Promotion",
+                                                                name: "Percentage Promotion",
                                                                 createdAt:
                                                                   dateISOString,
                                                                 updatedAt:
@@ -514,8 +514,8 @@ module.exports = {
                                                               changedBy:
                                                                 users[0]._id.toString(),
                                                               default: false,
-                                                              name: "Persentage Tax",
-                                                              type: "persentage",
+                                                              name: "Percentage Tax",
+                                                              type: "percentage",
                                                               createdAt:
                                                                 dateISOString,
                                                               updatedAt:
@@ -618,7 +618,7 @@ module.exports = {
                                                                                       amount: 0.1,
                                                                                       taxId:
                                                                                         taxes[0]._id.toString(),
-                                                                                      type: "persentage",
+                                                                                      type: "percentage",
                                                                                     },
                                                                                   ],
                                                                                 userId:
@@ -639,7 +639,7 @@ module.exports = {
                                                                                       amount: 0.15,
                                                                                       chargeId:
                                                                                         charges[0]._id.toString(),
-                                                                                      type: "persentage",
+                                                                                      type: "percentage",
                                                                                     },
                                                                                   ],
                                                                                 details:
@@ -690,7 +690,7 @@ module.exports = {
                                                                                       amount: 0.1,
                                                                                       promotionId:
                                                                                         promotions[0]._id.toString(),
-                                                                                      type: "persentage",
+                                                                                      type: "percentage",
                                                                                     },
                                                                                   ],
                                                                                 status:
@@ -708,7 +708,7 @@ module.exports = {
                                                                                       amount: 0.1,
                                                                                       taxId:
                                                                                         taxes[0]._id.toString(),
-                                                                                      type: "persentage",
+                                                                                      type: "percentage",
                                                                                     },
                                                                                   ],
                                                                                 tips: [

@@ -73,7 +73,7 @@ const CustomerController = {
 
   get: (req) => {
     let pageKey = req.query.pageKey ? req.query.pageKey : 1;
-    let pageSize = req.query.pageSize ? req.query.pageSize : 1000;
+    let pageSize = req.query.pageSize ? req.query.pageSize : null;
 
     return new Promise((resolve, reject) => {
       let pipeline = {

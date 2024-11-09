@@ -94,7 +94,7 @@ module.exports = {
     let dateISOString = new Date().toISOString();
 
     let pageKey = req.query.pageKey || 1;
-    let pageSize = req.query.pageSize || 1000;
+    let pageSize = req.query.pageSize || null;
 
     let defaultFrom = formatController.convertToLocaleISOString(
       dateISOString,
@@ -116,15 +116,12 @@ module.exports = {
             createdAt: {
               $gte: req.query.from
                 ? formatController.convertToLocaleISOString(
-                    new Date(req.query.from),
+                    req.query.from,
                     "start"
                   )
                 : defaultFrom,
               $lte: req.query.to
-                ? formatController.convertToLocaleISOString(
-                    new Date(req.query.to),
-                    "end"
-                  )
+                ? formatController.convertToLocaleISOString(req.query.to, "end")
                 : defaultTo,
             },
           }
@@ -132,15 +129,12 @@ module.exports = {
             createdAt: {
               $gte: req.query.from
                 ? formatController.convertToLocaleISOString(
-                    new Date(req.query.from),
+                    req.query.from,
                     "start"
                   )
                 : defaultFrom,
               $lte: req.query.to
-                ? formatController.convertToLocaleISOString(
-                    new Date(req.query.to),
-                    "end"
-                  )
+                ? formatController.convertToLocaleISOString(req.query.to, "end")
                 : defaultTo,
             },
           }

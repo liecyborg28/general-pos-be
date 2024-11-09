@@ -1,19 +1,25 @@
 // models
+const Outlet = require("../models/outletModel");
+const PaymentMethod = require("../models/paymentMethodModel");
+const ServiceMethod = require("../models/serviceMethodModel");
+const User = require("../models/userModel");
 const Transaction = require("../models/transactionModel");
 
 // controllers
+const dataController = require("./utils/dataController");
 const excelController = require("./utils/excelController");
 const formatController = require("./utils/formatController");
 const pageController = require("./utils/pageController");
 const pdfController = require("./utils/pdfController");
 
 module.exports = {
-  generateDocument: async function (req, documentType) {
+  generateDocument: async function (req) {
     try {
       let reportData;
 
+      let reportType = req.query.reportType;
       // Menentukan data laporan berdasarkan jenis laporan yang diminta
-      switch (req.query.reportType) {
+      switch (reportType) {
         case "byOutlet":
           reportData = await this.generateSalesReportByOutlet(req);
           break;
@@ -37,46 +43,187 @@ module.exports = {
         throw new Error("Failed to generate report data.");
       }
 
-      const documentData = {
+      let name = `Laporan Penjualan Per ${
+        reportType === "byOutlet"
+          ? "Outlet"
+          : reportType === "byPaymentMethod"
+          ? "Metode Transaksi"
+          : reportType === "byServiceMethod"
+          ? "Tipe Penjualan"
+          : reportType === "byUser"
+          ? "Kasir"
+          : "Transaksi"
+      }`;
+
+      let keyName =
+        reportType === "byOutlet"
+          ? "outletId"
+          : reportType === "byPaymentMethod"
+          ? "paymentMethodId"
+          : reportType === "byServiceMethod"
+          ? "serviceMethodId"
+          : reportType === "byUser"
+          ? "userId"
+          : "_id";
+
+      let documentData = {
         book: {
-          name: `${req.query.reportType}_report`,
+          name: name
+            .split(" ")
+            .join("_")
+            .concat(`_${new Date().toISOString()}`),
           created: new Date(),
-          creator: req.query.creator || "Default Creator",
+          creator: "General_POS",
           sheets: [
             {
-              name: `${req.query.reportType}_list`,
+              name: "Laporan Penjualan",
               content: {
                 header: {
-                  name: "Report Header",
+                  name: `${name} Periode (${formatController.convertToDateDDMMYYYY(
+                    req.query.from
+                  )} - ${formatController.convertToDateDDMMYYYY(
+                    req.query.to
+                  )})`,
                   color: { background: "#FFFF00", text: "#000000" },
-                  fontWeight: "bold",
+                  fontStyle: "bold",
                 },
-                columns: Object.keys(reportData.data[0].total).map((key) => ({
-                  name: key,
-                  color: { background: "#FFFFFF", text: "#000000" },
-                  fontWeight: "normal",
-                  format:
-                    key === "revenue" || key === "cost" ? "accounting" : "text",
-                  values: reportData.data.map((item) => item.total[key]),
-                  fixed: false,
-                })),
+                columns: [
+                  {
+                    name: "No",
+                    color: { background: "#FFFF00", text: "#000000" },
+                    fontStyle: "normal",
+                    format: "text",
+                    fixed: true,
+                    align: "center",
+                    values: reportData.data.map((e, i) => i + 1),
+                  },
+                  {
+                    name:
+                      reportType === "byOutlet"
+                        ? "Outlet"
+                        : reportType === "byPaymentMethod"
+                        ? "Metode Transaksi"
+                        : reportType === "byServiceMethod"
+                        ? "Tipe Penjualan"
+                        : reportType === "byUser"
+                        ? "Kasir"
+                        : "Transaksi",
+                    color: { background: "#FFFF00", text: "#000000" },
+                    fontStyle: "normal",
+                    format: "text",
+                    fixed: true,
+                    align: "left",
+                    values: reportData.data.map((e) => e[keyName].name),
+                  },
+                  {
+                    name: "Total Biaya Produksi",
+                    color: { background: "#FFFF00", text: "#000000" },
+                    fontStyle: "normal",
+                    format: "accounting",
+                    fixed: false,
+                    align: "right",
+                    values: reportData.data.map((e) => e.total.cost),
+                  },
+                  {
+                    name: "Total Pendapatan",
+                    color: { background: "#FFFF00", text: "#000000" },
+                    fontStyle: "normal",
+                    format: "accounting",
+                    fixed: false,
+                    align: "right",
+                    values: reportData.data.map((e) => e.total.revenue),
+                  },
+                  {
+                    name: "Total Pendapatan Kotor",
+                    color: { background: "#FFFF00", text: "#000000" },
+                    fontStyle: "normal",
+                    format: "accounting",
+                    fixed: false,
+                    align: "right",
+                    values: reportData.data.map((e) => e.total.grossProfit),
+                  },
+                  {
+                    name: "Total Pajak",
+                    color: { background: "#FFFF00", text: "#000000" },
+                    fontStyle: "normal",
+                    format: "accounting",
+                    fixed: false,
+                    align: "right",
+                    values: reportData.data.map((e) => e.total.tax),
+                  },
+                  {
+                    name: "Total Pendapatan Bersih",
+                    color: { background: "#FFFF00", text: "#000000" },
+                    fontStyle: "normal",
+                    format: "accounting",
+                    fixed: false,
+                    align: "right",
+                    values: reportData.data.map((e) => e.total.netIncome),
+                  },
+                  {
+                    name: "Total Service Charge",
+                    color: { background: "#FFFF00", text: "#000000" },
+                    fontStyle: "normal",
+                    format: "accounting",
+                    fixed: false,
+                    align: "right",
+                    values: reportData.data.map((e) => e.total.charge),
+                  },
+                  {
+                    name: "Total Tip",
+                    color: { background: "#FFFF00", text: "#000000" },
+                    fontStyle: "normal",
+                    format: "accounting",
+                    fixed: false,
+                    align: "right",
+                    values: reportData.data.map((e) => e.total.tip),
+                  },
+                ],
               },
             },
           ],
         },
       };
 
+      if (reportType !== "byTransaction") {
+        extraColumns = [
+          {
+            name: "Total Transaksi Retur",
+            color: { background: "#FFFF00", text: "#000000" },
+            fontStyle: "normal",
+            format: "text",
+            fixed: false,
+            align: "right",
+            values: reportData.data.map((e) => e.total.refund),
+          },
+          {
+            name: "Total Transaksi Batal",
+            color: { background: "#FFFF00", text: "#000000" },
+            fontStyle: "normal",
+            format: "text",
+            fixed: false,
+            align: "right",
+            values: reportData.data.map((e) => e.total.canceled),
+          },
+        ];
+        documentData.book.sheets[0].content.columns =
+          documentData.book.sheets[0].content.columns.concat(extraColumns);
+      }
+
       let documentBuffer;
 
-      if (documentType === "pdf") {
-        documentBuffer = await pdfController.generatePDF(documentData);
-      } else if (documentType === "excel") {
-        documentBuffer = await excelController.generateExcel(documentData);
+      if (req.query.documentType === "pdf") {
+        documentBuffer = await pdfController.generate(documentData);
+      } else if (req.query.documentType === "excel") {
+        documentBuffer = await excelController.generate(documentData);
       } else {
         throw new Error("Invalid document type specified.");
       }
 
-      return { error: false, data: documentBuffer };
+      return {
+        error: false,
+        data: { fileName: documentData.book.name, buffer: documentBuffer },
+      };
     } catch (error) {
       console.error("Error generating document:", error);
       return { error: true, message: error.message };
@@ -96,7 +243,7 @@ module.exports = {
   },
 
   generateSalesReportByTransaction: async (req) => {
-    return generateReport(req, "userId");
+    return generateReport(req, "_id"); // Gunakan '_id' untuk group per transaksi
   },
 
   generateSalesReportByUser: async (req) => {
@@ -104,13 +251,10 @@ module.exports = {
   },
 };
 
-// Helper function to generate the report based on groupField
 async function generateReport(req, groupField) {
   let dateISOString = new Date().toISOString();
   let pageKey = req.query.pageKey ? req.query.pageKey : 1;
-  let pageSize = req.query.pageSize
-    ? req.query.pageSize
-    : 1 * 1000 * 1000 * 1000;
+  let pageSize = req.query.pageSize ? req.query.pageSize : null;
 
   let defaultFrom = formatController.convertToLocaleISOString(
     dateISOString,
@@ -126,19 +270,12 @@ async function generateReport(req, groupField) {
 
   let pipeline = isNotEveryQueryNull()
     ? {
-        [groupField]: req.query[groupField],
         createdAt: {
           $gte: req.query.from
-            ? formatController.convertToLocaleISOString(
-                new Date(req.query.from),
-                "start"
-              )
+            ? formatController.convertToLocaleISOString(req.query.from, "start")
             : defaultFrom,
           $lte: req.query.to
-            ? formatController.convertToLocaleISOString(
-                new Date(req.query.to),
-                "end"
-              )
+            ? formatController.convertToLocaleISOString(req.query.to, "end")
             : defaultTo,
         },
       }
@@ -155,11 +292,17 @@ async function generateReport(req, groupField) {
       pageSize,
       pipeline,
       Transaction,
-      -1
+      1
     );
-    transactions = await Transaction.populate(transactions.data, {
-      path: groupField,
-    });
+
+    transactions = transactions.data;
+
+    if (!Array.isArray(transactions)) {
+      return {
+        error: true,
+        message: "Data transaksi tidak dalam bentuk array.",
+      };
+    }
 
     const report = transactions.reduce((result, transaction) => {
       const groupId = transaction[groupField].toString();
@@ -181,8 +324,10 @@ async function generateReport(req, groupField) {
         };
       }
 
-      if (transaction.status.order === "completed") {
-        // Calculate totals for completed transactions
+      if (
+        transaction.status.order === "completed" ||
+        transaction.status.order === "queued"
+      ) {
         const totalCost =
           transaction.details?.reduce((costAcc, detail) => {
             const detailCost = (detail.cost || 0) * (detail.qty || 0);
@@ -207,23 +352,31 @@ async function generateReport(req, groupField) {
 
         const grossProfit = totalRevenue - totalCost;
 
-        const totalTax =
-          transaction.taxes?.reduce((taxAcc, tax) => {
-            const taxAmount =
-              tax.type === "percentage"
-                ? totalRevenue * (tax.amount || 0)
-                : tax.amount || 0;
+        let totalTax = 0;
+        if (transaction.taxes && Array.isArray(transaction.taxes)) {
+          totalTax = transaction.taxes.reduce((taxAcc, tax) => {
+            let taxAmount = 0;
+            if (tax.type === "percentage" && tax.amount) {
+              taxAmount = totalRevenue * tax.amount;
+            } else if (tax.type === "fixed" && tax.amount) {
+              taxAmount = tax.amount;
+            }
             return taxAcc + taxAmount;
-          }, 0) || 0;
+          }, 0);
+        }
 
-        const totalCharge =
-          transaction.charges?.reduce((chargeAcc, charge) => {
-            const chargeAmount =
-              charge.type === "percentage"
-                ? totalRevenue * (charge.amount || 0)
-                : charge.amount || 0;
+        let totalCharge = 0;
+        if (transaction.charges && Array.isArray(transaction.charges)) {
+          totalCharge = transaction.charges.reduce((chargeAcc, charge) => {
+            let chargeAmount = 0;
+            if (charge.type === "percentage" && charge.amount) {
+              chargeAmount = totalRevenue * charge.amount;
+            } else if (charge.type === "fixed" && charge.amount) {
+              chargeAmount = charge.amount;
+            }
             return chargeAcc + chargeAmount;
-          }, 0) || 0;
+          }, 0);
+        }
 
         const totalTip =
           transaction.tips?.reduce(
@@ -233,7 +386,6 @@ async function generateReport(req, groupField) {
 
         const netIncome = grossProfit - totalTax;
 
-        // Add calculated totals for completed transactions
         result[groupId].total.cost += totalCost;
         result[groupId].total.revenue += totalRevenue;
         result[groupId].total.grossProfit += grossProfit;
@@ -242,15 +394,45 @@ async function generateReport(req, groupField) {
         result[groupId].total.tip += totalTip;
         result[groupId].total.netIncome += netIncome;
       } else if (transaction.status.order === "returned") {
-        result[groupId].total.refund += 1; // Count of returned transactions
+        result[groupId].total.refund += 1;
       } else if (transaction.status.order === "canceled") {
-        result[groupId].total.canceled += 1; // Count of canceled transactions
+        result[groupId].total.canceled += 1;
       }
 
       return result;
     }, {});
 
-    const reportArray = Object.values(report);
+    // Populate groupField data
+    const reportArray = await Promise.all(
+      Object.values(report).map(async (item) => {
+        let model = null;
+        switch (groupField) {
+          case "outletId":
+            model = Outlet;
+            break;
+          case "paymentMethodId":
+            model = PaymentMethod;
+            break;
+          case "serviceMethodId":
+            model = ServiceMethod;
+            break;
+          case "_id":
+            model = Transaction;
+            break;
+          case "userId":
+            model = User;
+            break;
+          default:
+            break;
+        }
+        const populatedField = await dataController.populateFieldById(
+          model,
+          item[groupField]
+        );
+        return { ...item, [groupField]: populatedField };
+      })
+    );
+
     return { error: false, data: reportArray };
   } catch (error) {
     console.error(error);

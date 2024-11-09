@@ -1,101 +1,127 @@
 const ExcelJS = require("exceljs");
 
 module.exports = {
-  generateExcel: async function (data) {
-    try {
-      const { book } = data;
-      const workbook = new ExcelJS.Workbook();
-      workbook.creator = book.creator || "Default Creator";
-      workbook.created = book.created || new Date();
+  generate: async function (data) {
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = data.book.creator;
+    workbook.created = data.book.created;
+    workbook.title = data.book.name;
 
-      book.sheets.forEach((sheetData) => {
-        const worksheet = workbook.addWorksheet(sheetData.name);
+    data.book.sheets.forEach((sheetData) => {
+      const sheet = workbook.addWorksheet(sheetData.name);
 
-        // Set up the header
-        const headerRow = worksheet.addRow([sheetData.content.header.name]);
-        headerRow.eachCell((cell) => {
-          cell.fill = {
-            type: "pattern",
-            pattern: "solid",
-            fgColor: {
-              argb: sheetData.content.header.color.background.replace("#", ""),
-            },
-          };
-          cell.font = {
-            bold: sheetData.content.header.fontWeight === "bold",
-            color: {
-              argb: sheetData.content.header.color.text.replace("#", ""),
-            },
-          };
-          cell.alignment = { vertical: "middle", horizontal: "center" };
-        });
+      // Add header row with merged cells and centered text
+      const headerRow = sheet.addRow([sheetData.content.header.name]);
+      headerRow.eachCell((cell) => {
+        cell.font = {
+          bold: sheetData.content.header.fontStyle === "bold",
+          italic: sheetData.content.header.fontStyle === "italic",
+        };
+        cell.fill = {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: {
+            argb: sheetData.content.header.color.background.replace("#", ""),
+          },
+        };
+        cell.font.color = {
+          argb: sheetData.content.header.color.text.replace("#", ""),
+        };
+        cell.alignment = { horizontal: "center", vertical: "middle" }; // Centered text alignment for row 1
+        cell.border = {
+          top: { style: "thin" },
+          left: { style: "thin" },
+          bottom: { style: "thin" },
+          right: { style: "thin" },
+        };
+      });
+      sheet.mergeCells(
+        `A1:${String.fromCharCode(64 + sheetData.content.columns.length)}1`
+      );
 
-        // Set up columns with specified name, color, and format
-        const columns = sheetData.content.columns.map((col, index) => {
-          if (col.fixed) {
-            worksheet.views = [{ state: "frozen", xSplit: index + 1 }];
-          }
-          return {
-            header: col.name,
-            key: col.name,
-            width: 15,
-          };
-        });
-        worksheet.columns = columns;
+      // Add column headers with specified styling and alignment
+      const columnNames = sheetData.content.columns.map((col) => col.name);
+      const columnRow = sheet.addRow(columnNames);
+      columnRow.eachCell((cell, colNumber) => {
+        const colData = sheetData.content.columns[colNumber - 1];
+        cell.fill = {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: { argb: colData.color.background.replace("#", "") },
+        };
 
-        // Add data rows
-        sheetData.content.columns.forEach((column, colIndex) => {
-          column.values.forEach((value, rowIndex) => {
-            let row = worksheet.getRow(rowIndex + 2);
-            const cell = row.getCell(colIndex + 1);
-            cell.value = value;
+        // Set font style based on `fontStyle`
+        cell.font = {
+          color: { argb: colData.color.text.replace("#", "") },
+          bold: colData.fontStyle === "bold",
+          italic: colData.fontStyle === "italic",
+        };
 
-            // Format cells
-            if (column.format === "accounting") {
-              cell.numFmt = '"$"#,##0.00;[Red]\\-"$"#,##0.00';
-            } else if (column.format === "text") {
-              cell.numFmt = "@";
-            }
+        // Center alignment for column headers (row 2)
+        cell.alignment = {
+          horizontal: "center",
+          vertical: "middle",
+        };
 
-            // Apply style to each cell
-            cell.fill = {
-              type: "pattern",
-              pattern: "solid",
-              fgColor: { argb: column.color.background.replace("#", "") },
-            };
-            cell.font = {
-              bold: column.fontWeight === "bold",
-              color: { argb: column.color.text.replace("#", "") },
-            };
-            cell.alignment = { vertical: "middle", horizontal: "center" };
-            cell.border = {
-              top: { style: "thin" },
-              left: { style: "thin" },
-              bottom: { style: "thin" },
-              right: { style: "thin" },
-            };
-          });
-        });
-
-        // Apply border to all cells, including empty ones
-        worksheet.eachRow((row, rowIndex) => {
-          row.eachCell({ includeEmpty: true }, (cell) => {
-            cell.border = {
-              top: { style: "thin" },
-              left: { style: "thin" },
-              bottom: { style: "thin" },
-              right: { style: "thin" },
-            };
-          });
-        });
+        cell.border = {
+          top: { style: "thin" },
+          left: { style: "thin" },
+          bottom: { style: "thin" },
+          right: { style: "thin" },
+        };
       });
 
-      // Return the Excel file as a buffer instead of saving it
-      const buffer = await workbook.xlsx.writeBuffer();
-      return buffer;
-    } catch (error) {
-      console.error("Error generating Excel file:", error);
-      throw error;
-    }
+      // Add data rows based on the values in each column
+      const rowCount = sheetData.content.columns[0].values.length;
+      for (let i = 0; i < rowCount; i++) {
+        const rowData = sheetData.content.columns.map(
+          (column) => column.values[i]
+        );
+        const row = sheet.addRow(rowData);
+
+        // Apply borders, formatting, alignment, and cell adjustments
+        row.eachCell((cell, colNumber) => {
+          cell.border = {
+            top: { style: "thin" },
+            left: { style: "thin" },
+            bottom: { style: "thin" },
+            right: { style: "thin" },
+          };
+          const colData = sheetData.content.columns[colNumber - 1];
+
+          // Format and align data cells
+          if (colData.format === "accounting") {
+            cell.numFmt = '"Rp"#,##0.00;[Red]\\-"Rp"#,##0.00';
+          }
+          cell.alignment = {
+            horizontal: colData.align || "left",
+            vertical: "middle",
+          };
+        });
+      }
+
+      // Set column widths to fit the longest content
+      sheetData.content.columns.forEach((col, colIndex) => {
+        const maxLength = Math.max(
+          col.name.length,
+          ...col.values.map((value) => value.toString().length)
+        );
+
+        // Add extra width for accounting format columns
+        const extraWidth = col.format === "accounting" ? 10 : 2;
+        sheet.getColumn(colIndex + 1).width = maxLength + extraWidth;
+      });
+
+      // Apply frozen pane based on 'fixed' property
+      const fixedColumns =
+        sheetData.content.columns.findIndex((col) => !col.fixed) + 1;
+      if (fixedColumns > 1) {
+        sheet.views = [{ state: "frozen", xSplit: fixedColumns }];
+      }
+    });
+
+    // Save workbook to buffer and return it
+    const buffer = await workbook.xlsx.writeBuffer();
+    return buffer;
   },
 };

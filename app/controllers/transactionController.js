@@ -35,15 +35,6 @@ function generateRequestCodes() {
   return { status: "initial", viewCode, valueCode: reversedValueCode };
 }
 
-// function getDateWithOffset(date = new Date()) {
-//   const offset = -date.getTimezoneOffset();
-//   const sign = offset >= 0 ? "+" : "-";
-//   const hours = String(Math.floor(Math.abs(offset) / 60)).padStart(2, "0");
-//   const minutes = String(Math.abs(offset) % 60).padStart(2, "0");
-
-//   return date.toISOString().slice(0, -1) + sign + hours + ":" + minutes;
-// }
-
 module.exports = {
   create: async (req) => {
     const body = req.body;
@@ -69,11 +60,9 @@ module.exports = {
         };
       }
 
-      // Cek apakah transaksi adalah retur berdasarkan status pesanan
       const isReturnTransaction =
         body.status && body.status.order === "returned";
 
-      // Jika bukan retur, cek qty produk untuk transaksi reguler
       if (!isReturnTransaction) {
         if (product.countable && product.qty < detail.qty) {
           return {
@@ -106,14 +95,13 @@ module.exports = {
         }
       }
 
-      // Kurangi qty produk untuk transaksi reguler, atau tambahkan qty untuk retur
       if (product.countable) {
         product.qty += isReturnTransaction ? detail.qty : -detail.qty;
         await product.save();
       }
     }
 
-    // Lakukan penyesuaian qty pada setiap komponen berdasarkan kebutuhan
+    // Pengecekan ketersediaan qty.current pada setiap komponen sebelum penyesuaian
     for (const [componentId, qtyAdjustment] of Object.entries(
       componentAdjustments
     )) {
@@ -127,6 +115,22 @@ module.exports = {
         };
       }
 
+      // Cek apakah qty.current cukup
+      if (component.qty.current + qtyAdjustment < 0) {
+        return {
+          error: true,
+          message: {
+            id: `Bahan baku untuk komponen ${component.name} tidak mencukupi.`,
+          },
+          data: {
+            componentId,
+            requiredQty: Math.abs(qtyAdjustment),
+            availableQty: component.qty.current,
+          },
+        };
+      }
+
+      // Jika cukup, lakukan penyesuaian qty.current
       component.qty.current += qtyAdjustment;
 
       // Tentukan qty.status berdasarkan kondisi qty.current dan qty.min
@@ -138,7 +142,6 @@ module.exports = {
         component.qty.status = "available";
       }
 
-      // Simpan perubahan pada komponen
       await component.save();
     }
 
@@ -200,15 +203,12 @@ module.exports = {
             createdAt: {
               $gte: req.query.from
                 ? formatController.convertToLocaleISOString(
-                    new Date(req.query.from),
+                    req.query.from,
                     "start"
                   )
                 : defaultFrom,
               $lte: req.query.to
-                ? formatController.convertToLocaleISOString(
-                    new Date(req.query.to),
-                    "end"
-                  )
+                ? formatController.convertToLocaleISOString(req.query.to, "end")
                 : defaultTo,
             },
           }
@@ -216,15 +216,12 @@ module.exports = {
             createdAt: {
               $gte: req.query.from
                 ? formatController.convertToLocaleISOString(
-                    new Date(req.query.from),
+                    req.query.from,
                     "start"
                   )
                 : defaultFrom,
               $lte: req.query.to
-                ? formatController.convertToLocaleISOString(
-                    new Date(req.query.to),
-                    "end"
-                  )
+                ? formatController.convertToLocaleISOString(req.query.to, "end")
                 : defaultTo,
             },
           }

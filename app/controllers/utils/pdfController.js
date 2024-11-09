@@ -1,80 +1,88 @@
 const PDFDocument = require("pdfkit");
 
 module.exports = {
-  generatePDF: function (data) {
-    try {
-      const { book } = data;
-      const doc = new PDFDocument();
+  generate: async function (data) {
+    const doc = new PDFDocument({ autoFirstPage: false });
 
-      let buffers = [];
-      doc.on("data", buffers.push.bind(buffers));
-      doc.on("end", () => {
-        const pdfData = Buffer.concat(buffers);
-        // Return or send pdfData as needed
+    // Add a page to the PDF document
+    doc.addPage();
+
+    // Set the title and creator from the provided data
+    doc.fontSize(16).text(data.book.name, {
+      align: "center",
+    });
+    doc.moveDown();
+
+    // Loop through each sheet
+    data.book.sheets.forEach((sheetData) => {
+      doc.fontSize(12).text(sheetData.name, {
+        align: "center",
+      });
+      doc.moveDown();
+
+      // Define table columns and alignment based on the provided data
+      const columnNames = sheetData.content.columns.map((col) => col.name);
+      const columnWidths = sheetData.content.columns.map((col) => {
+        const maxLength = Math.max(
+          col.name.length,
+          ...col.values.map((value) => value.toString().length)
+        );
+        return maxLength * 7; // Adjust width multiplier for better spacing
       });
 
-      // Metadata
-      doc.info.Title = book.name || "Default PDF Title";
-      doc.info.Author = book.creator || "Default Creator";
-
-      // Iterate over sheets in book
-      book.sheets.forEach((sheetData) => {
-        // Add a title for each sheet
-        doc.fontSize(18).fillColor("black").text(sheetData.name, {
+      // Header Row (Bold, Centered)
+      columnNames.forEach((colName, index) => {
+        doc.font("Helvetica-Bold").text(colName, {
+          continued: true,
+          width: columnWidths[index],
           align: "center",
-          underline: true,
         });
-        doc.moveDown();
+      });
+      doc.moveDown();
 
-        // Set up the header with specified styling
-        doc
-          .fontSize(14)
-          .fillColor(sheetData.content.header.color.text || "black")
-          .text(sheetData.content.header.name, { align: "center" });
-        doc.moveDown();
+      // Add separator line after header
+      doc
+        .moveTo(doc.x, doc.y)
+        .lineTo(doc.x + columnWidths.reduce((a, b) => a + b, 0), doc.y)
+        .stroke();
 
-        // Set up table columns
-        const columns = sheetData.content.columns;
-        columns.forEach((column) => {
-          doc
-            .fontSize(12)
-            .fillColor(column.color.text || "black")
-            .text(column.name, { continued: true });
-          doc.text(" ", 100); // Padding between columns
-        });
-        doc.moveDown();
+      // Add Data Rows
+      sheetData.content.columns[0].values.forEach((_, rowIndex) => {
+        sheetData.content.columns.forEach((col, colIndex) => {
+          let value = col.values[rowIndex];
 
-        // Add each row of data for columns
-        const maxRows = Math.max(...columns.map((col) => col.values.length));
-        for (let i = 0; i < maxRows; i++) {
-          columns.forEach((column) => {
-            let value = column.values[i] || ""; // Fallback if data is missing
-            doc
-              .fontSize(10)
-              .fillColor(column.color.text || "black")
-              .text(value.toString(), { continued: true });
-            doc.text(" ", 100); // Padding between cells
+          // Format accounting values with 'Rp' symbol
+          if (col.format === "accounting") {
+            value = `Rp ${value
+              .toFixed(2)
+              .replace(/\d(?=(\d{3})+\.)/g, "$&,")}`;
+          }
+
+          doc.font("Helvetica").text(value.toString(), {
+            continued: true,
+            width: columnWidths[colIndex],
+            align: col.align || "left",
           });
-          doc.moveDown();
-        }
-
-        // Add page break if there are multiple sheets
-        if (book.sheets.indexOf(sheetData) < book.sheets.length - 1) {
-          doc.addPage();
-        }
-      });
-
-      // Finish PDF and return as a buffer
-      doc.end();
-      return new Promise((resolve) => {
-        doc.on("end", () => {
-          const pdfBuffer = Buffer.concat(buffers);
-          resolve(pdfBuffer);
         });
+        doc.moveDown();
       });
-    } catch (error) {
-      console.error("Error generating PDF file:", error);
-      throw error;
-    }
+
+      // Add a separator line between sheets
+      doc
+        .moveTo(doc.x, doc.y)
+        .lineTo(doc.x + columnWidths.reduce((a, b) => a + b, 0), doc.y)
+        .stroke();
+      doc.moveDown();
+    });
+
+    // Output the PDF document to a buffer
+    const buffer = await new Promise((resolve, reject) => {
+      const buffers = [];
+      doc.on("data", buffers.push.bind(buffers));
+      doc.on("end", () => resolve(Buffer.concat(buffers)));
+      doc.end();
+    });
+
+    return buffer;
   },
 };
