@@ -27,7 +27,7 @@ module.exports = {
         cell.font.color = {
           argb: sheetData.content.header.color.text.replace("#", ""),
         };
-        cell.alignment = { horizontal: "center", vertical: "middle" }; // Centered text alignment for row 1
+        cell.alignment = { horizontal: "center", vertical: "middle" };
         cell.border = {
           top: { style: "thin" },
           left: { style: "thin" },
@@ -50,14 +50,12 @@ module.exports = {
           fgColor: { argb: colData.color.background.replace("#", "") },
         };
 
-        // Set font style based on `fontStyle`
         cell.font = {
           color: { argb: colData.color.text.replace("#", "") },
           bold: colData.fontStyle === "bold",
           italic: colData.fontStyle === "italic",
         };
 
-        // Center alignment for column headers (row 2)
         cell.alignment = {
           horizontal: "center",
           vertical: "middle",
@@ -74,12 +72,11 @@ module.exports = {
       // Add data rows based on the values in each column
       const rowCount = sheetData.content.columns[0].values.length;
       for (let i = 0; i < rowCount; i++) {
-        const rowData = sheetData.content.columns.map(
-          (column) => column.values[i]
+        const rowData = sheetData.content.columns.map((column) =>
+          column.values[i] !== undefined ? column.values[i] : "-"
         );
         const row = sheet.addRow(rowData);
 
-        // Apply borders, formatting, alignment, and cell adjustments
         row.eachCell((cell, colNumber) => {
           cell.border = {
             top: { style: "thin" },
@@ -89,7 +86,6 @@ module.exports = {
           };
           const colData = sheetData.content.columns[colNumber - 1];
 
-          // Format and align data cells
           if (colData.format === "accounting") {
             cell.numFmt = '"Rp"#,##0.00;[Red]\\-"Rp"#,##0.00';
           }
@@ -104,10 +100,9 @@ module.exports = {
       sheetData.content.columns.forEach((col, colIndex) => {
         const maxLength = Math.max(
           col.name.length,
-          ...col.values.map((value) => value.toString().length)
+          ...col.values.map((value) => (value ? value.toString().length : 1))
         );
 
-        // Add extra width for accounting format columns
         const extraWidth = col.format === "accounting" ? 10 : 2;
         sheet.getColumn(colIndex + 1).width = maxLength + extraWidth;
       });
@@ -120,7 +115,6 @@ module.exports = {
       }
     });
 
-    // Save workbook to buffer and return it
     const buffer = await workbook.xlsx.writeBuffer();
     return buffer;
   },

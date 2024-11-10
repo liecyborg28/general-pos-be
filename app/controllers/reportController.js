@@ -107,25 +107,20 @@ module.exports = {
                         ? "Tipe Penjualan"
                         : reportType === "byUser"
                         ? "Kasir"
-                        : "Transaksi",
+                        : "ID Transaksi",
                     color: { background: "#FFFF00", text: "#000000" },
                     fontStyle: "normal",
                     format: "text",
                     fixed: true,
                     align: "left",
-                    values: reportData.data.map((e) => e[keyName].name),
+                    values: reportData.data.map((e) =>
+                      reportType === "byTransaction"
+                        ? e._id._id.toString()
+                        : e[keyName].name
+                    ),
                   },
                   {
-                    name: "Total Biaya Produksi",
-                    color: { background: "#FFFF00", text: "#000000" },
-                    fontStyle: "normal",
-                    format: "accounting",
-                    fixed: false,
-                    align: "right",
-                    values: reportData.data.map((e) => e.total.cost),
-                  },
-                  {
-                    name: "Total Pendapatan",
+                    name: "T. Pendapatan",
                     color: { background: "#FFFF00", text: "#000000" },
                     fontStyle: "normal",
                     format: "accounting",
@@ -134,7 +129,16 @@ module.exports = {
                     values: reportData.data.map((e) => e.total.revenue),
                   },
                   {
-                    name: "Total Pendapatan Kotor",
+                    name: "T. Biaya Produksi",
+                    color: { background: "#FFFF00", text: "#000000" },
+                    fontStyle: "normal",
+                    format: "accounting",
+                    fixed: false,
+                    align: "right",
+                    values: reportData.data.map((e) => e.total.cost),
+                  },
+                  {
+                    name: "T. Pendapatan Kotor",
                     color: { background: "#FFFF00", text: "#000000" },
                     fontStyle: "normal",
                     format: "accounting",
@@ -143,7 +147,16 @@ module.exports = {
                     values: reportData.data.map((e) => e.total.grossProfit),
                   },
                   {
-                    name: "Total Pajak",
+                    name: "T. Promo",
+                    color: { background: "#FFFF00", text: "#000000" },
+                    fontStyle: "normal",
+                    format: "accounting",
+                    fixed: false,
+                    align: "right",
+                    values: reportData.data.map((e) => e.total.promotion),
+                  },
+                  {
+                    name: "T. Pajak",
                     color: { background: "#FFFF00", text: "#000000" },
                     fontStyle: "normal",
                     format: "accounting",
@@ -152,7 +165,7 @@ module.exports = {
                     values: reportData.data.map((e) => e.total.tax),
                   },
                   {
-                    name: "Total Pendapatan Bersih",
+                    name: "T. Pendapatan Bersih",
                     color: { background: "#FFFF00", text: "#000000" },
                     fontStyle: "normal",
                     format: "accounting",
@@ -161,7 +174,7 @@ module.exports = {
                     values: reportData.data.map((e) => e.total.netIncome),
                   },
                   {
-                    name: "Total Service Charge",
+                    name: "T. Service Charge",
                     color: { background: "#FFFF00", text: "#000000" },
                     fontStyle: "normal",
                     format: "accounting",
@@ -170,7 +183,7 @@ module.exports = {
                     values: reportData.data.map((e) => e.total.charge),
                   },
                   {
-                    name: "Total Tip",
+                    name: "T. Tip",
                     color: { background: "#FFFF00", text: "#000000" },
                     fontStyle: "normal",
                     format: "accounting",
@@ -185,10 +198,12 @@ module.exports = {
         },
       };
 
+      let extraColumns = [];
+
       if (reportType !== "byTransaction") {
         extraColumns = [
           {
-            name: "Total Transaksi Retur",
+            name: "T. Transaksi Retur",
             color: { background: "#FFFF00", text: "#000000" },
             fontStyle: "normal",
             format: "text",
@@ -197,7 +212,7 @@ module.exports = {
             values: reportData.data.map((e) => e.total.refund),
           },
           {
-            name: "Total Transaksi Batal",
+            name: "T. Transaksi Batal",
             color: { background: "#FFFF00", text: "#000000" },
             fontStyle: "normal",
             format: "text",
@@ -208,16 +223,41 @@ module.exports = {
         ];
         documentData.book.sheets[0].content.columns =
           documentData.book.sheets[0].content.columns.concat(extraColumns);
+      } else {
+        extraColumns = [
+          {
+            name: "Status Retur",
+            color: { background: "#FFFF00", text: "#000000" },
+            fontStyle: "normal",
+            format: "text",
+            fixed: false,
+            align: "center",
+            values: reportData.data.map((e) =>
+              e.total.refund > 0 ? "✓" : "⨉"
+            ),
+          },
+          {
+            name: "Status Batal",
+            color: { background: "#FFFF00", text: "#000000" },
+            fontStyle: "normal",
+            format: "text",
+            fixed: false,
+            align: "center",
+            values: reportData.data.map((e) =>
+              e.total.canceled > 0 ? "✓" : "⨉"
+            ),
+          },
+        ];
+        documentData.book.sheets[0].content.columns =
+          documentData.book.sheets[0].content.columns.concat(extraColumns);
       }
 
-      let documentBuffer;
+      let documentBuffer = await excelController.generate(documentData);
 
       if (req.query.documentType === "pdf") {
-        documentBuffer = await pdfController.generate(documentData);
-      } else if (req.query.documentType === "excel") {
-        documentBuffer = await excelController.generate(documentData);
-      } else {
-        throw new Error("Invalid document type specified.");
+        documentBuffer = await pdfController.generatePdfFromExcel(
+          documentBuffer
+        );
       }
 
       return {
@@ -306,7 +346,6 @@ async function generateReport(req, groupField) {
 
     const report = transactions.reduce((result, transaction) => {
       const groupId = transaction[groupField].toString();
-
       if (!result[groupId]) {
         result[groupId] = {
           [groupField]: transaction[groupField],
@@ -320,6 +359,7 @@ async function generateReport(req, groupField) {
             netIncome: 0,
             refund: 0,
             canceled: 0,
+            promotion: 0, // Tambahkan total untuk promotions
           },
         };
       }
@@ -378,13 +418,27 @@ async function generateReport(req, groupField) {
           }, 0);
         }
 
+        // Tambahkan perhitungan untuk promotions
+        let totalPromotion = 0;
+        if (transaction.promotions && Array.isArray(transaction.promotions)) {
+          totalPromotion = transaction.promotions.reduce((promoAcc, promo) => {
+            let promoAmount = 0;
+            if (promo.type === "percentage" && promo.amount) {
+              promoAmount = totalRevenue * promo.amount;
+            } else if (promo.type === "fixed" && promo.amount) {
+              promoAmount = promo.amount;
+            }
+            return promoAcc + promoAmount;
+          }, 0);
+        }
+
         const totalTip =
           transaction.tips?.reduce(
             (tipAcc, tip) => tipAcc + (tip.amount || 0),
             0
           ) || 0;
 
-        const netIncome = grossProfit - totalTax;
+        const netIncome = grossProfit - totalTax - totalPromotion;
 
         result[groupId].total.cost += totalCost;
         result[groupId].total.revenue += totalRevenue;
@@ -393,6 +447,7 @@ async function generateReport(req, groupField) {
         result[groupId].total.charge += totalCharge;
         result[groupId].total.tip += totalTip;
         result[groupId].total.netIncome += netIncome;
+        result[groupId].total.promotion += totalPromotion; // Update total promotions
       } else if (transaction.status.order === "returned") {
         result[groupId].total.refund += 1;
       } else if (transaction.status.order === "canceled") {
