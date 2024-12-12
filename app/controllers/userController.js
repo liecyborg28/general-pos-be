@@ -140,11 +140,17 @@ const UserController = {
       return new Promise((resolve, reject) => {
         User.findByIdAndUpdate(body.userId, body.data, { new: true })
           .then((result) => {
-            resolve({
-              error: false,
-              data: result,
-              message: successMessages.DATA_SUCCESS_UPDATED,
-            });
+            User.populate([result], { path: "roleId" })
+              .then((resultPopulate) => {
+                resolve({
+                  error: false,
+                  data: resultPopulate[0],
+                  message: successMessages.DATA_SUCCESS_UPDATED,
+                });
+              })
+              .catch((err) => {
+                reject({ error: true, message: err });
+              });
           })
           .catch((err) => {
             reject({ error: true, message: err });

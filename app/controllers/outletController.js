@@ -29,6 +29,7 @@ module.exports = {
           address: body.address,
           businessId: body.businessId,
           name: body.name,
+          note: body.note ? body.note : null,
           status: body.status,
           createdAt: dateISOString,
           updatedAt: dateISOString,

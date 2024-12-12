@@ -17,6 +17,7 @@ const Promotion = mongoose.Schema({
   default: Boolean,
   name: String,
   type: String,
+  status: String,
 });
 
 module.exports = mongoose.model("Promotion", Promotion);

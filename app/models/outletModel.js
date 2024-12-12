@@ -11,6 +11,7 @@ const Outlet = mongoose.Schema({
     ref: "Business",
   },
   name: String,
+  note: String,
   status: String,
   // timestamp
   createdAt: String,

@@ -102,7 +102,9 @@ module.exports = {
               },
             ],
           }
-        : {};
+        : {
+            status: { $ne: "deleted" },
+          };
 
       pageController
         .paginate(pageKey, pageSize, pipeline, Promotion)

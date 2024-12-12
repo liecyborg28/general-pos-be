@@ -29,6 +29,7 @@ module.exports = {
       ? {
           imageUrl: body.imageUrl,
           name: body.name,
+          note: body.note ? body.note : null,
           status: body.status,
           createdAt: dateISOString,
           updatedAt: dateISOString,

@@ -39,6 +39,7 @@ module.exports = {
           default: body.default,
           name: body.name,
           type: body.type,
+          status: "active",
           createdAt: dateISOString,
           updatedAt: dateISOString,
         }
@@ -102,7 +103,9 @@ module.exports = {
               },
             ],
           }
-        : {};
+        : {
+            status: { $ne: "deleted" },
+          };
 
       pageController
         .paginate(pageKey, pageSize, pipeline, Tax)

@@ -68,6 +68,7 @@ module.exports = {
               status: "active",
               imageUrl: null,
               name: "Business Name",
+              note: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
               createdAt: dateISOString,
               updatedAt: dateISOString,
             },
@@ -81,6 +82,7 @@ module.exports = {
                     "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
                   businessId: businesses[0]._id.toString(),
                   name: "Outlet Name",
+                  note: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
                   status: "active",
                   // timestamp
                   createdAt: dateISOString,
@@ -169,7 +171,47 @@ module.exports = {
                       (outlets) => {
                         const rolesPayload = [
                           {
-                            access: ["feature1", "feature2", "feature3"],
+                            access: [
+                              // businesses
+                              "/management/businesses",
+                              "/management/business/add",
+                              "/management/business/edit",
+                              // outlets
+                              "/management/outlets",
+                              "/management/outlet/add",
+                              "/management/outlet/edit",
+                              // charges
+                              "/management/charges",
+                              "/management/charge/add",
+                              "/management/charge/edit",
+                              // promotions
+                              "/management/promotions",
+                              "/management/promotion/add",
+                              "/management/promotion/edit",
+                              // taxes
+                              "/management/taxes",
+                              "/management/tax/add",
+                              "/management/tax/edit",
+                              // currencies
+                              "/management/currencies",
+                              "/management/currency/add",
+                              "/management/currency/edit",
+                              // customers
+                              "/management/customers",
+                              "/management/customer/add",
+                              "/management/customer/edit",
+                              // roles
+                              "/management/roles",
+                              "/management/role/add",
+                              "/management/role/edit",
+                              // users
+                              "/management/users",
+                              "/management/user/add",
+                              "/management/user/edit",
+                              // settings
+                              "/settings/device",
+                              "/settings/account",
+                            ],
                             businessId: businesses[0]._id.toString(),
                             name: "administrator",
                             status: "active",
@@ -448,6 +490,7 @@ module.exports = {
                                                           default: false,
                                                           name: "Percentage Charge",
                                                           type: "percentage",
+                                                          status: "active",
                                                           createdAt:
                                                             dateISOString,
                                                           updatedAt:
@@ -462,6 +505,7 @@ module.exports = {
                                                           default: false,
                                                           name: "Fixed Charge",
                                                           type: "fixed",
+                                                          status: "active",
                                                           createdAt:
                                                             dateISOString,
                                                           updatedAt:
@@ -486,6 +530,9 @@ module.exports = {
                                                                   users[0]._id.toString(),
                                                                 default: false,
                                                                 name: "Percentage Promotion",
+                                                                type: "percentage",
+                                                                status:
+                                                                  "active",
                                                                 createdAt:
                                                                   dateISOString,
                                                                 updatedAt:
@@ -499,6 +546,9 @@ module.exports = {
                                                                   users[0]._id.toString(),
                                                                 default: false,
                                                                 name: "Fixed Promotion",
+                                                                type: "fixed",
+                                                                status:
+                                                                  "active",
                                                                 createdAt:
                                                                   dateISOString,
                                                                 updatedAt:
@@ -516,6 +566,7 @@ module.exports = {
                                                               default: false,
                                                               name: "Percentage Tax",
                                                               type: "percentage",
+                                                              status: "active",
                                                               createdAt:
                                                                 dateISOString,
                                                               updatedAt:
@@ -530,6 +581,7 @@ module.exports = {
                                                               default: false,
                                                               name: "Fixed Tax",
                                                               type: "fixed",
+                                                              status: "active",
                                                               createdAt:
                                                                 dateISOString,
                                                               updatedAt:
@@ -889,17 +941,23 @@ module.exports = {
               .then((user) => {
                 // update new token
                 user.auth = auth;
-                pageController
-                  .paginate(1, null, { status: { $ne: "deleted" } }, Business)
-                  .then((businesses) => {
+                // pageController
+                //   .paginate(1, null, { status: { $ne: "deleted" } }, Business)
+                //   .then((businesses) => {
+                User.populate([user], { path: "roleId" })
+                  .then((userPopulate) => {
                     resolve({
                       error: false,
                       data: {
-                        user,
-                        businesses,
+                        user: userPopulate[0],
+                        // businesses,
                       },
                     });
                   })
+                  //     .catch((err) => {
+                  //       reject({ error: true, message: err });
+                  //     });
+                  // })
                   .catch((err) => {
                     reject({ error: true, message: err });
                   });
