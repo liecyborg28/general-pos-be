@@ -192,6 +192,14 @@ module.exports = {
                               "/management/taxes",
                               "/management/tax/add",
                               "/management/tax/edit",
+                              // serviceMethods
+                              "/management/service/methods",
+                              "/management/service/method/add",
+                              "/management/service/method/edit",
+                              // paymentMethods
+                              "/management/payment/methods",
+                              "/management/payment/method/add",
+                              "/management/payment/method/edit",
                               // currencies
                               "/management/currencies",
                               "/management/currency/add",
