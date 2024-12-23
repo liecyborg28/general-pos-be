@@ -15,16 +15,16 @@ const CustomerController = {
     let body = req.body;
     let dateISOString = new Date().toISOString();
     let isBodyValid = () => {
-      return body.email && body.name && body.phone && body.status;
+      return body.name && body.status && body.businessId;
     };
 
     let payload = isBodyValid()
       ? {
-          balance: 0,
-          email: body.email,
+          businessId: body.businessId,
+          email: body.email ? body.email : null,
           imageUrl: body.imageUrl ? body.imageUrl : null,
           name: body.name,
-          phone: body.phone,
+          phone: body.phone ? body.phone : null,
           point: 0,
           status: body.status,
           // timestamp
@@ -37,20 +37,20 @@ const CustomerController = {
         };
 
     if (isBodyValid()) {
-      let phoneIsExist = await dataController.isExist(
-        {
-          phone: body.phone,
-          status: { $ne: "deleted" },
-        },
-        Customer
-      );
+      // let phoneIsExist = await dataController.isExist(
+      //   {
+      //     phone: body.phone,
+      //     status: { $ne: "deleted" },
+      //   },
+      //   Customer
+      // );
 
-      if (phoneIsExist) {
-        return Promise.reject({
-          error: true,
-          message: errorMessages.PHONE_ALREADY_EXISTS,
-        });
-      }
+      // if (phoneIsExist) {
+      //   return Promise.reject({
+      //     error: true,
+      //     message: errorMessages.PHONE_ALREADY_EXISTS,
+      //   });
+      // }
 
       return new Promise((resolve, reject) => {
         new Customer(payload)

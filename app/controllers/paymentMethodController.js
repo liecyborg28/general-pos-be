@@ -126,17 +126,17 @@ module.exports = {
       "auth.accessToken": bearerToken,
     });
     let dateISOString = new Date().toISOString();
-    let nameIsExist = await dataController.isExist(
-      { businessId: body.data.businessId, name: body.data.name },
-      PaymentMethod
-    );
+    // let nameIsExist = await dataController.isExist(
+    //   { businessId: body.data.businessId, name: body.data.name },
+    //   PaymentMethod
+    // );
 
-    if (nameIsExist) {
-      return Promise.reject({
-        error: true,
-        message: errorMessages.NAME_ALREADY_EXISTS,
-      });
-    }
+    // if (nameIsExist) {
+    //   return Promise.reject({
+    //     error: true,
+    //     message: errorMessages.NAME_ALREADY_EXISTS,
+    //   });
+    // }
 
     if (!body.paymentMethodId) {
       return Promise.reject({

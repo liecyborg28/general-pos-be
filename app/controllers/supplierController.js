@@ -98,7 +98,7 @@ const SupplierController = {
     let body = req.body;
     let dateISOString = new Date().toISOString();
 
-    if (!body.suuplierId) {
+    if (!body.supplierId) {
       return Promise.reject({
         error: true,
         message: errorMessages.INVALID_DATA,

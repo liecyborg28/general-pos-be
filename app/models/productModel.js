@@ -9,10 +9,7 @@ const Product = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Business",
   },
-  categoryId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Category",
-  },
+  categoryIds: [],
   changedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",

@@ -4,7 +4,7 @@ const dbConfig = require("../../config/dbConfig");
 
 mongoose.connect(dbConfig.url);
 
-const Category = mongoose.Schema({
+const Currency = mongoose.Schema({
   businessId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Business",
@@ -20,4 +20,4 @@ const Category = mongoose.Schema({
   updatedAt: String,
 });
 
-module.exports = mongoose.model("Currency", Category);
+module.exports = mongoose.model("Currency", Currency);

@@ -17,7 +17,8 @@ module.exports = {
     let isBodyValid = () => {
       return (
         body.businessId &&
-        body.categoryId &&
+        body.categoryIds &&
+        body.categoryIds.length > 0 &&
         body.countable !== null &&
         body.name &&
         body.status &&
@@ -37,7 +38,7 @@ module.exports = {
     let payload = isBodyValid()
       ? {
           businessId: body.businessId,
-          categoryId: body.categoryId,
+          categoryIds: body.categoryIds,
           changedBy: userByToken._id,
           countable: body.countable,
           name: body.name,
@@ -94,7 +95,7 @@ module.exports = {
     let pageSize = req.query.pageSize ? req.query.pageSize : null;
 
     isNotEveryQueryNull = () => {
-      return req.query.businessId || req.query.categoryId || req.query.name;
+      return req.query.businessId || req.query.name;
     };
 
     return new Promise((resolve, reject) => {
@@ -106,7 +107,9 @@ module.exports = {
                 businessId: req.query.businessId ? req.query.businessId : null,
               },
               {
-                categoryId: req.query.categoryId ? req.query.categoryId : null,
+                categoryIds: req.query.categoryIds
+                  ? req.query.categoryIds
+                  : null,
               },
               {
                 name: req.query.name
@@ -128,7 +131,7 @@ module.exports = {
         .paginate(pageKey, pageSize, pipeline, Product)
         .then((products) => {
           Product.populate(products.data, {
-            path: "businessId categoryId unitId",
+            path: "businessId unitId",
           })
             .then((data) => {
               resolve({

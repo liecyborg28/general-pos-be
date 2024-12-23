@@ -204,6 +204,10 @@ module.exports = {
                               "/management/currencies",
                               "/management/currency/add",
                               "/management/currency/edit",
+                              // suppliers
+                              "/management/suppliers",
+                              "/management/supplier/add",
+                              "/management/supplier/edit",
                               // customers
                               "/management/customers",
                               "/management/customer/add",
@@ -212,6 +216,22 @@ module.exports = {
                               "/management/roles",
                               "/management/role/add",
                               "/management/role/edit",
+                              // categories
+                              "/management/categories",
+                              "/management/category/add",
+                              "/management/category/edit",
+                              // components
+                              "/management/components",
+                              "/management/component/add",
+                              "/management/component/edit",
+                              // products
+                              "/management/products",
+                              "/management/product/add",
+                              "/management/product/edit",
+                              // units
+                              "/management/units",
+                              "/management/unit/add",
+                              "/management/unit/edit",
                               // users
                               "/management/users",
                               "/management/user/add",
@@ -443,8 +463,9 @@ module.exports = {
                                                     {
                                                       businessId:
                                                         businesses[0]._id.toString(),
-                                                      categoryId:
+                                                      categoryIds: [
                                                         categories[0]._id.toString(),
+                                                      ],
                                                       changedBy:
                                                         users[0]._id.toString(),
                                                       code: {
