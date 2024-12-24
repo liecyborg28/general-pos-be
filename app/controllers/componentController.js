@@ -134,7 +134,7 @@ module.exports = {
         .paginate(pageKey, pageSize, pipeline, Component)
         .then((components) => {
           Component.populate(components.data, {
-            path: "businessId categoryId",
+            path: "businessId categoryId unitId",
           })
             .then((data) => {
               resolve({

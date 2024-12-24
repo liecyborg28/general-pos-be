@@ -79,10 +79,28 @@ module.exports = {
     let pageKey = req.query.pageKey ? req.query.pageKey : 1;
     let pageSize = req.query.pageSize ? req.query.pageSize : 10;
 
+    isNotEveryQueryNull = () => {
+      return req.query.name || req.query.businessId;
+    };
+
     return new Promise((resolve, reject) => {
-      let pipeline = {
-        status: { $ne: "deleted" },
-      };
+      let pipeline = isNotEveryQueryNull()
+        ? {
+            $or: [
+              {
+                businessId: req.query.businessId ? req.query.businessId : null,
+              },
+              {
+                name: req.query.name
+                  ? { $regex: req.query.name, $options: "i" }
+                  : null,
+              },
+            ],
+            status: { $ne: "deleted" },
+          }
+        : {
+            status: { $ne: "deleted" },
+          };
 
       pageController
         .paginate(pageKey, pageSize, pipeline, Unit)

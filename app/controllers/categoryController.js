@@ -93,6 +93,7 @@ module.exports = {
                   : null,
               },
             ],
+            status: { $ne: "deleted" },
           }
         : {
             status: { $ne: "deleted" },
