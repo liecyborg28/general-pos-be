@@ -478,7 +478,6 @@ module.exports = {
                                                       status: "active",
                                                       unitId:
                                                         units[0]._id.toString(),
-                                                      taxed: false,
                                                       variants: [
                                                         {
                                                           components: [
@@ -489,6 +488,8 @@ module.exports = {
                                                             },
                                                           ],
                                                           cost: 5000,
+                                                          description:
+                                                            "Description For Variant 1",
                                                           default: true,
                                                           imageUrl: null,
                                                           name: "Variant 1",

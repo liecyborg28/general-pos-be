@@ -23,7 +23,6 @@ module.exports = {
         body.name &&
         body.status &&
         body.unitId &&
-        body.taxed !== null &&
         body.variants
       );
     };
@@ -44,7 +43,6 @@ module.exports = {
           name: body.name,
           status: body.status,
           unitId: body.unitId,
-          taxed: body.taxed,
           variants: body.variants,
           createdAt: dateISOString,
           updatedAt: dateISOString,
