@@ -159,17 +159,17 @@ module.exports = {
 
     let body = req.body;
 
-    let nameIsExist = await dataController.isExist(
-      { businessId: body.data.businessId, name: body.data.name },
-      Product
-    );
+    // let nameIsExist = await dataController.isExist(
+    //   { businessId: body.data.businessId, name: body.data.name },
+    //   Product
+    // );
 
-    if (nameIsExist) {
-      return Promise.reject({
-        error: true,
-        message: errorMessages.NAME_ALREADY_EXISTS,
-      });
-    }
+    // if (nameIsExist) {
+    //   return Promise.reject({
+    //     error: true,
+    //     message: errorMessages.NAME_ALREADY_EXISTS,
+    //   });
+    // }
 
     if (!body.productId) {
       return Promise.reject({

@@ -172,6 +172,11 @@ module.exports = {
                         const rolesPayload = [
                           {
                             access: [
+                              "/transactions/pos",
+                              "/transactions/customer",
+                              "/transactions/pos/history",
+                              "/transactions/purchase",
+                              "/transactions/purchase/history",
                               // businesses
                               "/management/businesses",
                               "/management/business/add",
@@ -237,6 +242,7 @@ module.exports = {
                               "/management/user/add",
                               "/management/user/edit",
                               // settings
+                              "/settings/appearance",
                               "/settings/device",
                               "/settings/account",
                             ],
@@ -260,7 +266,8 @@ module.exports = {
                                 businessId: businesses[0]._id.toString(),
                                 email: null,
                                 gender: "male",
-                                imageUrl: null,
+                                imageUrl:
+                                  "assets/demo/images/avatar/ivanmagalhaes.png",
                                 name: "User Name",
                                 password: "12345678",
                                 phone: null,
@@ -284,7 +291,8 @@ module.exports = {
                                 businessId: businesses[0]._id.toString(),
                                 email: null,
                                 gender: "female",
-                                imageUrl: null,
+                                imageUrl:
+                                  "assets/demo/images/avatar/bernardodominic.png",
                                 name: "User Name 2",
                                 password: "12345678",
                                 phone: null,
@@ -306,7 +314,21 @@ module.exports = {
                                 const categoriesPayload = [
                                   {
                                     businessId: businesses[0]._id.toString(),
-                                    name: "Category Name",
+                                    name: "Category Name 1",
+                                    status: "active",
+                                    createdAt: dateISOString,
+                                    updatedAt: dateISOString,
+                                  },
+                                  {
+                                    businessId: businesses[0]._id.toString(),
+                                    name: "Category Name 2",
+                                    status: "active",
+                                    createdAt: dateISOString,
+                                    updatedAt: dateISOString,
+                                  },
+                                  {
+                                    businessId: businesses[0]._id.toString(),
+                                    name: "Category Name 3",
                                     status: "active",
                                     createdAt: dateISOString,
                                     updatedAt: dateISOString,
@@ -436,11 +458,78 @@ module.exports = {
                                                     categories[0]._id.toString(),
                                                   changedBy:
                                                     users[0]._id.toString(),
-                                                  imageUrl: null,
-                                                  name: "Component Name",
+                                                  imageUrl:
+                                                    "assets/demo/images/product/blue-band.jpg",
+                                                  name: "Component Name 1",
                                                   status: "active",
                                                   unitId:
                                                     units[0]._id.toString(),
+                                                  qty: {
+                                                    current: 20,
+                                                    max: 100,
+                                                    min: 5,
+                                                    status: "available",
+                                                  },
+                                                  createdAt: dateISOString,
+                                                  updatedAt: dateISOString,
+                                                },
+                                                {
+                                                  businessId:
+                                                    businesses[0]._id.toString(),
+                                                  categoryId:
+                                                    categories[0]._id.toString(),
+                                                  changedBy:
+                                                    users[0]._id.toString(),
+                                                  imageUrl:
+                                                    "assets/demo/images/product/pink-band.jpg",
+                                                  name: "Component Name 2",
+                                                  status: "active",
+                                                  unitId:
+                                                    units[1]._id.toString(),
+                                                  qty: {
+                                                    current: 20,
+                                                    max: 100,
+                                                    min: 5,
+                                                    status: "available",
+                                                  },
+                                                  createdAt: dateISOString,
+                                                  updatedAt: dateISOString,
+                                                },
+                                                {
+                                                  businessId:
+                                                    businesses[0]._id.toString(),
+                                                  categoryId:
+                                                    categories[0]._id.toString(),
+                                                  changedBy:
+                                                    users[0]._id.toString(),
+                                                  imageUrl:
+                                                    "assets/demo/images/product/lime-band.jpg",
+                                                  name: "Component Name 3",
+                                                  status: "active",
+                                                  unitId:
+                                                    units[1]._id.toString(),
+                                                  qty: {
+                                                    current: 20,
+                                                    max: 100,
+                                                    min: 5,
+                                                    status: "available",
+                                                  },
+                                                  createdAt: dateISOString,
+                                                  updatedAt: dateISOString,
+                                                },
+                                                {
+                                                  businessId:
+                                                    businesses[0]._id.toString(),
+                                                  categoryId:
+                                                    categories[0]._id.toString(),
+                                                  changedBy:
+                                                    users[0]._id.toString(),
+                                                  imageUrl:
+                                                    "assets/demo/images/product/purple-band.jpg",
+                                                  name: "Component Name 4",
+                                                  status: "active",
+                                                  unitId:
+                                                    units[1]._id.toString(),
                                                   qty: {
                                                     current: 20,
                                                     max: 100,
@@ -469,8 +558,8 @@ module.exports = {
                                                       changedBy:
                                                         users[0]._id.toString(),
                                                       code: {
-                                                        bar: null,
-                                                        qr: null,
+                                                        bar: "barCode123",
+                                                        qr: "qrCode123",
                                                       },
                                                       countable: true,
                                                       charged: false,
@@ -486,15 +575,39 @@ module.exports = {
                                                                 components[0]._id.toString(),
                                                               qty: 1,
                                                             },
+                                                            {
+                                                              componentId:
+                                                                components[1]._id.toString(),
+                                                              qty: 2,
+                                                            },
                                                           ],
                                                           cost: 5000,
                                                           description:
                                                             "Description For Variant 1",
                                                           default: true,
-                                                          imageUrl: null,
+                                                          imageUrl:
+                                                            "assets/demo/images/product/game-controller.jpg",
                                                           name: "Variant 1",
                                                           price: 10000,
                                                           qty: 10,
+                                                        },
+                                                        {
+                                                          components: [
+                                                            {
+                                                              componentId:
+                                                                components[0]._id.toString(),
+                                                              qty: 2,
+                                                            },
+                                                          ],
+                                                          cost: 8000,
+                                                          description:
+                                                            "Description For Variant 2",
+                                                          default: true,
+                                                          imageUrl:
+                                                            "assets/demo/images/product/gaming-set.jpg",
+                                                          name: "Variant 2",
+                                                          price: 15000,
+                                                          qty: 5,
                                                         },
                                                       ],
                                                       qty: 0,
@@ -974,20 +1087,28 @@ module.exports = {
                 // pageController
                 //   .paginate(1, null, { status: { $ne: "deleted" } }, Business)
                 //   .then((businesses) => {
-                User.populate([user], { path: "roleId" })
+                User.populate([user], { path: "roleId businessId" })
                   .then((userPopulate) => {
-                    resolve({
-                      error: false,
-                      data: {
-                        user: userPopulate[0],
-                        // businesses,
-                      },
+                    Currency.find({
+                      businessId: userPopulate[0].businessId?._id,
+                    }).then((currencies) => {
+                      resolve({
+                        error: false,
+                        data: {
+                          user: userPopulate[0],
+                          currency: currencies[0],
+                          // businesses,
+                        },
+                      });
                     });
                   })
                   //     .catch((err) => {
                   //       reject({ error: true, message: err });
                   //     });
                   // })
+                  .catch((err) => {
+                    reject({ error: true, message: err });
+                  })
                   .catch((err) => {
                     reject({ error: true, message: err });
                   });

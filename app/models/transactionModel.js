@@ -18,7 +18,6 @@ const Transaction = mongoose.Schema({
   charges: [
     // {
     //   amount: Number,
-    //   chargeId: String,
     //   chargeId: {
     //     type: mongoose.Schema.Types.ObjectId,
     //     ref: "Charge",
