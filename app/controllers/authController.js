@@ -141,7 +141,7 @@ module.exports = {
                     {
                       businessId: businesses[0]._id.toString(),
                       name: "Dine In",
-                      default: false,
+                      default: true,
                       status: "active",
                       createdAt: dateISOString,
                       updatedAt: dateISOString,

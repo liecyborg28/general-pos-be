@@ -41,7 +41,13 @@ module.exports = {
     let dateISOString = new Date().toISOString();
 
     if (!Array.isArray(body.details) || body.details.length === 0) {
-      throw new Error("Data detail transaksi tidak valid.");
+      return Promise.reject({
+        error: true,
+        message: {
+          en: "Invalid transaction details.",
+          id: "Data detail transaksi tidak valid.",
+        },
+      });
     }
 
     // Inisialisasi objek untuk menyimpan total kebutuhan atau pengembalian setiap komponen
@@ -51,13 +57,14 @@ module.exports = {
       const product = await Product.findById(detail.productId);
 
       if (!product) {
-        return {
+        return Promise.reject({
           error: true,
           message: {
+            en: `The product with ID ${detail.productId} was not found.`,
             id: `Produk dengan ID ${detail.productId} tidak ditemukan.`,
           },
           data: { productId: detail.productId },
-        };
+        });
       }
 
       const isReturnTransaction =
@@ -65,13 +72,14 @@ module.exports = {
 
       if (!isReturnTransaction) {
         if (product.countable && product.qty < detail.qty) {
-          return {
+          return Promise.reject({
             error: true,
             message: {
+              en: `The inventory for the product ${product.name} is insufficient.`,
               id: `Persediaan untuk produk ${product.name} tidak mencukupi.`,
             },
             data: { productId: detail.productId, availableQty: product.qty },
-          };
+          });
         }
       }
 
@@ -84,15 +92,9 @@ module.exports = {
         const adjustedQty = componentDetail.qty * detail.qty;
 
         // Tambahkan qty jika transaksi retur, kurangi qty jika transaksi biasa
-        if (componentAdjustments[componentId]) {
-          componentAdjustments[componentId] += isReturnTransaction
-            ? adjustedQty
-            : -adjustedQty;
-        } else {
-          componentAdjustments[componentId] = isReturnTransaction
-            ? adjustedQty
-            : -adjustedQty;
-        }
+        componentAdjustments[componentId] =
+          (componentAdjustments[componentId] || 0) +
+          (isReturnTransaction ? adjustedQty : -adjustedQty);
       }
 
       if (product.countable) {
@@ -108,26 +110,30 @@ module.exports = {
       const component = await Component.findById(componentId);
 
       if (!component) {
-        return {
+        return Promise.reject({
           error: true,
-          message: { id: `Komponen dengan ID ${componentId} tidak ditemukan.` },
+          message: {
+            en: `The component with ID ${componentId} was not found.`,
+            id: `Komponen dengan ID ${componentId} tidak ditemukan.`,
+          },
           data: { componentId },
-        };
+        });
       }
 
       // Cek apakah qty.current cukup
       if (component.qty.current + qtyAdjustment < 0) {
-        return {
+        return Promise.reject({
           error: true,
           message: {
-            id: `Bahan baku untuk komponen ${component.name} tidak mencukupi.`,
+            en: `${component.name} are insufficient.`,
+            id: `${component.name} tidak mencukupi.`,
           },
           data: {
             componentId,
             requiredQty: Math.abs(qtyAdjustment),
             availableQty: component.qty.current,
           },
-        };
+        });
       }
 
       // Jika cukup, lakukan penyesuaian qty.current
@@ -150,9 +156,10 @@ module.exports = {
       amount: body.amount,
       businessId: body.businessId,
       customerId: body.customerId,
-      details: body.details,
       charges: body.charges,
+      details: body.details,
       outletId: body.outletId,
+      note: body.note,
       paymentMethodId: body.paymentMethodId,
       promotions: body.promotions,
       serviceMethodId: body.serviceMethodId,
@@ -168,11 +175,11 @@ module.exports = {
     // Simpan transaksi baru
     const transaction = await Transaction.create(payload);
 
-    return {
+    return Promise.resolve({
       error: false,
       message: successMessages.TRANSACTION_CREATED_SUCCESS,
       data: transaction,
-    };
+    });
   },
 
   get: async (req) => {
