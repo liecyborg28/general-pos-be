@@ -37,149 +37,169 @@ function generateRequestCodes() {
 
 module.exports = {
   create: async (req) => {
-    const body = req.body;
-    let dateISOString = new Date().toISOString();
+    try {
+      const { details } = req.body;
 
-    if (!Array.isArray(body.details) || body.details.length === 0) {
-      return Promise.reject({
-        error: true,
-        message: {
-          en: "Invalid transaction details.",
-          id: "Data detail transaksi tidak valid.",
-        },
-      });
-    }
+      // Step 1: Cek semua komponen dan varian dari setiap produk
+      for (const productDetail of details) {
+        // Validasi komponen utama
+        for (const component of productDetail.components) {
+          const dbComponent = await Component.findById(component.componentId);
 
-    // Inisialisasi objek untuk menyimpan total kebutuhan atau pengembalian setiap komponen
-    const componentAdjustments = {};
+          if (!dbComponent || dbComponent.qty.current < component.qty) {
+            return Promise.reject({
+              error: true,
+              message: {
+                en: `${dbComponent.name} is insufficient.`,
+                id: `Bahan baku ${dbComponent.name} tidak mencukupi.`,
+              },
+            });
+          }
+        }
 
-    for (const detail of body.details) {
-      const product = await Product.findById(detail.productId);
+        // Validasi stok varian produk (jika countable = true)
+        const product = await Product.findById(productDetail.productId);
+        if (product.countable) {
+          const variant = product.variants.find(
+            (v) => v._id.toString() === productDetail.variantId
+          );
+          if (!variant || variant.qty < productDetail.qty) {
+            return Promise.reject({
+              error: true,
+              message: {
+                en: `The stock of the product variant ${
+                  variant?.name || "unknown"
+                } is insufficient.`,
+                id: `Stok varian produk ${
+                  variant?.name || "tidak diketahui"
+                } tidak mencukupi.`,
+              },
+            });
+          }
+        }
 
-      if (!product) {
-        return Promise.reject({
-          error: true,
-          message: {
-            en: `The product with ID ${detail.productId} was not found.`,
-            id: `Produk dengan ID ${detail.productId} tidak ditemukan.`,
-          },
-          data: { productId: detail.productId },
-        });
-      }
+        // Validasi komponen pada additionals
+        if (productDetail.additionals) {
+          for (const additional of productDetail.additionals) {
+            for (const component of additional.components) {
+              const dbComponent = await Component.findById(
+                component.componentId
+              );
 
-      const isReturnTransaction =
-        body.status && body.status.order === "returned";
+              if (!dbComponent || dbComponent.qty.current < component.qty) {
+                return Promise.reject({
+                  error: true,
+                  message: {
+                    en: `The stock of raw materials for ${component.name} in additionals is insufficient.`,
+                    id: `Bahan baku untuk ${component.name} di bagian tambahan tidak mencukupi.`,
+                  },
+                });
+              }
+            }
 
-      if (!isReturnTransaction) {
-        if (product.countable && product.qty < detail.qty) {
-          return Promise.reject({
-            error: true,
-            message: {
-              en: `The inventory for the product ${product.name} is insufficient.`,
-              id: `Persediaan untuk produk ${product.name} tidak mencukupi.`,
-            },
-            data: { productId: detail.productId, availableQty: product.qty },
-          });
+            // Validasi stok varian produk pada additionals (jika countable = true)
+            const additionalProduct = await Product.findById(
+              additional.productId
+            );
+            if (additionalProduct.countable) {
+              const additionalVariant = additionalProduct.variants.find(
+                (v) => v._id.toString() === additional.variantId
+              );
+              if (
+                !additionalVariant ||
+                additionalVariant.qty < productDetail.qty
+              ) {
+                return Promise.reject({
+                  error: true,
+                  message: {
+                    en: `The stock of the product variant ${
+                      additionalVariant?.name || "unknown"
+                    } in additionals is insufficient.`,
+                    id: `Stok varian produk ${
+                      additionalVariant?.name || "tidak diketahui"
+                    } di bagian tambahan tidak mencukupi.`,
+                  },
+                });
+              }
+            }
+          }
         }
       }
 
-      // Proses komponen berdasarkan jenis transaksi (penambahan atau pengurangan qty komponen)
-      for (const componentDetail of [
-        ...detail.components,
-        ...detail.additionals.flatMap((a) => a.components),
-      ]) {
-        const componentId = componentDetail.componentId;
-        const adjustedQty = componentDetail.qty * detail.qty;
+      // Step 2: Update qty setelah semua cukup
+      for (const productDetail of details) {
+        // Update stok komponen utama
+        for (const component of productDetail.components) {
+          await Component.findByIdAndUpdate(
+            component.componentId,
+            {
+              $inc: { "qty.current": -component.qty },
+            },
+            { new: true }
+          );
+        }
 
-        // Tambahkan qty jika transaksi retur, kurangi qty jika transaksi biasa
-        componentAdjustments[componentId] =
-          (componentAdjustments[componentId] || 0) +
-          (isReturnTransaction ? adjustedQty : -adjustedQty);
+        // Update stok varian produk (jika countable = true)
+        const product = await Product.findById(productDetail.productId);
+        if (product.countable) {
+          await Product.updateOne(
+            { _id: product._id, "variants._id": productDetail.variantId },
+            {
+              $inc: { "variants.$.qty": -productDetail.qty },
+            }
+          );
+        }
+
+        // Update stok komponen pada additionals
+        if (productDetail.additionals) {
+          for (const additional of productDetail.additionals) {
+            for (const component of additional.components) {
+              await Component.findByIdAndUpdate(
+                component.componentId,
+                {
+                  $inc: { "qty.current": -component.qty },
+                },
+                { new: true }
+              );
+            }
+
+            // Update stok varian produk pada additionals (jika countable = true)
+            const additionalProduct = await Product.findById(
+              additional.productId
+            );
+            if (additionalProduct.countable) {
+              await Product.updateOne(
+                {
+                  _id: additionalProduct._id,
+                  "variants._id": additional.variantId,
+                },
+                {
+                  $inc: { "variants.$.qty": -productDetail.qty },
+                }
+              );
+            }
+          }
+        }
       }
 
-      if (product.countable) {
-        product.qty += isReturnTransaction ? detail.qty : -detail.qty;
-        await product.save();
-      }
+      // Step 3: Simpan transaksi
+      const transaction = new Transaction(req.body);
+      await transaction.save();
+
+      return Promise.resolve({
+        error: false,
+        message: successMessages.TRANSACTION_CREATED_SUCCESS,
+      });
+    } catch (error) {
+      console.error(error);
+      return Promise.reject({
+        error: true,
+        message: {
+          en: "There was an error processing the transaction.",
+          id: "Terjadi kesalahan saat memproses transaksi.",
+        },
+      });
     }
-
-    // Pengecekan ketersediaan qty.current pada setiap komponen sebelum penyesuaian
-    for (const [componentId, qtyAdjustment] of Object.entries(
-      componentAdjustments
-    )) {
-      const component = await Component.findById(componentId);
-
-      if (!component) {
-        return Promise.reject({
-          error: true,
-          message: {
-            en: `The component with ID ${componentId} was not found.`,
-            id: `Komponen dengan ID ${componentId} tidak ditemukan.`,
-          },
-          data: { componentId },
-        });
-      }
-
-      // Cek apakah qty.current cukup
-      if (component.qty.current + qtyAdjustment < 0) {
-        return Promise.reject({
-          error: true,
-          message: {
-            en: `${component.name} are insufficient.`,
-            id: `${component.name} tidak mencukupi.`,
-          },
-          data: {
-            componentId,
-            requiredQty: Math.abs(qtyAdjustment),
-            availableQty: component.qty.current,
-          },
-        });
-      }
-
-      // Jika cukup, lakukan penyesuaian qty.current
-      component.qty.current += qtyAdjustment;
-
-      // Tentukan qty.status berdasarkan kondisi qty.current dan qty.min
-      if (component.qty.current <= 0) {
-        component.qty.status = "outOfStock";
-      } else if (component.qty.current <= component.qty.min) {
-        component.qty.status = "almostOut";
-      } else {
-        component.qty.status = "available";
-      }
-
-      await component.save();
-    }
-
-    // Siapkan payload untuk pembuatan transaksi
-    const payload = {
-      amount: body.amount,
-      businessId: body.businessId,
-      customerId: body.customerId,
-      charges: body.charges,
-      details: body.details,
-      outletId: body.outletId,
-      note: body.note,
-      paymentMethodId: body.paymentMethodId,
-      promotions: body.promotions,
-      serviceMethodId: body.serviceMethodId,
-      status: body.status,
-      taxes: body.taxes,
-      tips: body.tips,
-      userId: body.userId,
-      request: generateRequestCodes(),
-      createdAt: dateISOString,
-      updatedAt: dateISOString,
-    };
-
-    // Simpan transaksi baru
-    const transaction = await Transaction.create(payload);
-
-    return Promise.resolve({
-      error: false,
-      message: successMessages.TRANSACTION_CREATED_SUCCESS,
-      data: transaction,
-    });
   },
 
   get: async (req) => {
@@ -332,7 +352,13 @@ module.exports = {
         count: transactions.count,
       };
     } catch (err) {
-      return { error: true, message: err.message || "Unknown error" };
+      return {
+        error: true,
+        message: err.message || {
+          en: "Unknown error!",
+          id: "Terjadi Kesalahan yang Tidak Dikenali!",
+        },
+      };
     }
   },
 

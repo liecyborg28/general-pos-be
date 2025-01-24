@@ -114,7 +114,7 @@ module.exports = {
   },
   TRANSACTION_CREATED_SUCCESS: {
     en: "Transaction created successfully!",
-    id: "Transaksi berhasil ditambahkan!",
+    id: "Transaksi berhasil disimpan!",
   },
   // U
   UNIT_CREATED_SUCCESS: {

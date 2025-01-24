@@ -15,7 +15,6 @@ module.exports = {
         body.businessId &&
         body.categoryId &&
         body.current !== null &&
-        body.current !== null &&
         body.max !== null &&
         body.min !== null &&
         body.name &&
