@@ -181,7 +181,7 @@ module.exports = {
 
       let qtyStatusData = "";
 
-      if (qtyData.current < 0) {
+      if (qtyData.current < 1) {
         qtyStatusData = "outOfStock";
       } else if (qtyData.current <= componentQty.min) {
         qtyStatusData = "almostOut";

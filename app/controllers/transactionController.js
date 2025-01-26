@@ -40,6 +40,8 @@ module.exports = {
     try {
       const { details } = req.body;
 
+      let dateISOString = new Date().toISOString();
+
       // Step 1: Cek semua komponen dan varian dari setiap produk
       for (const productDetail of details) {
         // Validasi komponen utama
@@ -130,11 +132,25 @@ module.exports = {
       for (const productDetail of details) {
         // Update stok komponen utama
         for (const component of productDetail.components) {
+          // Langkah 1: Kurangi qty.current dengan $inc dan dapatkan dokumen terbaru
+          const updatedComponent = await Component.findByIdAndUpdate(
+            component.componentId,
+            { $inc: { "qty.current": -component.qty } },
+            { new: true } // Pastikan mendapatkan dokumen terbaru setelah update
+          );
+
+          // Langkah 2: Tentukan status berdasarkan nilai updatedComponent.qty.current
+          const newStatus =
+            updatedComponent.qty.current <= 0
+              ? "outOfStock"
+              : updatedComponent.qty.current <= updatedComponent.qty.min
+              ? "almostOut"
+              : "available";
+
+          // Langkah 3: Perbarui qty.status menggunakan nilai terbaru
           await Component.findByIdAndUpdate(
             component.componentId,
-            {
-              $inc: { "qty.current": -component.qty },
-            },
+            { "qty.status": newStatus },
             { new: true }
           );
         }
@@ -182,8 +198,14 @@ module.exports = {
         }
       }
 
+      let payload = {
+        ...req.body,
+        createdAt: dateISOString,
+        updatedAt: dateISOString,
+      };
+
       // Step 3: Simpan transaksi
-      const transaction = new Transaction(req.body);
+      const transaction = new Transaction(payload);
       await transaction.save();
 
       return Promise.resolve({
@@ -206,9 +228,7 @@ module.exports = {
     let dateISOString = new Date().toISOString();
 
     let pageKey = req.query.pageKey ? req.query.pageKey : 1;
-    let pageSize = req.query.pageSize
-      ? req.query.pageSize
-      : 1 * 1000 * 1000 * 1000;
+    let pageSize = req.query.pageSize ? req.query.pageSize : null;
 
     let defaultFrom = formatController.convertToLocaleISOString(
       dateISOString,
@@ -219,53 +239,24 @@ module.exports = {
       "end"
     );
 
-    const isNotEveryQueryNull = () => {
-      return req.query.from || req.query.to;
+    // Membuat pipeline dengan logika yang lebih sederhana
+    let pipeline = {
+      createdAt: {
+        $gte: req.query.from
+          ? formatController.convertToLocaleISOString(req.query.from, "start")
+          : defaultFrom,
+        $lte: req.query.to
+          ? formatController.convertToLocaleISOStringNextDay(
+              req.query.to,
+              "end"
+            )
+          : defaultTo,
+      },
     };
 
-    let pipeline = isNotEveryQueryNull()
-      ? req.query.outletId
-        ? {
-            outletId: req.query.outletId,
-            createdAt: {
-              $gte: req.query.from
-                ? formatController.convertToLocaleISOString(
-                    req.query.from,
-                    "start"
-                  )
-                : defaultFrom,
-              $lte: req.query.to
-                ? formatController.convertToLocaleISOString(req.query.to, "end")
-                : defaultTo,
-            },
-          }
-        : {
-            createdAt: {
-              $gte: req.query.from
-                ? formatController.convertToLocaleISOString(
-                    req.query.from,
-                    "start"
-                  )
-                : defaultFrom,
-              $lte: req.query.to
-                ? formatController.convertToLocaleISOString(req.query.to, "end")
-                : defaultTo,
-            },
-          }
-      : req.query.outletId
-      ? {
-          outletId: req.query.outletId,
-          createdAt: {
-            $gte: defaultFrom,
-            $lte: defaultTo,
-          },
-        }
-      : {
-          createdAt: {
-            $gte: defaultFrom,
-            $lte: defaultTo,
-          },
-        };
+    if (req.query.outletId) {
+      pipeline.outletId = req.query.outletId;
+    }
 
     try {
       // Fetch data transaksi berdasarkan periode
@@ -277,74 +268,94 @@ module.exports = {
         -1
       );
 
-      // Loop untuk melakukan populate pada setiap transaksi
-      for (const transaction of transactions.data) {
-        // Populate businessId, userId, customerId, outletId, serviceMethodId, dan paymentMethodId
-        transaction.businessId = await dataController.populateFieldById(
-          Business,
-          transaction.businessId
-        );
-        transaction.userId = await dataController.populateFieldById(
-          User,
-          transaction.userId
-        );
-        transaction.customerId = await dataController.populateFieldById(
-          Customer,
-          transaction.customerId
-        );
-        transaction.outletId = await dataController.populateFieldById(
-          Outlet,
-          transaction.outletId
-        );
-        transaction.serviceMethodId = await dataController.populateFieldById(
-          ServiceMethod,
-          transaction.serviceMethodId
-        );
-        transaction.paymentMethodId = await dataController.populateFieldById(
-          PaymentMethod,
-          transaction.paymentMethodId
-        );
-
-        // Populate charges
-        for (const charge of transaction.charges) {
-          charge.chargeId = await dataController.populateFieldById(
-            Charge,
-            charge.chargeId
+      // Populate secara paralel menggunakan Promise.all
+      await Promise.all(
+        transactions.data.map(async (transaction) => {
+          transaction.businessId = await dataController.populateFieldById(
+            Business,
+            transaction.businessId
           );
-        }
-
-        // Populate promotions
-        for (const promotion of transaction.promotions) {
-          promotion.promotionId = await dataController.populateFieldById(
-            Promotion,
-            promotion.promotionId
+          transaction.userId = await dataController.populateFieldById(
+            User,
+            transaction.userId
           );
-        }
+          transaction.customerId = transaction.customerId
+            ? await dataController.populateFieldById(
+                Customer,
+                transaction.customerId
+              )
+            : null;
+          transaction.outletId = await dataController.populateFieldById(
+            Outlet,
+            transaction.outletId
+          );
+          transaction.serviceMethodId = await dataController.populateFieldById(
+            ServiceMethod,
+            transaction.serviceMethodId
+          );
+          transaction.paymentMethodId = await dataController.populateFieldById(
+            PaymentMethod,
+            transaction.paymentMethodId
+          );
 
-        // Populate taxes
-        for (const tax of transaction.taxes) {
-          tax.taxId = await dataController.populateFieldById(Tax, tax.taxId);
-        }
-
-        // Populate componentId di dalam details
-        for (const detail of transaction.details) {
-          for (const component of detail.components) {
-            component.componentId = await dataController.populateFieldById(
-              Component,
-              component.componentId
-            );
-          }
-          // Jika ada additionals yang memiliki components, populate juga componentId di dalam additionals
-          for (const additional of detail.additionals || []) {
-            for (const component of additional.components) {
-              component.componentId = await dataController.populateFieldById(
-                Component,
-                component.componentId
+          // Populate charges, promotions, dan taxes secara paralel
+          await Promise.all(
+            transaction.charges.map(async (charge) => {
+              charge.chargeId = await dataController.populateFieldById(
+                Charge,
+                charge.chargeId
               );
-            }
-          }
-        }
-      }
+            })
+          );
+
+          await Promise.all(
+            transaction.promotions.map(async (promotion) => {
+              promotion.promotionId = await dataController.populateFieldById(
+                Promotion,
+                promotion.promotionId
+              );
+            })
+          );
+
+          await Promise.all(
+            transaction.taxes.map(async (tax) => {
+              tax.taxId = await dataController.populateFieldById(
+                Tax,
+                tax.taxId
+              );
+            })
+          );
+
+          // Populate details dan additionals secara paralel
+          await Promise.all(
+            transaction.details.map(async (detail) => {
+              await Promise.all(
+                detail.components.map(async (component) => {
+                  component.componentId =
+                    await dataController.populateFieldById(
+                      Component,
+                      component.componentId
+                    );
+                })
+              );
+
+              await Promise.all(
+                (detail.additionals || []).map(async (additional) => {
+                  await Promise.all(
+                    additional.components.map(async (component) => {
+                      component.componentId =
+                        await dataController.populateFieldById(
+                          Component,
+                          component.componentId
+                        );
+                    })
+                  );
+                })
+              );
+            })
+          );
+        })
+      );
 
       return {
         error: false,
@@ -352,6 +363,7 @@ module.exports = {
         count: transactions.count,
       };
     } catch (err) {
+      console.error("Error:", err); // Tambahkan logging
       return {
         error: true,
         message: err.message || {

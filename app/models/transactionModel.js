@@ -14,6 +14,7 @@ const Transaction = mongoose.Schema({
   customerId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Customer",
+    default: null,
   },
   charges: [
     // {
