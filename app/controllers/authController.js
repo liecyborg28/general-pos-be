@@ -314,21 +314,42 @@ module.exports = {
                                 const categoriesPayload = [
                                   {
                                     businessId: businesses[0]._id.toString(),
-                                    name: "Category Name 1",
+                                    name: "Makanan",
                                     status: "active",
                                     createdAt: dateISOString,
                                     updatedAt: dateISOString,
                                   },
                                   {
                                     businessId: businesses[0]._id.toString(),
-                                    name: "Category Name 2",
+                                    name: "Minuman",
                                     status: "active",
                                     createdAt: dateISOString,
                                     updatedAt: dateISOString,
                                   },
                                   {
                                     businessId: businesses[0]._id.toString(),
-                                    name: "Category Name 3",
+                                    name: "Coffee",
+                                    status: "active",
+                                    createdAt: dateISOString,
+                                    updatedAt: dateISOString,
+                                  },
+                                  {
+                                    businessId: businesses[0]._id.toString(),
+                                    name: "Non Coffee",
+                                    status: "active",
+                                    createdAt: dateISOString,
+                                    updatedAt: dateISOString,
+                                  },
+                                  {
+                                    businessId: businesses[0]._id.toString(),
+                                    name: "Tambahan",
+                                    status: "active",
+                                    createdAt: dateISOString,
+                                    updatedAt: dateISOString,
+                                  },
+                                  {
+                                    businessId: businesses[0]._id.toString(),
+                                    name: "Paketan",
                                     status: "active",
                                     createdAt: dateISOString,
                                     updatedAt: dateISOString,
@@ -459,13 +480,13 @@ module.exports = {
                                                   changedBy:
                                                     users[0]._id.toString(),
                                                   imageUrl:
-                                                    "assets/demo/images/product/blue-band.jpg",
-                                                  name: "Component Name 1",
+                                                    "assets/demo/images/component/daging_sapi.jpg",
+                                                  name: "Daging Sapi",
                                                   status: "active",
                                                   unitId:
                                                     units[0]._id.toString(),
                                                   qty: {
-                                                    current: 20,
+                                                    current: 10,
                                                     max: 100,
                                                     min: 5,
                                                     status: "available",
@@ -481,13 +502,13 @@ module.exports = {
                                                   changedBy:
                                                     users[0]._id.toString(),
                                                   imageUrl:
-                                                    "assets/demo/images/product/pink-band.jpg",
-                                                  name: "Component Name 2",
+                                                    "assets/demo/images/component/daging_ayam.jpg",
+                                                  name: "Daging Ayam",
                                                   status: "active",
                                                   unitId:
-                                                    units[1]._id.toString(),
+                                                    units[0]._id.toString(),
                                                   qty: {
-                                                    current: 20,
+                                                    current: 10,
                                                     max: 100,
                                                     min: 5,
                                                     status: "available",
@@ -503,13 +524,13 @@ module.exports = {
                                                   changedBy:
                                                     users[0]._id.toString(),
                                                   imageUrl:
-                                                    "assets/demo/images/product/lime-band.jpg",
-                                                  name: "Component Name 3",
+                                                    "assets/demo/images/component/nasi_putih.jpg",
+                                                  name: "Nasi Putih",
                                                   status: "active",
                                                   unitId:
-                                                    units[1]._id.toString(),
+                                                    units[0]._id.toString(),
                                                   qty: {
-                                                    current: 20,
+                                                    current: 10,
                                                     max: 100,
                                                     min: 5,
                                                     status: "available",
@@ -525,13 +546,13 @@ module.exports = {
                                                   changedBy:
                                                     users[0]._id.toString(),
                                                   imageUrl:
-                                                    "assets/demo/images/product/purple-band.jpg",
-                                                  name: "Component Name 4",
+                                                    "assets/demo/images/component/ikan_asin.jpg",
+                                                  name: "Ikan Asin",
                                                   status: "active",
                                                   unitId:
-                                                    units[1]._id.toString(),
+                                                    units[0]._id.toString(),
                                                   qty: {
-                                                    current: 20,
+                                                    current: 10,
                                                     max: 100,
                                                     min: 5,
                                                     status: "available",
@@ -558,12 +579,12 @@ module.exports = {
                                                       changedBy:
                                                         users[0]._id.toString(),
                                                       code: {
-                                                        bar: "barCode123",
-                                                        qr: "qrCode123",
+                                                        bar: "bihungoreng",
+                                                        qr: "bihungoreng",
                                                       },
                                                       countable: true,
                                                       charged: false,
-                                                      name: "Product Name",
+                                                      name: "Bihun Goreng",
                                                       status: "active",
                                                       unitId:
                                                         units[0]._id.toString(),
@@ -572,23 +593,18 @@ module.exports = {
                                                           components: [
                                                             {
                                                               componentId:
-                                                                components[0]._id.toString(),
+                                                                components[1]._id.toString(),
                                                               qty: 1,
                                                             },
-                                                            {
-                                                              componentId:
-                                                                components[1]._id.toString(),
-                                                              qty: 2,
-                                                            },
                                                           ],
-                                                          cost: 5000,
+                                                          cost: 7000,
                                                           description:
-                                                            "Description For Variant 1",
+                                                            "Deskripsi untuk bihun goreng ayam.",
                                                           default: true,
                                                           imageUrl:
-                                                            "assets/demo/images/product/game-controller.jpg",
-                                                          name: "Variant 1",
-                                                          price: 10000,
+                                                            "assets/demo/images/product/bihun_goreng.jpg",
+                                                          name: "Ayam",
+                                                          price: 15000,
                                                           qty: 10,
                                                         },
                                                         {
@@ -596,21 +612,194 @@ module.exports = {
                                                             {
                                                               componentId:
                                                                 components[0]._id.toString(),
+                                                              qty: 1,
+                                                            },
+                                                          ],
+                                                          cost: 9000,
+                                                          description:
+                                                            "Deskripsi untuk bihun goreng sapi.",
+                                                          default: false,
+                                                          imageUrl:
+                                                            "assets/demo/images/product/bihun_goreng.jpg",
+                                                          name: "Sapi",
+                                                          price: 18000,
+                                                          qty: 10,
+                                                        },
+                                                      ],
+                                                      createdAt: dateISOString,
+                                                      updatedAt: dateISOString,
+                                                    },
+                                                    {
+                                                      businessId:
+                                                        businesses[0]._id.toString(),
+                                                      categoryIds: [
+                                                        categories[0]._id.toString(),
+                                                      ],
+                                                      changedBy:
+                                                        users[0]._id.toString(),
+                                                      code: {
+                                                        bar: "chickencrispyladoijo",
+                                                        qr: "chickencrispyladoijo",
+                                                      },
+                                                      countable: true,
+                                                      charged: false,
+                                                      name: "Chicken Crispy Lado Ijo",
+                                                      status: "active",
+                                                      unitId:
+                                                        units[0]._id.toString(),
+                                                      variants: [
+                                                        {
+                                                          components: [
+                                                            {
+                                                              componentId:
+                                                                components[1]._id.toString(),
+                                                              qty: 3,
+                                                            },
+                                                          ],
+                                                          cost: 10000,
+                                                          description:
+                                                            "Deskripsi untuk chicken crispy lado ijo original.",
+                                                          default: true,
+                                                          imageUrl:
+                                                            "assets/demo/images/product/chicken_crispy_lado_ijo.jpg",
+                                                          name: "Original",
+                                                          price: 25000,
+                                                          qty: 10,
+                                                        },
+                                                      ],
+                                                      createdAt: dateISOString,
+                                                      updatedAt: dateISOString,
+                                                    },
+                                                    {
+                                                      businessId:
+                                                        businesses[0]._id.toString(),
+                                                      categoryIds: [
+                                                        categories[0]._id.toString(),
+                                                      ],
+                                                      changedBy:
+                                                        users[0]._id.toString(),
+                                                      code: {
+                                                        bar: "goldenkariayam",
+                                                        qr: "goldenkariayam",
+                                                      },
+                                                      countable: true,
+                                                      charged: false,
+                                                      name: "Golden Kari Ayam",
+                                                      status: "active",
+                                                      unitId:
+                                                        units[0]._id.toString(),
+                                                      variants: [
+                                                        {
+                                                          components: [
+                                                            {
+                                                              componentId:
+                                                                components[1]._id.toString(),
+                                                              qty: 3,
+                                                            },
+                                                          ],
+                                                          cost: 14000,
+                                                          description:
+                                                            "Deskripsi untuk golden kari ayam original.",
+                                                          default: true,
+                                                          imageUrl:
+                                                            "assets/demo/images/product/golden_kari_ayam.jpg",
+                                                          name: "Original",
+                                                          price: 28000,
+                                                          qty: 10,
+                                                        },
+                                                      ],
+                                                      createdAt: dateISOString,
+                                                      updatedAt: dateISOString,
+                                                    },
+                                                    {
+                                                      businessId:
+                                                        businesses[0]._id.toString(),
+                                                      categoryIds: [
+                                                        categories[0]._id.toString(),
+                                                      ],
+                                                      changedBy:
+                                                        users[0]._id.toString(),
+                                                      code: {
+                                                        bar: "nasigoreng",
+                                                        qr: "nasigoreng",
+                                                      },
+                                                      countable: true,
+                                                      charged: false,
+                                                      name: "Nasi Goreng",
+                                                      status: "active",
+                                                      unitId:
+                                                        units[0]._id.toString(),
+                                                      variants: [
+                                                        {
+                                                          components: [
+                                                            {
+                                                              componentId:
+                                                                components[2]._id.toString(),
                                                               qty: 2,
+                                                            },
+                                                            {
+                                                              componentId:
+                                                                components[1]._id.toString(),
+                                                              qty: 1,
+                                                            },
+                                                          ],
+                                                          cost: 7000,
+                                                          description:
+                                                            "Deskripsi untuk nasi goreng ayam.",
+                                                          default: true,
+                                                          imageUrl:
+                                                            "assets/demo/images/product/nasi_goreng_ayam.jpg",
+                                                          name: "Ayam",
+                                                          price: 15000,
+                                                          qty: 10,
+                                                        },
+                                                        {
+                                                          components: [
+                                                            {
+                                                              componentId:
+                                                                components[2]._id.toString(),
+                                                              qty: 2,
+                                                            },
+                                                            {
+                                                              componentId:
+                                                                components[0]._id.toString(),
+                                                              qty: 1,
+                                                            },
+                                                          ],
+                                                          cost: 9000,
+                                                          description:
+                                                            "Deskripsi untuk nasi goreng sapi.",
+                                                          default: false,
+                                                          imageUrl:
+                                                            "assets/demo/images/product/nasi_goreng_beef.jpg",
+                                                          name: "Sapi",
+                                                          price: 18000,
+                                                          qty: 10,
+                                                        },
+                                                        {
+                                                          components: [
+                                                            {
+                                                              componentId:
+                                                                components[2]._id.toString(),
+                                                              qty: 2,
+                                                            },
+                                                            {
+                                                              componentId:
+                                                                components[3]._id.toString(),
+                                                              qty: 1,
                                                             },
                                                           ],
                                                           cost: 8000,
                                                           description:
-                                                            "Description For Variant 2",
-                                                          default: true,
+                                                            "Deskripsi untuk nasi goreng ikan asin.",
+                                                          default: false,
                                                           imageUrl:
-                                                            "assets/demo/images/product/gaming-set.jpg",
-                                                          name: "Variant 2",
-                                                          price: 15000,
-                                                          qty: 5,
+                                                            "assets/demo/images/product/nasi_goreng_ikan_asin.jpg",
+                                                          name: "Ikan Asin",
+                                                          price: 16000,
+                                                          qty: 10,
                                                         },
                                                       ],
-                                                      qty: 0,
                                                       createdAt: dateISOString,
                                                       updatedAt: dateISOString,
                                                     },
@@ -701,7 +890,7 @@ module.exports = {
 
                                                           const taxesPayload = [
                                                             {
-                                                              amount: 0.1,
+                                                              amount: 0.11,
                                                               businessId:
                                                                 businesses[0]._id.toString(),
                                                               changedBy:
