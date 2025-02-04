@@ -364,10 +364,7 @@ async function generateReport(req, groupField) {
         };
       }
 
-      if (
-        transaction.status.order === "completed" ||
-        transaction.status.order === "queued"
-      ) {
+      if (transaction.status.payment === "completed") {
         const totalCost =
           transaction.details?.reduce((costAcc, detail) => {
             const detailCost = (detail.cost || 0) * (detail.qty || 0);
@@ -448,9 +445,9 @@ async function generateReport(req, groupField) {
         result[groupId].total.tip += totalTip;
         result[groupId].total.netIncome += netIncome;
         result[groupId].total.promotion += totalPromotion; // Update total promotions
-      } else if (transaction.status.order === "returned") {
+      } else if (transaction.status.payment === "returned") {
         result[groupId].total.refund += 1;
-      } else if (transaction.status.order === "canceled") {
+      } else if (transaction.status.payment === "canceled") {
         result[groupId].total.canceled += 1;
       }
 

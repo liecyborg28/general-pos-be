@@ -173,9 +173,11 @@ module.exports = {
                           {
                             access: [
                               "/transactions/pos",
+                              "/transactions/pos/return",
                               "/transactions/customer",
                               "/transactions/pos/history",
                               "/transactions/purchase",
+                              "/transactions/purchase/return",
                               "/transactions/purchase/history",
                               // businesses
                               "/management/businesses",
@@ -546,7 +548,7 @@ module.exports = {
                                                   changedBy:
                                                     users[0]._id.toString(),
                                                   imageUrl:
-                                                    "assets/demo/images/component/ikan_asin.jpg",
+                                                    "assets/demo/images/component/ikan_asin.JPG",
                                                   name: "Ikan Asin",
                                                   status: "active",
                                                   unitId:
@@ -570,6 +572,7 @@ module.exports = {
                                               )
                                                 .then((components) => {
                                                   const productsPayload = [
+                                                    // makanan
                                                     {
                                                       businessId:
                                                         businesses[0]._id.toString(),
@@ -602,7 +605,7 @@ module.exports = {
                                                             "Deskripsi untuk bihun goreng ayam.",
                                                           default: true,
                                                           imageUrl:
-                                                            "assets/demo/images/product/bihun_goreng.jpg",
+                                                            "assets/demo/images/product/bihun_goreng.JPG",
                                                           name: "Ayam",
                                                           price: 15000,
                                                           qty: 10,
@@ -620,7 +623,7 @@ module.exports = {
                                                             "Deskripsi untuk bihun goreng sapi.",
                                                           default: false,
                                                           imageUrl:
-                                                            "assets/demo/images/product/bihun_goreng.jpg",
+                                                            "assets/demo/images/product/bihun_goreng.JPG",
                                                           name: "Sapi",
                                                           price: 18000,
                                                           qty: 10,
@@ -661,9 +664,50 @@ module.exports = {
                                                             "Deskripsi untuk chicken crispy lado ijo original.",
                                                           default: true,
                                                           imageUrl:
-                                                            "assets/demo/images/product/chicken_crispy_lado_ijo.jpg",
+                                                            "assets/demo/images/product/chicken_crispy_lado_ijo.JPG",
                                                           name: "Original",
                                                           price: 25000,
+                                                          qty: 10,
+                                                        },
+                                                      ],
+                                                      createdAt: dateISOString,
+                                                      updatedAt: dateISOString,
+                                                    },
+                                                    {
+                                                      businessId:
+                                                        businesses[0]._id.toString(),
+                                                      categoryIds: [
+                                                        categories[0]._id.toString(),
+                                                      ],
+                                                      changedBy:
+                                                        users[0]._id.toString(),
+                                                      code: {
+                                                        bar: "nasiayamcabehijau",
+                                                        qr: "nasiayamcabehijau",
+                                                      },
+                                                      countable: true,
+                                                      charged: false,
+                                                      name: "Nasi Ayam Cabe Hijau",
+                                                      status: "active",
+                                                      unitId:
+                                                        units[0]._id.toString(),
+                                                      variants: [
+                                                        {
+                                                          components: [
+                                                            {
+                                                              componentId:
+                                                                components[1]._id.toString(),
+                                                              qty: 3,
+                                                            },
+                                                          ],
+                                                          cost: 11000,
+                                                          description:
+                                                            "Deskripsi untuk nasi ayam cabe hijau original.",
+                                                          default: true,
+                                                          imageUrl:
+                                                            "assets/demo/images/product/nasi_ayam_cabe_hijau.JPG",
+                                                          name: "Original",
+                                                          price: 26000,
                                                           qty: 10,
                                                         },
                                                       ],
@@ -702,7 +746,7 @@ module.exports = {
                                                             "Deskripsi untuk golden kari ayam original.",
                                                           default: true,
                                                           imageUrl:
-                                                            "assets/demo/images/product/golden_kari_ayam.jpg",
+                                                            "assets/demo/images/product/golden_kari_ayam.JPG",
                                                           name: "Original",
                                                           price: 28000,
                                                           qty: 10,
@@ -711,6 +755,7 @@ module.exports = {
                                                       createdAt: dateISOString,
                                                       updatedAt: dateISOString,
                                                     },
+
                                                     {
                                                       businessId:
                                                         businesses[0]._id.toString(),
@@ -748,7 +793,7 @@ module.exports = {
                                                             "Deskripsi untuk nasi goreng ayam.",
                                                           default: true,
                                                           imageUrl:
-                                                            "assets/demo/images/product/nasi_goreng_ayam.jpg",
+                                                            "assets/demo/images/product/nasi_goreng_ayam.JPG",
                                                           name: "Ayam",
                                                           price: 15000,
                                                           qty: 10,
@@ -771,7 +816,7 @@ module.exports = {
                                                             "Deskripsi untuk nasi goreng sapi.",
                                                           default: false,
                                                           imageUrl:
-                                                            "assets/demo/images/product/nasi_goreng_beef.jpg",
+                                                            "assets/demo/images/product/nasi_goreng_beef.JPG",
                                                           name: "Sapi",
                                                           price: 18000,
                                                           qty: 10,
@@ -794,9 +839,193 @@ module.exports = {
                                                             "Deskripsi untuk nasi goreng ikan asin.",
                                                           default: false,
                                                           imageUrl:
-                                                            "assets/demo/images/product/nasi_goreng_ikan_asin.jpg",
+                                                            "assets/demo/images/product/nasi_goreng_ikan_asin.JPG",
                                                           name: "Ikan Asin",
                                                           price: 16000,
+                                                          qty: 10,
+                                                        },
+                                                      ],
+                                                      createdAt: dateISOString,
+                                                      updatedAt: dateISOString,
+                                                    },
+                                                    // minuman
+                                                    {
+                                                      businessId:
+                                                        businesses[0]._id.toString(),
+                                                      categoryIds: [
+                                                        categories[1]._id.toString(),
+                                                        categories[2]._id.toString(),
+                                                      ],
+                                                      changedBy:
+                                                        users[0]._id.toString(),
+                                                      code: {
+                                                        bar: "brownsugarcoffeemilk",
+                                                        qr: "brownsugarcoffeemilk",
+                                                      },
+                                                      countable: true,
+                                                      charged: false,
+                                                      name: "Brown Sugar Coffee Milk",
+                                                      status: "active",
+                                                      unitId:
+                                                        units[0]._id.toString(),
+                                                      variants: [
+                                                        {
+                                                          components: [],
+                                                          cost: 6000,
+                                                          description:
+                                                            "Deskripsi untuk brown sugar coffee milk ice.",
+                                                          default: true,
+                                                          imageUrl:
+                                                            "assets/demo/images/product/brown_sugar_coffee_milk.JPG",
+                                                          name: "Ice",
+                                                          price: 12000,
+                                                          qty: 10,
+                                                        },
+                                                        {
+                                                          components: [],
+                                                          cost: 5000,
+                                                          description:
+                                                            "Deskripsi untuk brown sugar coffee milk hot.",
+                                                          default: false,
+                                                          imageUrl:
+                                                            "assets/demo/images/product/brown_sugar_coffee_milk.JPG",
+                                                          name: "Hot",
+                                                          price: 11000,
+                                                          qty: 10,
+                                                        },
+                                                      ],
+                                                      createdAt: dateISOString,
+                                                      updatedAt: dateISOString,
+                                                    },
+                                                    // minuman
+                                                    {
+                                                      businessId:
+                                                        businesses[0]._id.toString(),
+                                                      categoryIds: [
+                                                        categories[1]._id.toString(),
+                                                        categories[2]._id.toString(),
+                                                      ],
+                                                      changedBy:
+                                                        users[0]._id.toString(),
+                                                      code: {
+                                                        bar: "cappucino",
+                                                        qr: "cappucino",
+                                                      },
+                                                      countable: true,
+                                                      charged: false,
+                                                      name: "Cappucino",
+                                                      status: "active",
+                                                      unitId:
+                                                        units[0]._id.toString(),
+                                                      variants: [
+                                                        {
+                                                          components: [],
+                                                          cost: 6000,
+                                                          description:
+                                                            "Deskripsi untuk brown sugar cappucino hot.",
+                                                          default: true,
+                                                          imageUrl:
+                                                            "assets/demo/images/product/cappucino_hot.JPG",
+                                                          name: "Hot",
+                                                          price: 12000,
+                                                          qty: 10,
+                                                        },
+                                                      ],
+                                                      createdAt: dateISOString,
+                                                      updatedAt: dateISOString,
+                                                    },
+                                                    // minuman
+                                                    {
+                                                      businessId:
+                                                        businesses[0]._id.toString(),
+                                                      categoryIds: [
+                                                        categories[1]._id.toString(),
+                                                        categories[3]._id.toString(),
+                                                      ],
+                                                      changedBy:
+                                                        users[0]._id.toString(),
+                                                      code: {
+                                                        bar: "matcha",
+                                                        qr: "matcha",
+                                                      },
+                                                      countable: true,
+                                                      charged: false,
+                                                      name: "Matcha",
+                                                      status: "active",
+                                                      unitId:
+                                                        units[0]._id.toString(),
+                                                      variants: [
+                                                        {
+                                                          components: [],
+                                                          cost: 6000,
+                                                          description:
+                                                            "Deskripsi untuk matcha ice.",
+                                                          default: true,
+                                                          imageUrl:
+                                                            "assets/demo/images/product/matcha.JPG",
+                                                          name: "Ice",
+                                                          price: 12000,
+                                                          qty: 10,
+                                                        },
+                                                        {
+                                                          components: [],
+                                                          cost: 5000,
+                                                          description:
+                                                            "Deskripsi untuk brown sugar matcha hot.",
+                                                          default: false,
+                                                          imageUrl:
+                                                            "assets/demo/images/product/matcha.JPG",
+                                                          name: "Hot",
+                                                          price: 11000,
+                                                          qty: 10,
+                                                        },
+                                                      ],
+                                                      createdAt: dateISOString,
+                                                      updatedAt: dateISOString,
+                                                    },
+                                                    // minuman
+                                                    {
+                                                      businessId:
+                                                        businesses[0]._id.toString(),
+                                                      categoryIds: [
+                                                        categories[1]._id.toString(),
+                                                        categories[3]._id.toString(),
+                                                      ],
+                                                      changedBy:
+                                                        users[0]._id.toString(),
+                                                      code: {
+                                                        bar: "redvelvet",
+                                                        qr: "redvelvet",
+                                                      },
+                                                      countable: true,
+                                                      charged: false,
+                                                      name: "Redvelvet",
+                                                      status: "active",
+                                                      unitId:
+                                                        units[0]._id.toString(),
+                                                      variants: [
+                                                        {
+                                                          components: [],
+                                                          cost: 6000,
+                                                          description:
+                                                            "Deskripsi untuk redvelvet ice.",
+                                                          default: true,
+                                                          imageUrl:
+                                                            "assets/demo/images/product/redvelvet.JPG",
+                                                          name: "Ice",
+                                                          price: 12000,
+                                                          qty: 10,
+                                                        },
+                                                        {
+                                                          components: [],
+                                                          cost: 5000,
+                                                          description:
+                                                            "Deskripsi untuk redvelvet hot.",
+                                                          default: false,
+                                                          imageUrl:
+                                                            "assets/demo/images/product/redvelvet.JPG",
+                                                          name: "Hot",
+                                                          price: 11000,
                                                           qty: 10,
                                                         },
                                                       ],
