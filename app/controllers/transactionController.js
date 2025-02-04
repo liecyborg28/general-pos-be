@@ -402,7 +402,7 @@ module.exports = {
       }
 
       // Jika status order adalah "canceled"
-      if (data.status.order === "canceled") {
+      if (data.status.payment === "canceled") {
         // Loop setiap detail produk untuk mengembalikan qty setiap komponen terkait
         for (const detail of transaction.details) {
           // Temukan produk
