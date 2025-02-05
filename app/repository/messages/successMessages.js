@@ -66,7 +66,6 @@ module.exports = {
     id: "Log berhasil ditambahkan!",
   },
   // M
-
   // N
 
   // 0

@@ -256,11 +256,8 @@ module.exports = {
     };
 
     if (req.query.outletId) {
-      console.log("testtt");
       pipeline["outletId"] = req.query.outletId;
     }
-
-    console.log("pipeline", pipeline);
 
     try {
       // Fetch data transaksi berdasarkan periode
