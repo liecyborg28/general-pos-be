@@ -200,6 +200,7 @@ module.exports = {
 
       let payload = {
         ...req.body,
+        request: generateRequestCodes(),
         createdAt: dateISOString,
         updatedAt: dateISOString,
       };
@@ -255,8 +256,11 @@ module.exports = {
     };
 
     if (req.query.outletId) {
-      pipeline.outletId = req.query.outletId;
+      console.log("testtt");
+      pipeline["outletId"] = req.query.outletId;
     }
+
+    console.log("pipeline", pipeline);
 
     try {
       // Fetch data transaksi berdasarkan periode
@@ -395,56 +399,23 @@ module.exports = {
     data["updatedAt"] = dateISOString;
 
     try {
-      // Dapatkan transaksi yang akan diupdate
       const transaction = await Transaction.findById(transactionId);
       if (!transaction) {
         return { error: true, message: errorMessages.TRANSACTION_NOT_FOUND };
       }
 
-      // Jika status order adalah "canceled"
       if (data.status.payment === "canceled") {
-        // Loop setiap detail produk untuk mengembalikan qty setiap komponen terkait
         for (const detail of transaction.details) {
-          // Temukan produk
-          const product = await Product.findById(detail.productId);
+          // Proses produk utama
+          await processProductCancellation(detail);
 
-          if (product && product.countable) {
-            // Tambahkan kembali qty produk
-            product.qty += detail.qty;
-            await product.save();
-          }
-
-          // Loop komponen utama dan tambahan
-          for (const componentDetail of [
-            ...detail.components,
-            ...detail.additionals.flatMap(
-              (additional) => additional.components
-            ),
-          ]) {
-            const component = await Component.findById(
-              componentDetail.componentId
-            );
-            if (component) {
-              // Tambahkan kembali qty.current dari komponen
-              component.qty.current += componentDetail.qty * detail.qty;
-
-              // Tentukan qty.status berdasarkan kondisi qty.current dan qty.min
-              if (component.qty.current <= 0) {
-                component.qty.status = "outOfStock";
-              } else if (component.qty.current <= component.qty.min) {
-                component.qty.status = "almostOut";
-              } else {
-                component.qty.status = "available";
-              }
-
-              // Simpan perubahan pada komponen
-              await component.save();
-            }
+          // Proses produk yang ada di additionals
+          for (const additional of detail.additionals) {
+            await processProductCancellation(additional);
           }
         }
       }
 
-      // Update transaksi dengan data baru
       const updatedTransaction = await Transaction.findByIdAndUpdate(
         transactionId,
         data,
@@ -461,3 +432,35 @@ module.exports = {
     }
   },
 };
+
+// Fungsi untuk memproses pembatalan produk (baik utama maupun tambahan)
+async function processProductCancellation(productDetail) {
+  const product = await Product.findById(productDetail.productId);
+  if (product) {
+    let variant = product.variants.find(
+      (v) => v._id.toString() === productDetail.variantId
+    );
+    if (variant) {
+      variant.qty += productDetail.qty;
+    }
+
+    for (const componentDetail of [...productDetail.components]) {
+      const component = await Component.findById(componentDetail.componentId);
+      if (component) {
+        component.qty.current += componentDetail.qty * productDetail.qty;
+
+        if (component.qty.current <= 0) {
+          component.qty.status = "outOfStock";
+        } else if (component.qty.current <= component.qty.min) {
+          component.qty.status = "almostOut";
+        } else {
+          component.qty.status = "available";
+        }
+
+        await component.save();
+      }
+    }
+
+    await product.save();
+  }
+}
