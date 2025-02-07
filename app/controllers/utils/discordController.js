@@ -14,11 +14,12 @@ const webhookUrl = process.env.DISCORD_APP_NOTIFICATION_WEB_HOOK_URL;
 const sendMessageToDiscordWebhook = async (text, link = "") => {
   try {
     // Jika ada link, tambahkan link ke dalam pesan
-    const messageContent = link ? `${text}\n[Klik di sini](${link})` : content;
+    const messageContent = link ? `${text}\n[Klik di sini](${link})` : text;
 
     const response = await axios.post(webhookUrl, {
       content: messageContent,
     });
+
     return response.data;
   } catch (error) {
     console.error("Error sending message to Discord:", error);
