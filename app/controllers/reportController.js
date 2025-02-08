@@ -147,7 +147,7 @@ module.exports = {
                     values: reportData.data.map((e) => e.total.grossProfit),
                   },
                   {
-                    name: "T. Promo",
+                    name: "T. Promosi",
                     color: { background: "#FFFF00", text: "#000000" },
                     fontStyle: "normal",
                     format: "accounting",
@@ -174,7 +174,7 @@ module.exports = {
                     values: reportData.data.map((e) => e.total.netIncome),
                   },
                   {
-                    name: "T. Service Charge",
+                    name: "T. Biaya Tambahan",
                     color: { background: "#FFFF00", text: "#000000" },
                     fontStyle: "normal",
                     format: "accounting",

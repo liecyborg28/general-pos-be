@@ -179,6 +179,9 @@ module.exports = {
                               "/transactions/purchase",
                               "/transactions/purchase/return",
                               "/transactions/purchase/history",
+                              // reports
+                              "/reports/dashboard",
+                              "/reports/charts",
                               // businesses
                               "/management/businesses",
                               "/management/business/add",
