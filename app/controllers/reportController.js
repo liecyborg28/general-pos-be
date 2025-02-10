@@ -1,6 +1,7 @@
 // models
 const Outlet = require("../models/outletModel");
 const PaymentMethod = require("../models/paymentMethodModel");
+const Product = require("../models/productModel");
 const ServiceMethod = require("../models/serviceMethodModel");
 const User = require("../models/userModel");
 const Transaction = require("../models/transactionModel");
@@ -15,6 +16,8 @@ const pdfController = require("./utils/pdfController");
 module.exports = {
   generateDocument: async function (req) {
     try {
+      let dateISOString = new Date().toISOString();
+
       let reportData;
 
       let reportType = req.query.reportType;
@@ -35,6 +38,9 @@ module.exports = {
         case "byUser":
           reportData = await this.generateSalesReportByUser(req);
           break;
+        case "byProduct":
+          reportData = await this.generateSalesReportByProduct(req);
+          break;
         default:
           throw new Error("Invalid report type specified.");
       }
@@ -52,7 +58,9 @@ module.exports = {
           ? "Tipe Penjualan"
           : reportType === "byUser"
           ? "Kasir"
-          : "Transaksi"
+          : reportType === "byTransaction"
+          ? "Transaksi"
+          : "Produk"
       }`;
 
       let keyName =
@@ -80,9 +88,9 @@ module.exports = {
               content: {
                 header: {
                   name: `${name} Periode (${formatController.convertToDateDDMMYYYY(
-                    req.query.from
+                    req.query?.from ? req.query?.from : dateISOString
                   )} - ${formatController.convertToDateDDMMYYYY(
-                    req.query.to
+                    req.query?.to ? req.query?.to : dateISOString
                   )})`,
                   color: { background: "#FFFF00", text: "#000000" },
                   fontStyle: "bold",
@@ -120,7 +128,7 @@ module.exports = {
                     ),
                   },
                   {
-                    name: "T. Pendapatan",
+                    name: "T. Omzet",
                     color: { background: "#FFFF00", text: "#000000" },
                     fontStyle: "normal",
                     format: "accounting",
@@ -203,7 +211,7 @@ module.exports = {
       if (reportType !== "byTransaction") {
         extraColumns = [
           {
-            name: "T. Transaksi Retur",
+            name: "T. Retur",
             color: { background: "#FFFF00", text: "#000000" },
             fontStyle: "normal",
             format: "text",
@@ -212,7 +220,7 @@ module.exports = {
             values: reportData.data.map((e) => e.total.refund),
           },
           {
-            name: "T. Transaksi Batal",
+            name: "T. Batal",
             color: { background: "#FFFF00", text: "#000000" },
             fontStyle: "normal",
             format: "text",
@@ -289,6 +297,129 @@ module.exports = {
   generateSalesReportByUser: async (req) => {
     return generateReport(req, "userId");
   },
+
+  generateSalesReportByProduct: async function (req) {
+    try {
+      let dateISOString = new Date().toISOString();
+      let pageKey = req.query.pageKey ? req.query.pageKey : 1;
+      let pageSize = req.query.pageSize ? req.query.pageSize : null;
+
+      let defaultFrom = formatController.convertToLocaleISOString(
+        dateISOString,
+        "start"
+      );
+      let defaultTo = formatController.convertToLocaleISOString(
+        dateISOString,
+        "end"
+      );
+
+      const isNotEveryQueryNull = () => req.query.from || req.query.to;
+
+      let pipeline = isNotEveryQueryNull()
+        ? {
+            createdAt: {
+              $gte: req.query.from
+                ? formatController.convertToLocaleISOString(
+                    req.query.from,
+                    "start"
+                  )
+                : defaultFrom,
+              $lte: req.query.to
+                ? formatController.convertToLocaleISOStringNextDay(
+                    req.query.to,
+                    "end"
+                  )
+                : defaultTo,
+            },
+            "status.payment": "completed",
+          }
+        : {
+            createdAt: {
+              $gte: defaultFrom,
+              $lte: defaultTo,
+            },
+          };
+
+      if (req.query.businessId) {
+        pipeline.businessId = req.query.businessId;
+      }
+
+      if (req.query.outletId) {
+        pipeline.outletId = req.query.outletId;
+      }
+
+      // Ambil data transaksi dengan status pembayaran completed
+      const transactions = await pageController.paginate(
+        pageKey,
+        pageSize,
+        pipeline,
+        Transaction,
+        1
+      );
+
+      // Objek untuk menyimpan totalQty per produk dan varian
+      const productReport = {};
+
+      transactions.data.forEach((transaction) => {
+        // Hitung produk utama (details)
+        transaction.details.forEach((detail) => {
+          const key = `${detail.productId}-${detail.variantId}`; // Gabungkan productId dan variantId untuk produk utama
+          if (!productReport[key]) {
+            productReport[key] = {
+              productId: detail.productId,
+              variantId: detail.variantId,
+              total: { sales: 0 },
+            };
+          }
+          productReport[key].total.sales += detail.qty;
+        });
+
+        // Hitung produk tambahan (additionals)
+        transaction.details.forEach((detail) => {
+          detail.additionals.forEach((additional) => {
+            const key = `${additional.productId}-null`; // Produk tambahan tidak memiliki variantId
+            if (!productReport[key]) {
+              productReport[key] = {
+                productId: additional.productId,
+                variantId: null, // Produk tambahan tidak memiliki variantId
+                total: { sales: 0 },
+              };
+            }
+            productReport[key].total.sales += additional.qty;
+          });
+        });
+      });
+
+      // Konversi objek ke array
+      let reportArray = Object.values(productReport);
+
+      // Populate productId dan variantId untuk mendapatkan detail produk dan varian
+      reportArray = await Promise.all(
+        reportArray.map(async (item) => {
+          const product = await Product.findById(item.productId).exec();
+
+          // Cari data varian yang sesuai dengan variantId
+          let variantData = null;
+          if (item.variantId && product.variants) {
+            variantData = product.variants.find(
+              (variant) => variant._id.toString() === item.variantId.toString()
+            );
+          }
+
+          return {
+            ...item,
+            productId: product, // Ganti productId dengan data produk yang sudah dipopulate
+            variantId: variantData, // Ganti variantId dengan data varian yang lengkap
+          };
+        })
+      );
+
+      return { error: false, data: reportArray };
+    } catch (error) {
+      console.error("Error generating product sales report:", error);
+      return { error: true, message: error.message };
+    }
+  },
 };
 
 async function generateReport(req, groupField) {
@@ -315,7 +446,10 @@ async function generateReport(req, groupField) {
             ? formatController.convertToLocaleISOString(req.query.from, "start")
             : defaultFrom,
           $lte: req.query.to
-            ? formatController.convertToLocaleISOString(req.query.to, "end")
+            ? formatController.convertToLocaleISOStringNextDay(
+                req.query.to,
+                "end"
+              )
             : defaultTo,
         },
       }
@@ -325,6 +459,14 @@ async function generateReport(req, groupField) {
           $lte: defaultTo,
         },
       };
+
+  if (req.query.businessId) {
+    pipeline.businessId = req.query.businessId;
+  }
+
+  if (req.query.outletId) {
+    pipeline.outletId = req.query.outletId;
+  }
 
   try {
     let transactions = await pageController.paginate(

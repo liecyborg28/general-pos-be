@@ -76,6 +76,24 @@ router.get("/reports/sales/by/transaction", (req, res) => {
     });
 });
 
+router.get("/reports/sales/by/product", (req, res) => {
+  authController
+    .checkAccess(req)
+    .then(() => {
+      reportController
+        .generateSalesReportByProduct(req)
+        .then((value) => {
+          res.status(200).send(value);
+        })
+        .catch((err) => {
+          res.status(500).send(err);
+        });
+    })
+    .catch((err) => {
+      res.status(500).send(err);
+    });
+});
+
 router.get("/reports/sales/by/user", (req, res) => {
   authController
     .checkAccess(req)
@@ -101,24 +119,7 @@ router.get("/reports/sales/document", (req, res) => {
       reportController
         .generateDocument(req)
         .then((value) => {
-          if (req.query.documentType === "pdf") {
-            res.setHeader("Content-Type", "application/pdf");
-            res.setHeader(
-              "Content-Disposition",
-              `inline; filename="${value.data.fileName}.pdf"`
-            );
-          } else if (req.query.documentType === "excel") {
-            res.setHeader(
-              "Content-Type",
-              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            );
-            res.setHeader(
-              "Content-Disposition",
-              `attachment; filename="${value.data.fileName}.xlsx"`
-            );
-          }
-
-          res.status(200).send(value.data.buffer);
+          res.status(200).send(value);
         })
         .catch((err) => {
           res.status(500).send(err);

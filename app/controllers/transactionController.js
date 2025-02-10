@@ -283,6 +283,10 @@ module.exports = {
       },
     };
 
+    if (req.query.businessId) {
+      pipeline.businessId = req.query.businessId;
+    }
+
     if (req.query.outletId) {
       pipeline.outletId = req.query.outletId;
     }
