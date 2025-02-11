@@ -12,6 +12,7 @@ const excelController = require("./utils/excelController");
 const formatController = require("./utils/formatController");
 const pageController = require("./utils/pageController");
 const pdfController = require("./utils/pdfController");
+const { report } = require("../routers/reportRouter");
 
 module.exports = {
   generateDocument: async function (req) {
@@ -72,6 +73,8 @@ module.exports = {
           ? "serviceMethodId"
           : reportType === "byUser"
           ? "userId"
+          : reportType === "byProduct"
+          ? "productId"
           : "_id";
 
       let documentData = {
@@ -124,80 +127,10 @@ module.exports = {
                     values: reportData.data.map((e) =>
                       reportType === "byTransaction"
                         ? e._id._id.toString()
+                        : reportType === "byProduct"
+                        ? `${e["productId"].name} (${e["variantId"].name})`
                         : e[keyName].name
                     ),
-                  },
-                  {
-                    name: "T. Omzet",
-                    color: { background: "#FFFF00", text: "#000000" },
-                    fontStyle: "normal",
-                    format: "accounting",
-                    fixed: false,
-                    align: "right",
-                    values: reportData.data.map((e) => e.total.revenue),
-                  },
-                  {
-                    name: "T. Biaya Produksi",
-                    color: { background: "#FFFF00", text: "#000000" },
-                    fontStyle: "normal",
-                    format: "accounting",
-                    fixed: false,
-                    align: "right",
-                    values: reportData.data.map((e) => e.total.cost),
-                  },
-                  {
-                    name: "T. Pendapatan Kotor",
-                    color: { background: "#FFFF00", text: "#000000" },
-                    fontStyle: "normal",
-                    format: "accounting",
-                    fixed: false,
-                    align: "right",
-                    values: reportData.data.map((e) => e.total.grossProfit),
-                  },
-                  {
-                    name: "T. Promosi",
-                    color: { background: "#FFFF00", text: "#000000" },
-                    fontStyle: "normal",
-                    format: "accounting",
-                    fixed: false,
-                    align: "right",
-                    values: reportData.data.map((e) => e.total.promotion),
-                  },
-                  {
-                    name: "T. Pajak",
-                    color: { background: "#FFFF00", text: "#000000" },
-                    fontStyle: "normal",
-                    format: "accounting",
-                    fixed: false,
-                    align: "right",
-                    values: reportData.data.map((e) => e.total.tax),
-                  },
-                  {
-                    name: "T. Pendapatan Bersih",
-                    color: { background: "#FFFF00", text: "#000000" },
-                    fontStyle: "normal",
-                    format: "accounting",
-                    fixed: false,
-                    align: "right",
-                    values: reportData.data.map((e) => e.total.netIncome),
-                  },
-                  {
-                    name: "T. Biaya Tambahan",
-                    color: { background: "#FFFF00", text: "#000000" },
-                    fontStyle: "normal",
-                    format: "accounting",
-                    fixed: false,
-                    align: "right",
-                    values: reportData.data.map((e) => e.total.charge),
-                  },
-                  {
-                    name: "T. Tip",
-                    color: { background: "#FFFF00", text: "#000000" },
-                    fontStyle: "normal",
-                    format: "accounting",
-                    fixed: false,
-                    align: "right",
-                    values: reportData.data.map((e) => e.total.tip),
                   },
                 ],
               },
@@ -206,9 +139,153 @@ module.exports = {
         },
       };
 
+      if (
+        reportData.data &&
+        reportData.data.length > 0 &&
+        typeof reportData.data[0].total.revenue === "number"
+      ) {
+        documentData.book.sheets[0].content.columns.push({
+          name: "T. Omzet",
+          color: { background: "#FFFF00", text: "#000000" },
+          fontStyle: "normal",
+          format: "accounting",
+          fixed: false,
+          align: "right",
+          values: reportData.data.map((e) => e.total.revenue),
+        });
+      }
+
+      if (
+        reportData.data &&
+        reportData.data.length > 0 &&
+        typeof reportData.data[0].total.cost === "number"
+      ) {
+        documentData.book.sheets[0].content.columns.push({
+          name: "T. Biaya Produksi",
+          color: { background: "#FFFF00", text: "#000000" },
+          fontStyle: "normal",
+          format: "accounting",
+          fixed: false,
+          align: "right",
+          values: reportData.data.map((e) => e.total.cost),
+        });
+      }
+
+      if (
+        reportData.data &&
+        reportData.data.length > 0 &&
+        typeof reportData.data[0].total.grossProfit === "number"
+      ) {
+        documentData.book.sheets[0].content.columns.push({
+          name: "T. Pendapatan Kotor",
+          color: { background: "#FFFF00", text: "#000000" },
+          fontStyle: "normal",
+          format: "accounting",
+          fixed: false,
+          align: "right",
+          values: reportData.data.map((e) => e.total.grossProfit),
+        });
+      }
+
+      if (
+        reportData.data &&
+        reportData.data.length > 0 &&
+        typeof reportData.data[0].total.promotion === "number"
+      ) {
+        documentData.book.sheets[0].content.columns.push({
+          name: "T. Promosi",
+          color: { background: "#FFFF00", text: "#000000" },
+          fontStyle: "normal",
+          format: "accounting",
+          fixed: false,
+          align: "right",
+          values: reportData.data.map((e) => e.total.promotion),
+        });
+      }
+
+      if (
+        reportData.data &&
+        reportData.data.length > 0 &&
+        typeof reportData.data[0].total.tax === "number"
+      ) {
+        documentData.book.sheets[0].content.columns.push({
+          name: "T. Pajak",
+          color: { background: "#FFFF00", text: "#000000" },
+          fontStyle: "normal",
+          format: "accounting",
+          fixed: false,
+          align: "right",
+          values: reportData.data.map((e) => e.total.tax),
+        });
+      }
+
+      if (
+        reportData.data &&
+        reportData.data.length > 0 &&
+        typeof reportData.data[0].total.netIncome === "number"
+      ) {
+        documentData.book.sheets[0].content.columns.push({
+          name: "T. Pendapatan Bersih",
+          color: { background: "#FFFF00", text: "#000000" },
+          fontStyle: "normal",
+          format: "accounting",
+          fixed: false,
+          align: "right",
+          values: reportData.data.map((e) => e.total.netIncome),
+        });
+      }
+
+      if (
+        reportData.data &&
+        reportData.data.length > 0 &&
+        typeof reportData.data[0].total.charge === "number"
+      ) {
+        documentData.book.sheets[0].content.columns.push({
+          name: "T. Biaya Tambahan",
+          color: { background: "#FFFF00", text: "#000000" },
+          fontStyle: "normal",
+          format: "accounting",
+          fixed: false,
+          align: "right",
+          values: reportData.data.map((e) => e.total.charge),
+        });
+      }
+
+      if (
+        reportData.data &&
+        reportData.data.length > 0 &&
+        typeof reportData.data[0].total.tip === "number"
+      ) {
+        documentData.book.sheets[0].content.columns.push({
+          name: "T. Tip",
+          color: { background: "#FFFF00", text: "#000000" },
+          fontStyle: "normal",
+          format: "accounting",
+          fixed: false,
+          align: "right",
+          values: reportData.data.map((e) => e.total.tip),
+        });
+      }
+
+      if (
+        reportData &&
+        reportData.data.length > 0 &&
+        typeof reportData.data[0].total.sales === "number"
+      ) {
+        documentData.book.sheets[0].content.columns.push({
+          name: "T. Jumlah Terjual",
+          color: { background: "#FFFF00", text: "#000000" },
+          fontStyle: "normal",
+          format: "accounting",
+          fixed: false,
+          align: "right",
+          values: reportData.data.map((e) => e.total.sales),
+        });
+      }
+
       let extraColumns = [];
 
-      if (reportType !== "byTransaction") {
+      if (reportType !== "byTransaction" && reportType !== "byProduct") {
         extraColumns = [
           {
             name: "T. Retur",
@@ -231,7 +308,7 @@ module.exports = {
         ];
         documentData.book.sheets[0].content.columns =
           documentData.book.sheets[0].content.columns.concat(extraColumns);
-      } else {
+      } else if (reportType === "byTransaction") {
         extraColumns = [
           {
             name: "Status Retur",
@@ -413,6 +490,8 @@ module.exports = {
           };
         })
       );
+
+      reportArray.sort((a, b) => b.total.sales - a.total.sales);
 
       return { error: false, data: reportArray };
     } catch (error) {
@@ -626,6 +705,8 @@ async function generateReport(req, groupField) {
         return { ...item, [groupField]: populatedField };
       })
     );
+
+    reportArray.sort((a, b) => b.total.revenue - a.total.revenue);
 
     return { error: false, data: reportArray };
   } catch (error) {
