@@ -14,6 +14,141 @@ const pageController = require("./utils/pageController");
 const pdfController = require("./utils/pdfController");
 const { report } = require("../routers/reportRouter");
 
+function getRandomColorPair(currentColors = []) {
+  const flatColors = [
+    "#ff6b6b",
+    "#ff9f43",
+    "#feca57",
+    "#ffdd59",
+    "#48dbfb",
+    "#1dd1a1",
+    "#00d2d3",
+    "#54a0ff",
+    "#5f27cd",
+    "#c8d6e5",
+    "#576574",
+    "#ff4757",
+    "#ff6348",
+    "#ffa502",
+    "#fffa65",
+    "#7bed9f",
+    "#70a1ff",
+    "#5352ed",
+    "#e84393",
+    "#6c5ce7",
+    "#fd79a8",
+    "#00cec9",
+    "#00b894",
+    "#fab1a0",
+    "#e17055",
+    "#d63031",
+    "#0984e3",
+    "#74b9ff",
+    "#a29bfe",
+    "#55efc4",
+    "#81ecec",
+    "#ffeaa7",
+    "#b2bec3",
+    "#636e72",
+    "#2d3436",
+  ];
+
+  function generateUniqueColor() {
+    let color;
+    do {
+      color = flatColors[Math.floor(Math.random() * flatColors.length)];
+    } while (currentColors.includes(color));
+    return color;
+  }
+
+  let borderColor = generateUniqueColor();
+  let backgroundColor = borderColor + "99"; // Slight transparency
+
+  return { borderColor, backgroundColor };
+}
+
+function generateHorizontalBarChart(data, chartColor, req) {
+  let returnValue = {
+    labels: data.map((item) => {
+      switch (req.query.by) {
+        case "outlet":
+          return item.outletId?.name;
+        case "payment":
+          return item.paymentMethodId?.name;
+        case "service":
+          return item.serviceMethodId?.name;
+        case "user":
+          return item.userId?.username;
+        case "product":
+          return `${item.productId?.name} (${item.variantId?.name})`;
+        default:
+          break;
+      }
+    }),
+    datasets: [],
+  };
+
+  if (data.length > 0 && data[0].total.revenue) {
+    returnValue?.datasets?.push({
+      label: "REVENUE",
+      backgroundColor: chartColor[0].backgroundColor,
+      borderColor: chartColor[0].borderColor,
+      data: data.map((item) => item.total.revenue),
+    });
+  }
+
+  if (data.length > 0 && data[0].total.grossProfit) {
+    returnValue?.datasets?.push({
+      label: "GROSS_PROFIT",
+      backgroundColor: chartColor[1].backgroundColor,
+      borderColor: chartColor[1].borderColor,
+      data: data.map((item) => item.total.grossProfit),
+    });
+  }
+
+  if (data.length > 0 && data[0].total.netIncome) {
+    returnValue?.datasets?.push({
+      label: "NET_INCOME",
+      backgroundColor: chartColor[2].backgroundColor,
+      borderColor: chartColor[2].borderColor,
+      data: data.map((item) => item.total.netIncome),
+    });
+  }
+
+  if (data.length > 0 && data[0].total.sales) {
+    returnValue?.datasets?.push({
+      label: "SALES",
+      backgroundColor: chartColor[2].backgroundColor,
+      borderColor: chartColor[2].borderColor,
+      data: data.map((item) => item.total.sales),
+    });
+  }
+
+  return returnValue;
+}
+
+function generateReportToChart(reportArray, req) {
+  let totals = ["revenue", "grossProfit", "netIncome", "sales"];
+
+  let chartColor = [];
+
+  let tempChartColor = [];
+
+  chartColor = totals.map((e) => {
+    let temp = getRandomColorPair(tempChartColor);
+    tempChartColor.push(temp);
+    return temp;
+  });
+
+  let chartData = {
+    chart: {
+      horizontalBar: generateHorizontalBarChart(reportArray, chartColor, req),
+    },
+  };
+
+  return chartData;
+}
+
 module.exports = {
   generateDocument: async function (req) {
     try {
@@ -127,6 +262,8 @@ module.exports = {
                     values: reportData.data.map((e) =>
                       reportType === "byTransaction"
                         ? e._id._id.toString()
+                        : reportType === "byUser"
+                        ? e["userId"].username
                         : reportType === "byProduct"
                         ? `${e["productId"].name} (${e["variantId"].name})`
                         : e[keyName].name
@@ -493,7 +630,9 @@ module.exports = {
 
       reportArray.sort((a, b) => b.total.sales - a.total.sales);
 
-      return { error: false, data: reportArray };
+      let data = generateReportToChart(reportArray, req);
+
+      return { error: false, data };
     } catch (error) {
       console.error("Error generating product sales report:", error);
       return { error: true, message: error.message };
@@ -708,7 +847,9 @@ async function generateReport(req, groupField) {
 
     reportArray.sort((a, b) => b.total.revenue - a.total.revenue);
 
-    return { error: false, data: reportArray };
+    let data = generateReportToChart(reportArray, req);
+
+    return { error: false, data };
   } catch (error) {
     console.error(error);
     return { error: true, message: error.message };
