@@ -112,6 +112,25 @@ router.get("/reports/sales/by/user", (req, res) => {
     });
 });
 
+// by period
+router.get("/reports/sales/by/period", (req, res) => {
+  authController
+    .checkAccess(req)
+    .then(() => {
+      reportController
+        .generateSalesReportByPeriod(req)
+        .then((value) => {
+          res.status(200).send(value);
+        })
+        .catch((err) => {
+          res.status(500).send(err);
+        });
+    })
+    .catch((err) => {
+      res.status(500).send(err);
+    });
+});
+
 router.get("/reports/sales/document", (req, res) => {
   authController
     .checkAccess(req)

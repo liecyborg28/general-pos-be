@@ -12,7 +12,6 @@ const excelController = require("./utils/excelController");
 const formatController = require("./utils/formatController");
 const pageController = require("./utils/pageController");
 const pdfController = require("./utils/pdfController");
-const { report } = require("../routers/reportRouter");
 
 function getRandomColorPair(currentColors = []) {
   const flatColors = [
@@ -178,7 +177,8 @@ module.exports = {
           reportData = await this.generateSalesReportByProduct(req);
           break;
         default:
-          throw new Error("Invalid report type specified.");
+          reportData = await this.generateSalesReportByPeriod(req);
+        // throw new Error("Invalid report type specified.");
       }
 
       if (reportData.error || !reportData.data) {
@@ -196,6 +196,12 @@ module.exports = {
           ? "Kasir"
           : reportType === "byTransaction"
           ? "Transaksi"
+          : reportType === "byAnnual"
+          ? "Tahunan"
+          : reportType === "byMonth"
+          ? "Bulanan"
+          : reportType === "byQuarter"
+          ? "Kuartal"
           : "Produk"
       }`;
 
@@ -266,6 +272,10 @@ module.exports = {
                         ? e["userId"].username
                         : reportType === "byProduct"
                         ? `${e["productId"].name} (${e["variantId"].name})`
+                        : reportType === "byAnnual" ||
+                          reportType === "byMonth" ||
+                          reportType === "byQuarter"
+                        ? e.label
                         : e[keyName].name
                     ),
                   },
@@ -510,6 +520,105 @@ module.exports = {
 
   generateSalesReportByUser: async (req) => {
     return generateReport(req, "userId");
+  },
+
+  generateSalesReportByPeriod: async function (req) {
+    try {
+      let timeSpan = parseInt(req.query.timeSpan) || 1; // Default 1 tahun
+      let reportType = req.query.reportType; // byAnnual, byMonth, byQuarter
+      let today = new Date();
+      let startDate = new Date();
+      startDate.setFullYear(today.getFullYear() - timeSpan);
+      startDate.setHours(0, 0, 0, 0);
+
+      let endDate = new Date();
+      endDate.setHours(23, 59, 59, 999);
+
+      let pipeline = {
+        createdAt: {
+          $gte: startDate,
+          $lte: endDate,
+        },
+        "status.payment": "completed",
+      };
+
+      let transactions = await Transaction.find(pipeline).lean();
+
+      let report = [];
+      let periodMap = {};
+      let currentDate = new Date(startDate);
+      while (currentDate <= today) {
+        let periodKey;
+        if (reportType === "byAnnual") {
+          periodKey = currentDate.getFullYear().toString();
+          currentDate.setFullYear(currentDate.getFullYear() + 1);
+        } else if (reportType === "byMonth") {
+          periodKey =
+            currentDate.toLocaleString("en-US", { month: "short" }) +
+            " " +
+            currentDate.getFullYear();
+          currentDate.setMonth(currentDate.getMonth() + 1);
+        } else if (reportType === "byQuarter") {
+          let quarter = Math.floor(currentDate.getMonth() / 3) + 1;
+          periodKey = `Q${quarter} ${currentDate.getFullYear()}`;
+          currentDate.setMonth(currentDate.getMonth() + 3);
+        }
+        periodMap[periodKey] = {
+          label: periodKey,
+          total: { revenue: 0, grossProfit: 0, netIncome: 0, sales: 0 },
+        };
+      }
+
+      transactions.forEach((transaction) => {
+        let createdAt = new Date(transaction.createdAt);
+        let periodKey;
+        if (reportType === "byAnnual") {
+          periodKey = createdAt.getFullYear().toString();
+        } else if (reportType === "byMonth") {
+          periodKey =
+            createdAt.toLocaleString("en-US", { month: "short" }) +
+            " " +
+            createdAt.getFullYear();
+        } else if (reportType === "byQuarter") {
+          let quarter = Math.floor(createdAt.getMonth() / 3) + 1;
+          periodKey = `Q${quarter} ${createdAt.getFullYear()}`;
+        }
+
+        if (!periodMap[periodKey]) return;
+
+        let totalRevenue = transaction.details.reduce(
+          (sum, detail) => sum + detail.price * detail.qty,
+          0
+        );
+        let totalCost = transaction.details.reduce(
+          (sum, detail) => sum + detail.cost * detail.qty,
+          0
+        );
+        let grossProfit = totalRevenue - totalCost;
+        let taxAmount =
+          totalRevenue *
+          (transaction.taxes?.reduce((sum, tax) => sum + tax.amount, 0) || 0);
+        let netIncome = grossProfit - taxAmount;
+        let sales = transaction.details.reduce(
+          (sum, detail) => sum + detail.qty,
+          0
+        );
+
+        periodMap[periodKey].total.revenue += totalRevenue;
+        periodMap[periodKey].total.grossProfit += grossProfit;
+        periodMap[periodKey].total.netIncome += netIncome;
+        periodMap[periodKey].total.sales += sales;
+      });
+
+      report = Object.values(periodMap).sort((a, b) =>
+        a.label.localeCompare(b.label)
+      );
+
+      return { error: false, data: report };
+    } catch (error) {
+      console.error("Error generating periodic report:", error);
+      return { error: true, message: error.message };
+    }
   },
 
   generateSalesReportByProduct: async function (req) {
