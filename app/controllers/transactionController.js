@@ -44,115 +44,87 @@ function generateRequestCodes() {
 module.exports = {
   create: async (req) => {
     try {
-      const { details } = req.body;
-
+      const { details, status } = req.body;
       let dateISOString = new Date().toISOString();
+      const skipValidation = status?.payment === "returned";
 
-      // Step 1: Cek semua komponen dan varian dari setiap produk
+      // Deklarasikan groupedDetails di luar blok validasi agar bisa digunakan di semua kondisi
+      let groupedDetails = {};
       for (const productDetail of details) {
-        // Validasi komponen utama
-        for (const component of productDetail.components) {
-          const dbComponent = await Component.findById(component.componentId);
+        let key = `${productDetail.productId}-${
+          productDetail.variantId || "default"
+        }`;
 
-          if (!dbComponent || dbComponent.qty.current < component.qty) {
-            return Promise.reject({
-              error: true,
-              message: {
-                en: `${dbComponent.name} is insufficient.`,
-                id: `Bahan baku ${dbComponent.name} tidak mencukupi.`,
-              },
-            });
-          }
+        if (!groupedDetails[key]) {
+          groupedDetails[key] = { ...productDetail, qty: 0, additionals: [] };
         }
+        groupedDetails[key].qty += productDetail.qty;
+        groupedDetails[key].additionals.push(
+          ...(productDetail.additionals || [])
+        );
+      }
 
-        // Validasi stok varian produk (jika countable = true)
-        const product = await Product.findById(productDetail.productId);
-        if (product.countable) {
-          const variant = product.variants.find(
-            (v) => v._id.toString() === productDetail.variantId
-          );
-          if (!variant || variant.qty < productDetail.qty) {
-            return Promise.reject({
-              error: true,
-              message: {
-                en: `The stock of the product variant ${
-                  variant?.name || "unknown"
-                } is insufficient.`,
-                id: `Stok varian produk ${
-                  variant?.name || "tidak diketahui"
-                } tidak mencukupi.`,
-              },
-            });
+      // Gabungkan additionals yang sama
+      for (const key in groupedDetails) {
+        let groupedAdditionals = {};
+        for (const additional of groupedDetails[key].additionals) {
+          let addKey = `${additional.productId}-${
+            additional.variantId || "default"
+          }`;
+
+          if (!groupedAdditionals[addKey]) {
+            groupedAdditionals[addKey] = { ...additional, qty: 0 };
           }
+          groupedAdditionals[addKey].qty += additional.qty;
         }
+        groupedDetails[key].additionals = Object.values(groupedAdditionals);
+      }
 
-        // Validasi komponen pada additionals
-        if (productDetail.additionals) {
-          for (const additional of productDetail.additionals) {
-            for (const component of additional.components) {
-              const dbComponent = await Component.findById(
-                component.componentId
-              );
+      if (!skipValidation) {
+        // Step 1: Validasi stok
+        for (const key in groupedDetails) {
+          const productDetail = groupedDetails[key];
 
-              if (!dbComponent || dbComponent.qty.current < component.qty) {
-                return Promise.reject({
-                  error: true,
-                  message: {
-                    en: `The stock of raw materials for ${component.name} in additionals is insufficient.`,
-                    id: `Bahan baku untuk ${component.name} di bagian tambahan tidak mencukupi.`,
-                  },
-                });
-              }
-            }
-
-            // Validasi stok varian produk pada additionals (jika countable = true)
-            const additionalProduct = await Product.findById(
-              additional.productId
-            );
-            if (additionalProduct.countable) {
-              const additionalVariant = additionalProduct.variants.find(
-                (v) => v._id.toString() === additional.variantId
-              );
-              if (
-                !additionalVariant ||
-                additionalVariant.qty < productDetail.qty
-              ) {
-                return Promise.reject({
-                  error: true,
-                  message: {
-                    en: `The stock of the product variant ${
-                      additionalVariant?.name || "unknown"
-                    } in additionals is insufficient.`,
-                    id: `Stok varian produk ${
-                      additionalVariant?.name || "tidak diketahui"
-                    } di bagian tambahan tidak mencukupi.`,
-                  },
-                });
-              }
+          // Validasi komponen utama
+          for (const component of productDetail.components) {
+            const dbComponent = await Component.findById(component.componentId);
+            if (
+              !dbComponent ||
+              dbComponent.qty.current < component.qty * productDetail.qty
+            ) {
+              return Promise.reject({
+                error: true,
+                message: {
+                  en: `${dbComponent?.name || "Component"} is insufficient.`,
+                  id: `Bahan baku ${
+                    dbComponent?.name || "Component"
+                  } tidak mencukupi.`,
+                },
+              });
             }
           }
         }
       }
 
-      // Step 2: Update qty setelah semua cukup
-      for (const productDetail of details) {
+      // Step 2: Update stok setelah validasi sukses atau jika payment === 'returned'
+      for (const key in groupedDetails) {
+        const productDetail = groupedDetails[key];
+
         // Update stok komponen utama
         for (const component of productDetail.components) {
-          // Langkah 1: Kurangi qty.current dengan $inc dan dapatkan dokumen terbaru
           const updatedComponent = await Component.findByIdAndUpdate(
             component.componentId,
             {
               $inc: {
-                "qty.current":
-                  req.body?.status?.payment === "returned"
-                    ? +component.qty
-                    : -component.qty,
+                "qty.current": skipValidation
+                  ? component.qty * productDetail.qty
+                  : -component.qty * productDetail.qty,
               },
             },
-            { new: true } // Pastikan mendapatkan dokumen terbaru setelah update
+            { new: true }
           );
 
-          // Langkah 2: Tentukan status berdasarkan nilai updatedComponent.qty.current
+          // Update status berdasarkan stok terkini
           const newStatus =
             updatedComponent.qty.current <= 0
               ? "outOfStock"
@@ -160,7 +132,6 @@ module.exports = {
               ? "almostOut"
               : "available";
 
-          // Langkah 3: Perbarui qty.status menggunakan nilai terbaru
           await Component.findByIdAndUpdate(
             component.componentId,
             { "qty.status": newStatus },
@@ -168,64 +139,76 @@ module.exports = {
           );
         }
 
-        // Update stok varian produk (jika countable = true)
+        // Update stok produk utama (jika countable)
         const product = await Product.findById(productDetail.productId);
         if (product.countable) {
           await Product.updateOne(
             { _id: product._id, "variants._id": productDetail.variantId },
             {
               $inc: {
-                "variants.$.qty":
-                  req.body?.status?.payment === "returned"
-                    ? +productDetail.qty
-                    : -productDetail.qty,
+                "variants.$.qty": skipValidation
+                  ? productDetail.qty
+                  : -productDetail.qty,
               },
             }
           );
         }
 
-        // Update stok komponen pada additionals
-        if (productDetail.additionals) {
-          for (const additional of productDetail.additionals) {
-            for (const component of additional.components) {
+        // Update stok additionals
+        for (const additional of productDetail.additionals) {
+          for (const component of additional.components) {
+            const updatedAdditionalComponent =
               await Component.findByIdAndUpdate(
                 component.componentId,
                 {
                   $inc: {
-                    "qty.current":
-                      req.body?.status?.payment === "returned"
-                        ? +component.qty
-                        : -component.qty,
+                    "qty.current": skipValidation
+                      ? component.qty * additional.qty
+                      : -component.qty * additional.qty,
                   },
                 },
                 { new: true }
               );
-            }
 
-            // Update stok varian produk pada additionals (jika countable = true)
-            const additionalProduct = await Product.findById(
-              additional.productId
+            // Update status berdasarkan stok terkini
+            const newAdditionalStatus =
+              updatedAdditionalComponent.qty.current <= 0
+                ? "outOfStock"
+                : updatedAdditionalComponent.qty.current <=
+                  updatedAdditionalComponent.qty.min
+                ? "almostOut"
+                : "available";
+
+            await Component.findByIdAndUpdate(
+              component.componentId,
+              { "qty.status": newAdditionalStatus },
+              { new: true }
             );
-            if (additionalProduct.countable) {
-              await Product.updateOne(
-                {
-                  _id: additionalProduct._id,
-                  "variants._id": additional.variantId,
+          }
+
+          // Update stok varian produk tambahan (jika countable)
+          const additionalProduct = await Product.findById(
+            additional.productId
+          );
+          if (additionalProduct.countable) {
+            await Product.updateOne(
+              {
+                _id: additionalProduct._id,
+                "variants._id": additional.variantId,
+              },
+              {
+                $inc: {
+                  "variants.$.qty": skipValidation
+                    ? additional.qty
+                    : -additional.qty,
                 },
-                {
-                  $inc: {
-                    "variants.$.qty":
-                      req.body?.status?.payment === "returned"
-                        ? +productDetail.qty
-                        : -productDetail.qty,
-                  },
-                }
-              );
-            }
+              }
+            );
           }
         }
       }
 
+      // Step 3: Simpan transaksi
       let payload = {
         ...req.body,
         request: generateRequestCodes(),
@@ -233,7 +216,6 @@ module.exports = {
         updatedAt: dateISOString,
       };
 
-      // Step 3: Simpan transaksi
       const transaction = new Transaction(payload);
       await transaction.save();
 

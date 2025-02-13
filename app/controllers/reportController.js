@@ -81,13 +81,17 @@ function generateHorizontalBarChart(data, chartColor, req) {
         case "product":
           return `${item.productId?.name} (${item.variantId?.name})`;
         default:
-          break;
+          return item.label;
       }
     }),
     datasets: [],
   };
 
-  if (data.length > 0 && data[0].total.revenue) {
+  if (
+    data.length > 0 &&
+    data[0].total.revenue !== null &&
+    data[0].total.revenue !== undefined
+  ) {
     returnValue?.datasets?.push({
       label: "REVENUE",
       backgroundColor: chartColor[0].backgroundColor,
@@ -96,7 +100,11 @@ function generateHorizontalBarChart(data, chartColor, req) {
     });
   }
 
-  if (data.length > 0 && data[0].total.grossProfit) {
+  if (
+    data.length > 0 &&
+    data[0].total.grossProfit !== null &&
+    data[0].total.grossProfit !== undefined
+  ) {
     returnValue?.datasets?.push({
       label: "GROSS_PROFIT",
       backgroundColor: chartColor[1].backgroundColor,
@@ -105,7 +113,11 @@ function generateHorizontalBarChart(data, chartColor, req) {
     });
   }
 
-  if (data.length > 0 && data[0].total.netIncome) {
+  if (
+    data.length > 0 &&
+    data[0].total.netIncome !== null &&
+    data[0].total.netIncome !== undefined
+  ) {
     returnValue?.datasets?.push({
       label: "NET_INCOME",
       backgroundColor: chartColor[2].backgroundColor,
@@ -114,12 +126,113 @@ function generateHorizontalBarChart(data, chartColor, req) {
     });
   }
 
-  if (data.length > 0 && data[0].total.sales) {
+  if (
+    data.length > 0 &&
+    data[0].total.sales !== null &&
+    data[0].total.sales !== undefined
+  ) {
     returnValue?.datasets?.push({
       label: "SALES",
+      backgroundColor: chartColor[3].backgroundColor,
+      borderColor: chartColor[3].borderColor,
+      data: data.map((item) => item.total.sales),
+    });
+  }
+
+  if (
+    data.length > 0 &&
+    data[0].total.tax !== null &&
+    data[0].total.tax !== undefined
+  ) {
+    returnValue?.datasets?.push({
+      label: "TAX",
+      backgroundColor: chartColor[4].backgroundColor,
+      borderColor: chartColor[4].borderColor,
+      data: data.map((item) => item.total.tax),
+    });
+  }
+
+  return returnValue;
+}
+
+function generateLineChart(data, chartColor, req) {
+  let returnValue = {
+    labels: data.map((item) => {
+      switch (req.query.by) {
+        case "outlet":
+          return item.outletId?.name;
+        case "payment":
+          return item.paymentMethodId?.name;
+        case "service":
+          return item.serviceMethodId?.name;
+        case "user":
+          return item.userId?.username;
+        case "product":
+          return `${item.productId?.name} (${item.variantId?.name})`;
+        default:
+          return item?.label;
+      }
+    }),
+    datasets: [],
+  };
+
+  if (
+    data.length > 0 &&
+    data[0].total.revenue !== null &&
+    data[0].total.revenue !== undefined
+  ) {
+    returnValue?.datasets?.push({
+      label: "REVENUE",
+      backgroundColor: chartColor[0].backgroundColor,
+      borderColor: chartColor[0].borderColor,
+      data: data.map((item) => item.total.revenue),
+      fill: false,
+      tension: 0.4,
+    });
+  }
+
+  if (
+    data.length > 0 &&
+    data[0].total.grossProfit !== null &&
+    data[0].total.grossProfit !== undefined
+  ) {
+    returnValue?.datasets?.push({
+      label: "GROSS_PROFIT",
+      backgroundColor: chartColor[1].backgroundColor,
+      borderColor: chartColor[1].borderColor,
+      data: data.map((item) => item.total.grossProfit),
+      fill: false,
+      tension: 0.4,
+    });
+  }
+
+  if (
+    data.length > 0 &&
+    data[0].total.netIncome !== null &&
+    data[0].total.netIncome !== undefined
+  ) {
+    returnValue?.datasets?.push({
+      label: "NET_INCOME",
       backgroundColor: chartColor[2].backgroundColor,
       borderColor: chartColor[2].borderColor,
+      data: data.map((item) => item.total.netIncome),
+      fill: false,
+      tension: 0.4,
+    });
+  }
+
+  if (
+    data.length > 0 &&
+    data[0].total.sales !== null &&
+    data[0].total.sales !== undefined
+  ) {
+    returnValue?.datasets?.push({
+      label: "SALES",
+      backgroundColor: chartColor[3].backgroundColor,
+      borderColor: chartColor[3].borderColor,
       data: data.map((item) => item.total.sales),
+      fill: false,
+      tension: 0.4,
     });
   }
 
@@ -127,7 +240,7 @@ function generateHorizontalBarChart(data, chartColor, req) {
 }
 
 function generateReportToChart(reportArray, req) {
-  let totals = ["revenue", "grossProfit", "netIncome", "sales"];
+  let totals = ["revenue", "grossProfit", "netIncome", "sales", "tax"];
 
   let chartColor = [];
 
@@ -142,6 +255,7 @@ function generateReportToChart(reportArray, req) {
   let chartData = {
     chart: {
       horizontalBar: generateHorizontalBarChart(reportArray, chartColor, req),
+      line: generateLineChart(reportArray, chartColor, req),
     },
   };
 
@@ -522,13 +636,20 @@ module.exports = {
     return generateReport(req, "userId");
   },
 
-  generateSalesReportByPeriod: async function (req) {
+  generateSalesReportByProductPeriod: async function (req) {
     try {
-      let timeSpan = parseInt(req.query.timeSpan) || 1; // Default 1 tahun
+      let timeSpan = parseInt(req.query.timeSpan) || 1;
       let reportType = req.query.reportType; // byAnnual, byMonth, byQuarter
       let today = new Date();
       let startDate = new Date();
-      startDate.setFullYear(today.getFullYear() - timeSpan);
+
+      if (reportType === "byAnnual") {
+        startDate.setFullYear(today.getFullYear() - timeSpan);
+      } else if (reportType === "byMonth") {
+        startDate.setMonth(today.getMonth() - (timeSpan - 1));
+      } else if (reportType === "byQuarter") {
+        startDate.setMonth(today.getMonth() - timeSpan * 3);
+      }
       startDate.setHours(0, 0, 0, 0);
 
       let endDate = new Date();
@@ -536,11 +657,124 @@ module.exports = {
 
       let pipeline = {
         createdAt: {
-          $gte: startDate,
-          $lte: endDate,
+          $gte: new Date(startDate).toISOString(),
+          $lte: new Date(endDate).toISOString(),
         },
         "status.payment": "completed",
       };
+
+      if (req.query.businessId) {
+        pipeline.businessId = req.query.businessId;
+      }
+
+      if (req.query.outletId) {
+        pipeline.outletId = req.query.outletId;
+      }
+
+      // Ambil data transaksi dalam rentang waktu yang dipilih
+      const transactions = await Transaction.find(pipeline).lean();
+
+      // Objek untuk menyimpan totalQty per produk dan varian
+      const productReport = {};
+
+      transactions.forEach((transaction) => {
+        // Hitung produk utama (details)
+        transaction.details.forEach((detail) => {
+          const key = `${detail.productId}-${detail.variantId}`;
+          if (!productReport[key]) {
+            productReport[key] = {
+              productId: detail.productId,
+              variantId: detail.variantId,
+              total: { sales: 0 },
+            };
+          }
+          productReport[key].total.sales += detail.qty;
+        });
+
+        // Hitung produk tambahan (additionals)
+        transaction.details.forEach((detail) => {
+          detail.additionals.forEach((additional) => {
+            const key = `${additional.productId}-null`;
+            if (!productReport[key]) {
+              productReport[key] = {
+                productId: additional.productId,
+                variantId: null,
+                total: { sales: 0 },
+              };
+            }
+            productReport[key].total.sales += additional.qty;
+          });
+        });
+      });
+
+      // Konversi objek ke array
+      let reportArray = Object.values(productReport);
+
+      // Populate productId dan variantId untuk mendapatkan detail produk dan varian
+      reportArray = await Promise.all(
+        reportArray.map(async (item) => {
+          const product = await Product.findById(item.productId).exec();
+
+          let variantData = null;
+          if (item.variantId && product.variants) {
+            variantData = product.variants.find(
+              (variant) => variant._id.toString() === item.variantId.toString()
+            );
+          }
+
+          return {
+            ...item,
+            productId: product, // Ganti productId dengan data produk yang sudah dipopulate
+            variantId: variantData, // Ganti variantId dengan data varian yang lengkap
+          };
+        })
+      );
+
+      // Urutkan berdasarkan jumlah penjualan terbanyak
+      reportArray.sort((a, b) => b.total.sales - a.total.sales);
+
+      let data = generateReportToChart(reportArray, req);
+      return { error: false, data };
+    } catch (error) {
+      console.error("Error generating product sales report by period:", error);
+      return { error: true, message: error.message };
+    }
+  },
+
+  generateSalesReportByPeriod: async function (req) {
+    try {
+      let timeSpan = parseInt(req.query.timeSpan) || 1; // Default 1 tahun
+      let reportType = req.query.reportType; // byAnnual, byMonth, byQuarter
+      let today = new Date();
+      let startDate = new Date();
+
+      if (reportType === "byAnnual") {
+        startDate.setFullYear(today.getFullYear() - timeSpan);
+      } else if (reportType === "byMonth") {
+        startDate.setMonth(today.getMonth() - (timeSpan - 1));
+      } else if (reportType === "byQuarter") {
+        startDate.setMonth(today.getMonth() - timeSpan * 3);
+      }
+      startDate.setHours(0, 0, 0, 0);
+
+      let endDate = new Date();
+      endDate.setHours(23, 59, 59, 999);
+
+      let pipeline = {
+        createdAt: {
+          $gte: new Date(startDate).toISOString(),
+          $lte: new Date(endDate).toISOString(),
+        },
+        "status.payment": "completed",
+      };
+
+      if (req.query.businessId) {
+        pipeline.businessId = req.query.businessId;
+      }
+
+      if (req.query.outletId) {
+        pipeline.outletId = req.query.outletId;
+      }
 
       let transactions = await Transaction.find(pipeline).lean();
 
@@ -565,7 +799,7 @@ module.exports = {
         }
         periodMap[periodKey] = {
           label: periodKey,
-          total: { revenue: 0, grossProfit: 0, netIncome: 0, sales: 0 },
+          total: { revenue: 0, grossProfit: 0, netIncome: 0, sales: 0, tax: 0 },
         };
       }
 
@@ -606,15 +840,19 @@ module.exports = {
 
         periodMap[periodKey].total.revenue += totalRevenue;
         periodMap[periodKey].total.grossProfit += grossProfit;
+        periodMap[periodKey].total.tax += taxAmount;
         periodMap[periodKey].total.netIncome += netIncome;
         periodMap[periodKey].total.sales += sales;
+        periodMap[periodKey].total.tax += taxAmount;
       });
 
-      report = Object.values(periodMap).sort((a, b) =>
-        a.label.localeCompare(b.label)
+      report = Object.values(periodMap).sort(
+        (a, b) => new Date(a.label) - new Date(b.label)
       );
 
-      return { error: false, data: report };
+      let data = generateReportToChart(report, req);
+
+      return { error: false, data };
     } catch (error) {
       console.error("Error generating periodic report:", error);
       return { error: true, message: error.message };
