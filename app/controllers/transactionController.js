@@ -424,8 +424,21 @@ module.exports = {
           const product = await Product.findById(detail.productId);
 
           if (product && product.countable) {
-            // Tambahkan kembali qty produk
-            product.qty += detail.qty;
+            if (detail.variantId) {
+              // Cari varian yang digunakan dalam transaksi
+              const variantIndex = product.variants.findIndex(
+                (variant) => variant._id.toString() === detail.variantId
+              );
+
+              if (variantIndex !== -1) {
+                // Tambahkan kembali qty varian produk yang digunakan
+                product.variants[variantIndex].qty += detail.qty;
+              }
+            } else {
+              // Jika tidak ada varian, langsung tambah qty produk
+              product.qty += detail.qty;
+            }
+
             await product.save();
           }
 
@@ -452,7 +465,6 @@ module.exports = {
                 component.qty.status = "available";
               }
 
-              // Simpan perubahan pada komponen
               await component.save();
             }
           }
