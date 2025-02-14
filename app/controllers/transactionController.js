@@ -416,33 +416,29 @@ module.exports = {
         return { error: true, message: errorMessages.TRANSACTION_NOT_FOUND };
       }
 
-      // Jika status order adalah "canceled"
+      // Jika status payment adalah "canceled"
       if (data.status.payment === "canceled") {
         // Loop setiap detail produk untuk mengembalikan qty setiap komponen terkait
         for (const detail of transaction.details) {
-          // Temukan produk
+          // 1. Update stok produk utama dengan mempertimbangkan varian
           const product = await Product.findById(detail.productId);
-
           if (product && product.countable) {
             if (detail.variantId) {
-              // Cari varian yang digunakan dalam transaksi
+              // Temukan varian yang sesuai dan update qty-nya
               const variantIndex = product.variants.findIndex(
-                (variant) => variant._id.toString() === detail.variantId
+                (v) => v._id.toString() === detail.variantId
               );
-
               if (variantIndex !== -1) {
-                // Tambahkan kembali qty varian produk yang digunakan
                 product.variants[variantIndex].qty += detail.qty;
               }
             } else {
-              // Jika tidak ada varian, langsung tambah qty produk
+              // Jika tidak ada varian, update qty produk langsung
               product.qty += detail.qty;
             }
-
             await product.save();
           }
 
-          // Loop komponen utama dan tambahan
+          // 2. Update stok komponen utama dan tambahan
           for (const componentDetail of [
             ...detail.components,
             ...detail.additionals.flatMap(
@@ -466,6 +462,29 @@ module.exports = {
               }
 
               await component.save();
+            }
+          }
+
+          // 3. Update stok produk tambahan (additionals) dengan mempertimbangkan varian
+          for (const additional of detail.additionals) {
+            const additionalProduct = await Product.findById(
+              additional.productId
+            );
+            if (additionalProduct && additionalProduct.countable) {
+              if (additional.variantId) {
+                // Update qty pada varian tambahan jika ada
+                const variantIndex = additionalProduct.variants.findIndex(
+                  (v) => v._id.toString() === additional.variantId
+                );
+                if (variantIndex !== -1) {
+                  additionalProduct.variants[variantIndex].qty +=
+                    additional.qty;
+                }
+              } else {
+                // Jika tidak ada varian, update qty produk langsung
+                additionalProduct.qty += additional.qty;
+              }
+              await additionalProduct.save();
             }
           }
         }
