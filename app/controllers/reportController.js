@@ -128,14 +128,14 @@ function generateHorizontalBarChart(data, chartColor, req) {
 
   if (
     data.length > 0 &&
-    data[0].total.sales !== null &&
-    data[0].total.sales !== undefined
+    data[0].total.cost !== null &&
+    data[0].total.cost !== undefined
   ) {
     returnValue?.datasets?.push({
-      label: "SALES",
+      label: "COST",
       backgroundColor: chartColor[3].backgroundColor,
       borderColor: chartColor[3].borderColor,
-      data: data.map((item) => item.total.sales),
+      data: data.map((item) => item.total.cost),
     });
   }
 
@@ -149,6 +149,45 @@ function generateHorizontalBarChart(data, chartColor, req) {
       backgroundColor: chartColor[4].backgroundColor,
       borderColor: chartColor[4].borderColor,
       data: data.map((item) => item.total.tax),
+    });
+  }
+
+  if (
+    data.length > 0 &&
+    data[0].total.charge !== null &&
+    data[0].total.charge !== undefined
+  ) {
+    returnValue?.datasets?.push({
+      label: "CHARGE",
+      backgroundColor: chartColor[5].backgroundColor,
+      borderColor: chartColor[5].borderColor,
+      data: data.map((item) => item.total.charge),
+    });
+  }
+
+  if (
+    data.length > 0 &&
+    data[0].total.promotion !== null &&
+    data[0].total.promotion !== undefined
+  ) {
+    returnValue?.datasets?.push({
+      label: "PROMOTION",
+      backgroundColor: chartColor[6].backgroundColor,
+      borderColor: chartColor[6].borderColor,
+      data: data.map((item) => item.total.promotion),
+    });
+  }
+
+  if (
+    data.length > 0 &&
+    data[0].total.sales !== null &&
+    data[0].total.sales !== undefined
+  ) {
+    returnValue?.datasets?.push({
+      label: "SALES",
+      backgroundColor: chartColor[7].backgroundColor,
+      borderColor: chartColor[7].borderColor,
+      data: data.map((item) => item.total.sales),
     });
   }
 
@@ -223,13 +262,73 @@ function generateLineChart(data, chartColor, req) {
 
   if (
     data.length > 0 &&
+    data[0].total.cost !== null &&
+    data[0].total.cost !== undefined
+  ) {
+    returnValue?.datasets?.push({
+      label: "COST",
+      backgroundColor: chartColor[3].backgroundColor,
+      borderColor: chartColor[3].borderColor,
+      data: data.map((item) => item.total.cost),
+      fill: false,
+      tension: 0.4,
+    });
+  }
+
+  if (
+    data.length > 0 &&
+    data[0].total.tax !== null &&
+    data[0].total.tax !== undefined
+  ) {
+    returnValue?.datasets?.push({
+      label: "TAX",
+      backgroundColor: chartColor[4].backgroundColor,
+      borderColor: chartColor[4].borderColor,
+      data: data.map((item) => item.total.tax),
+      fill: false,
+      tension: 0.4,
+    });
+  }
+
+  if (
+    data.length > 0 &&
+    data[0].total.charge !== null &&
+    data[0].total.charge !== undefined
+  ) {
+    returnValue?.datasets?.push({
+      label: "CHARGE",
+      backgroundColor: chartColor[5].backgroundColor,
+      borderColor: chartColor[5].borderColor,
+      data: data.map((item) => item.total.charge),
+      fill: false,
+      tension: 0.4,
+    });
+  }
+
+  if (
+    data.length > 0 &&
+    data[0].total.promotion !== null &&
+    data[0].total.promotion !== undefined
+  ) {
+    returnValue?.datasets?.push({
+      label: "PROMOTION",
+      backgroundColor: chartColor[6].backgroundColor,
+      borderColor: chartColor[6].borderColor,
+      data: data.map((item) => item.total.promotion),
+      fill: false,
+      tension: 0.4,
+    });
+  }
+
+  if (
+    data.length > 0 &&
     data[0].total.sales !== null &&
     data[0].total.sales !== undefined
   ) {
     returnValue?.datasets?.push({
       label: "SALES",
-      backgroundColor: chartColor[3].backgroundColor,
-      borderColor: chartColor[3].borderColor,
+      backgroundColor: chartColor[7].backgroundColor,
+      borderColor: chartColor[7].borderColor,
       data: data.map((item) => item.total.sales),
       fill: false,
       tension: 0.4,
@@ -240,7 +339,7 @@ function generateLineChart(data, chartColor, req) {
 }
 
 function generateReportToChart(reportArray, req) {
-  let totals = ["revenue", "grossProfit", "netIncome", "sales", "tax"];
+  let totals = [0, 1, 2, 3, 4, 5, 6, 7];
 
   let chartColor = [];
 
@@ -438,7 +537,7 @@ module.exports = {
         typeof reportData.data[0].total.grossProfit === "number"
       ) {
         documentData.book.sheets[0].content.columns.push({
-          name: "T. Pendapatan Kotor",
+          name: "T. Laba Kotor",
           color: { background: "#FFFF00", text: "#000000" },
           fontStyle: "normal",
           format: "accounting",
@@ -545,58 +644,6 @@ module.exports = {
       }
 
       let extraColumns = [];
-
-      if (reportType !== "byTransaction" && reportType !== "byProduct") {
-        extraColumns = [
-          {
-            name: "T. Retur",
-            color: { background: "#FFFF00", text: "#000000" },
-            fontStyle: "normal",
-            format: "text",
-            fixed: false,
-            align: "right",
-            values: reportData.data.map((e) => e.total.refund),
-          },
-          {
-            name: "T. Batal",
-            color: { background: "#FFFF00", text: "#000000" },
-            fontStyle: "normal",
-            format: "text",
-            fixed: false,
-            align: "right",
-            values: reportData.data.map((e) => e.total.canceled),
-          },
-        ];
-        documentData.book.sheets[0].content.columns =
-          documentData.book.sheets[0].content.columns.concat(extraColumns);
-      } else if (reportType === "byTransaction") {
-        extraColumns = [
-          {
-            name: "Status Retur",
-            color: { background: "#FFFF00", text: "#000000" },
-            fontStyle: "normal",
-            format: "text",
-            fixed: false,
-            align: "center",
-            values: reportData.data.map((e) =>
-              e.total.refund > 0 ? "✓" : "⨉"
-            ),
-          },
-          {
-            name: "Status Batal",
-            color: { background: "#FFFF00", text: "#000000" },
-            fontStyle: "normal",
-            format: "text",
-            fixed: false,
-            align: "center",
-            values: reportData.data.map((e) =>
-              e.total.canceled > 0 ? "✓" : "⨉"
-            ),
-          },
-        ];
-        documentData.book.sheets[0].content.columns =
-          documentData.book.sheets[0].content.columns.concat(extraColumns);
-      }
 
       let documentBuffer = await excelController.generate(documentData);
 
@@ -874,138 +921,7 @@ module.exports = {
         "end"
       );
 
-      const isNotEveryQueryNull = () => req.query.from || req.query.to;
-
-      let pipeline = isNotEveryQueryNull()
-        ? {
-            createdAt: {
-              $gte: req.query.from
-                ? formatController.convertToLocaleISOString(
-                    req.query.from,
-                    "start"
-                  )
-                : defaultFrom,
-              $lte: req.query.to
-                ? formatController.convertToLocaleISOStringNextDay(
-                    req.query.to,
-                    "end"
-                  )
-                : defaultTo,
-            },
-            "status.payment": "completed",
-          }
-        : {
-            createdAt: {
-              $gte: defaultFrom,
-              $lte: defaultTo,
-            },
-          };
-
-      if (req.query.businessId) {
-        pipeline.businessId = req.query.businessId;
-      }
-
-      if (req.query.outletId) {
-        pipeline.outletId = req.query.outletId;
-      }
-
-      // Ambil data transaksi dengan status pembayaran completed
-      const transactions = await pageController.paginate(
-        pageKey,
-        pageSize,
-        pipeline,
-        Transaction,
-        1
-      );
-
-      // Objek untuk menyimpan totalQty per produk dan varian
-      const productReport = {};
-
-      transactions.data.forEach((transaction) => {
-        // Hitung produk utama (details)
-        transaction.details.forEach((detail) => {
-          const key = `${detail.productId}-${detail.variantId}`; // Gabungkan productId dan variantId untuk produk utama
-          if (!productReport[key]) {
-            productReport[key] = {
-              productId: detail.productId,
-              variantId: detail.variantId,
-              total: { sales: 0 },
-            };
-          }
-          productReport[key].total.sales += detail.qty;
-        });
-
-        // Hitung produk tambahan (additionals)
-        transaction.details.forEach((detail) => {
-          detail.additionals.forEach((additional) => {
-            const key = `${additional.productId}-null`; // Produk tambahan tidak memiliki variantId
-            if (!productReport[key]) {
-              productReport[key] = {
-                productId: additional.productId,
-                variantId: null, // Produk tambahan tidak memiliki variantId
-                total: { sales: 0 },
-              };
-            }
-            productReport[key].total.sales += additional.qty;
-          });
-        });
-      });
-
-      // Konversi objek ke array
-      let reportArray = Object.values(productReport);
-
-      // Populate productId dan variantId untuk mendapatkan detail produk dan varian
-      reportArray = await Promise.all(
-        reportArray.map(async (item) => {
-          const product = await Product.findById(item.productId).exec();
-
-          // Cari data varian yang sesuai dengan variantId
-          let variantData = null;
-          if (item.variantId && product.variants) {
-            variantData = product.variants.find(
-              (variant) => variant._id.toString() === item.variantId.toString()
-            );
-          }
-
-          return {
-            ...item,
-            productId: product, // Ganti productId dengan data produk yang sudah dipopulate
-            variantId: variantData, // Ganti variantId dengan data varian yang lengkap
-          };
-        })
-      );
-
-      reportArray.sort((a, b) => b.total.sales - a.total.sales);
-
-      let data = generateReportToChart(reportArray, req);
-
-      return { error: false, data };
-    } catch (error) {
-      console.error("Error generating product sales report:", error);
-      return { error: true, message: error.message };
-    }
-  },
-};
-
-async function generateReport(req, groupField) {
-  let dateISOString = new Date().toISOString();
-  let pageKey = req.query.pageKey ? req.query.pageKey : 1;
-  let pageSize = req.query.pageSize ? req.query.pageSize : null;
-
-  let defaultFrom = formatController.convertToLocaleISOString(
-    dateISOString,
-    "start"
-  );
-  let defaultTo = formatController.convertToLocaleISOString(
-    dateISOString,
-    "end"
-  );
-
-  const isNotEveryQueryNull = () =>
-    req.query.from || req.query.to || req.query[groupField];
-
-  let pipeline = isNotEveryQueryNull()
-    ? {
+      let pipeline = {
         createdAt: {
           $gte: req.query.from
             ? formatController.convertToLocaleISOString(req.query.from, "start")
@@ -1017,46 +933,131 @@ async function generateReport(req, groupField) {
               )
             : defaultTo,
         },
-      }
-    : {
-        createdAt: {
-          $gte: defaultFrom,
-          $lte: defaultTo,
-        },
       };
 
-  if (req.query.businessId) {
-    pipeline.businessId = req.query.businessId;
-  }
+      if (req.query.businessId) {
+        pipeline.businessId = req.query.businessId;
+      }
 
-  if (req.query.outletId) {
-    pipeline.outletId = req.query.outletId;
-  }
+      if (req.query.outletId) {
+        pipeline.outletId = req.query.outletId;
+      }
 
+      const transactions = await pageController.paginate(
+        pageKey,
+        pageSize,
+        pipeline,
+        Transaction,
+        1
+      );
+      const productReport = {};
+
+      transactions.data.forEach((transaction) => {
+        const status = transaction.status.payment;
+
+        transaction.details.forEach((detail) => {
+          const key = `${detail.productId}-${detail.variantId}`;
+          if (!productReport[key]) {
+            productReport[key] = {
+              productId: detail.productId,
+              variantId: detail.variantId,
+              completed: { sales: 0 },
+              canceled: { sales: 0 },
+              returned: { sales: 0 },
+            };
+          }
+          productReport[key][status].sales += detail.qty;
+        });
+      });
+
+      let reportArray = Object.values(productReport).map((item) => {
+        return {
+          productId: item.productId,
+          variantId: item.variantId,
+          total: {
+            sales: item.completed.sales - item.returned.sales,
+          },
+        };
+      });
+
+      reportArray = await Promise.all(
+        reportArray.map(async (item) => {
+          const product = await Product.findById(item.productId).exec();
+          let variantData = null;
+          if (item.variantId && product.variants) {
+            variantData = product.variants.find(
+              (variant) => variant._id.toString() === item.variantId.toString()
+            );
+          }
+          return { ...item, productId: product, variantId: variantData };
+        })
+      );
+
+      reportArray.sort((a, b) => b.total.sales - a.total.sales);
+
+      let data = generateReportToChart(reportArray, req);
+      return { error: false, data };
+    } catch (error) {
+      console.error("Error generating product sales report:", error);
+      return { error: true, message: error.message };
+    }
+  },
+};
+
+async function generateReport(req, groupField) {
   try {
-    let transactions = await pageController.paginate(
+    let dateISOString = new Date().toISOString();
+    let pageKey = req.query.pageKey ? req.query.pageKey : 1;
+    let pageSize = req.query.pageSize ? req.query.pageSize : null;
+
+    let defaultFrom = formatController.convertToLocaleISOString(
+      dateISOString,
+      "start"
+    );
+    let defaultTo = formatController.convertToLocaleISOString(
+      dateISOString,
+      "end"
+    );
+
+    let pipeline = {
+      createdAt: {
+        $gte: req.query.from
+          ? formatController.convertToLocaleISOString(req.query.from, "start")
+          : defaultFrom,
+        $lte: req.query.to
+          ? formatController.convertToLocaleISOStringNextDay(
+              req.query.to,
+              "end"
+            )
+          : defaultTo,
+      },
+    };
+
+    if (req.query.businessId) {
+      pipeline.businessId = req.query.businessId;
+    }
+
+    if (req.query.outletId) {
+      pipeline.outletId = req.query.outletId;
+    }
+
+    const transactions = await pageController.paginate(
       pageKey,
       pageSize,
       pipeline,
       Transaction,
       1
     );
+    const report = {};
 
-    transactions = transactions.data;
+    transactions.data.forEach((transaction) => {
+      const groupId = transaction[groupField]?.toString();
+      if (!groupId) return;
 
-    if (!Array.isArray(transactions)) {
-      return {
-        error: true,
-        message: "Data transaksi tidak dalam bentuk array.",
-      };
-    }
-
-    const report = transactions.reduce((result, transaction) => {
-      const groupId = transaction[groupField].toString();
-      if (!result[groupId]) {
-        result[groupId] = {
+      if (!report[groupId]) {
+        report[groupId] = {
           [groupField]: transaction[groupField],
-          total: {
+          completed: {
             cost: 0,
             revenue: 0,
             grossProfit: 0,
@@ -1064,105 +1065,87 @@ async function generateReport(req, groupField) {
             charge: 0,
             tip: 0,
             netIncome: 0,
-            refund: 0,
-            canceled: 0,
-            promotion: 0, // Tambahkan total untuk promotions
+            sales: 0,
+            promotion: 0,
+          },
+          canceled: {
+            cost: 0,
+            revenue: 0,
+            grossProfit: 0,
+            tax: 0,
+            charge: 0,
+            tip: 0,
+            netIncome: 0,
+            sales: 0,
+            promotion: 0,
+          },
+          returned: {
+            cost: 0,
+            revenue: 0,
+            grossProfit: 0,
+            tax: 0,
+            charge: 0,
+            tip: 0,
+            netIncome: 0,
+            sales: 0,
+            promotion: 0,
           },
         };
       }
 
-      if (transaction.status.payment === "completed") {
-        const totalCost =
-          transaction.details?.reduce((costAcc, detail) => {
-            const detailCost = (detail.cost || 0) * (detail.qty || 0);
-            const additionalCost =
-              detail.additionals?.reduce((addAcc, additional) => {
-                return addAcc + (additional.cost || 0) * (additional.qty || 0);
-              }, 0) || 0;
+      let category = report[groupId][transaction.status.payment];
+      transaction.details.forEach((detail) => {
+        category.sales += detail.qty;
+        category.cost += detail.cost * detail.qty;
+        category.revenue += detail.price * detail.qty;
 
-            return costAcc + detailCost + additionalCost;
-          }, 0) || 0;
+        // Menambahkan perhitungan untuk additionals
+        detail.additionals.forEach((additional) => {
+          category.sales += additional.qty;
+          category.cost += additional.cost * additional.qty;
+          category.revenue += additional.price * additional.qty;
+        });
+      });
 
-        const totalRevenue =
-          transaction.details?.reduce((revenueAcc, detail) => {
-            const detailRevenue = (detail.price || 0) * (detail.qty || 0);
-            const additionalRevenue =
-              detail.additionals?.reduce((addAcc, additional) => {
-                return addAcc + (additional.price || 0) * (additional.qty || 0);
-              }, 0) || 0;
+      let totalPromotion = transaction.promotions.reduce(
+        (acc, promo) =>
+          acc +
+          (promo.type === "percentage"
+            ? category.revenue * promo.amount
+            : promo.amount),
+        0
+      );
 
-            return revenueAcc + detailRevenue + additionalRevenue;
-          }, 0) || 0;
+      let totalGrossProfit = category.revenue - category.cost;
+      let totalTax = transaction.taxes.reduce(
+        (acc, tax) =>
+          acc +
+          (tax.type === "percentage"
+            ? category.revenue * tax.amount
+            : tax.amount),
+        0
+      );
+      let totalCharge = transaction.charges.reduce(
+        (acc, charge) =>
+          acc +
+          (charge.type === "percentage"
+            ? category.revenue * charge.amount
+            : charge.amount),
+        0
+      );
+      let totalTip = transaction.tips.reduce((acc, tip) => acc + tip.amount, 0);
+      let netIncome = totalGrossProfit - totalTax;
 
-        const grossProfit = totalRevenue - totalCost;
+      category.revenue += totalCharge + totalTax - totalPromotion;
+      category.grossProfit += totalGrossProfit;
+      category.tax += totalTax;
+      category.charge += totalCharge;
+      category.tip += totalTip;
+      category.promotion += totalPromotion;
+      category.netIncome += netIncome;
+    });
 
-        let totalTax = 0;
-        if (transaction.taxes && Array.isArray(transaction.taxes)) {
-          totalTax = transaction.taxes.reduce((taxAcc, tax) => {
-            let taxAmount = 0;
-            if (tax.type === "percentage" && tax.amount) {
-              taxAmount = totalRevenue * tax.amount;
-            } else if (tax.type === "fixed" && tax.amount) {
-              taxAmount = tax.amount;
-            }
-            return taxAcc + taxAmount;
-          }, 0);
-        }
-
-        let totalCharge = 0;
-        if (transaction.charges && Array.isArray(transaction.charges)) {
-          totalCharge = transaction.charges.reduce((chargeAcc, charge) => {
-            let chargeAmount = 0;
-            if (charge.type === "percentage" && charge.amount) {
-              chargeAmount = totalRevenue * charge.amount;
-            } else if (charge.type === "fixed" && charge.amount) {
-              chargeAmount = charge.amount;
-            }
-            return chargeAcc + chargeAmount;
-          }, 0);
-        }
-
-        // Tambahkan perhitungan untuk promotions
-        let totalPromotion = 0;
-        if (transaction.promotions && Array.isArray(transaction.promotions)) {
-          totalPromotion = transaction.promotions.reduce((promoAcc, promo) => {
-            let promoAmount = 0;
-            if (promo.type === "percentage" && promo.amount) {
-              promoAmount = totalRevenue * promo.amount;
-            } else if (promo.type === "fixed" && promo.amount) {
-              promoAmount = promo.amount;
-            }
-            return promoAcc + promoAmount;
-          }, 0);
-        }
-
-        const totalTip =
-          transaction.tips?.reduce(
-            (tipAcc, tip) => tipAcc + (tip.amount || 0),
-            0
-          ) || 0;
-
-        const netIncome = grossProfit - totalTax - totalPromotion;
-
-        result[groupId].total.cost += totalCost;
-        result[groupId].total.revenue += totalRevenue;
-        result[groupId].total.grossProfit += grossProfit;
-        result[groupId].total.tax += totalTax;
-        result[groupId].total.charge += totalCharge;
-        result[groupId].total.tip += totalTip;
-        result[groupId].total.netIncome += netIncome;
-        result[groupId].total.promotion += totalPromotion; // Update total promotions
-      } else if (transaction.status.payment === "returned") {
-        result[groupId].total.refund += 1;
-      } else if (transaction.status.payment === "canceled") {
-        result[groupId].total.canceled += 1;
-      }
-
-      return result;
-    }, {});
-
-    // Populate groupField data
-    const reportArray = await Promise.all(
+    let reportArray = await Promise.all(
       Object.values(report).map(async (item) => {
         let model = null;
         switch (groupField) {
@@ -1188,17 +1171,30 @@ async function generateReport(req, groupField) {
           model,
           item[groupField]
         );
-        return { ...item, [groupField]: populatedField };
+        return {
+          ...item,
+          [groupField]: populatedField,
+          total: {
+            // sales: item.completed.sales - item.returned.sales,
+            cost: item.completed.cost - item.returned.cost,
+            revenue: item.completed.revenue - item.returned.revenue,
+            grossProfit: item.completed.grossProfit - item.returned.grossProfit,
+            tax: item.completed.tax - item.returned.tax,
+            charge: item.completed.charge - item.returned.charge,
+            tip: item.completed.tip - item.returned.tip,
+            promotion: item.completed.promotion - item.returned.promotion,
+            netIncome: item.completed.netIncome - item.returned.netIncome,
+          },
+        };
       })
     );
 
     reportArray.sort((a, b) => b.total.revenue - a.total.revenue);
 
     let data = generateReportToChart(reportArray, req);
-
     return { error: false, data };
   } catch (error) {
-    console.error(error);
+    console.error("Error generating report:", error);
     return { error: true, message: error.message };
   }
 }
