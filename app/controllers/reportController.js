@@ -739,18 +739,23 @@ module.exports = {
       transactions.data.forEach((transaction) => {
         const status = transaction.status.payment;
 
-        transaction.details.forEach((detail) => {
-          const key = `${detail.productId}-${detail.variantId}`;
+        const processItem = (item) => {
+          const key = `${item.productId}-${item.variantId}`;
           if (!productReport[key]) {
             productReport[key] = {
-              productId: detail.productId,
-              variantId: detail.variantId,
+              productId: item.productId,
+              variantId: item.variantId,
               completed: { sales: 0 },
               canceled: { sales: 0 },
               returned: { sales: 0 },
             };
           }
-          productReport[key][status].sales += detail.qty;
+          productReport[key][status].sales += item.qty;
+        };
+
+        transaction.details.forEach(processItem);
+        transaction.details.forEach((detail) => {
+          detail.additionals.forEach(processItem);
         });
       });
 
