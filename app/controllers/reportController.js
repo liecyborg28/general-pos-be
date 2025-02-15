@@ -460,7 +460,7 @@ module.exports = {
                     format: "text",
                     fixed: true,
                     align: "center",
-                    values: reportData.data.map((e, i) => i + 1),
+                    values: reportData.reportArray.map((e, i) => i + 1),
                   },
                   {
                     name:
@@ -478,7 +478,7 @@ module.exports = {
                     format: "text",
                     fixed: true,
                     align: "left",
-                    values: reportData.data.map((e) =>
+                    values: reportData.reportArray.map((e) =>
                       reportType === "byTransaction"
                         ? e._id._id.toString()
                         : reportType === "byUser"
@@ -500,9 +500,10 @@ module.exports = {
       };
 
       if (
-        reportData.data &&
-        reportData.data.length > 0 &&
-        typeof reportData.data[0].total.revenue === "number"
+        reportData.reportArray &&
+        reportData.reportArray.length > 0 &&
+        reportData.reportArray[0].total.revenue !== null &&
+        reportData.reportArray[0].total.revenue !== undefined
       ) {
         documentData.book.sheets[0].content.columns.push({
           name: "T. Omzet",
@@ -511,14 +512,15 @@ module.exports = {
           format: "accounting",
           fixed: false,
           align: "right",
-          values: reportData.data.map((e) => e.total.revenue),
+          values: reportData.reportArray.map((e) => e.total.revenue),
         });
       }
 
       if (
-        reportData.data &&
-        reportData.data.length > 0 &&
-        typeof reportData.data[0].total.cost === "number"
+        reportData.reportArray &&
+        reportData.reportArray.length > 0 &&
+        reportData.reportArray[0].total.cost !== null &&
+        reportData.reportArray[0].total.cost !== undefined
       ) {
         documentData.book.sheets[0].content.columns.push({
           name: "T. Biaya Produksi",
@@ -527,14 +529,15 @@ module.exports = {
           format: "accounting",
           fixed: false,
           align: "right",
-          values: reportData.data.map((e) => e.total.cost),
+          values: reportData.reportArray.map((e) => e.total.cost),
         });
       }
 
       if (
-        reportData.data &&
-        reportData.data.length > 0 &&
-        typeof reportData.data[0].total.grossProfit === "number"
+        reportData.reportArray &&
+        reportData.reportArray.length > 0 &&
+        reportData.reportArray[0].total.grossProfit !== null &&
+        reportData.reportArray[0].total.grossProfit !== undefined
       ) {
         documentData.book.sheets[0].content.columns.push({
           name: "T. Laba Kotor",
@@ -543,14 +546,32 @@ module.exports = {
           format: "accounting",
           fixed: false,
           align: "right",
-          values: reportData.data.map((e) => e.total.grossProfit),
+          values: reportData.reportArray.map((e) => e.total.grossProfit),
         });
       }
 
       if (
-        reportData.data &&
-        reportData.data.length > 0 &&
-        typeof reportData.data[0].total.promotion === "number"
+        reportData.reportArray &&
+        reportData.reportArray.length > 0 &&
+        reportData.reportArray[0].total.netIncome !== null &&
+        reportData.reportArray[0].total.netIncome !== undefined
+      ) {
+        documentData.book.sheets[0].content.columns.push({
+          name: "T. Laba Bersih",
+          color: { background: "#FFFF00", text: "#000000" },
+          fontStyle: "normal",
+          format: "accounting",
+          fixed: false,
+          align: "right",
+          values: reportData.reportArray.map((e) => e.total.netIncome),
+        });
+      }
+
+      if (
+        reportData.reportArray &&
+        reportData.reportArray.length > 0 &&
+        reportData.reportArray[0].total.promotion !== null &&
+        reportData.reportArray[0].total.promotion !== undefined
       ) {
         documentData.book.sheets[0].content.columns.push({
           name: "T. Promosi",
@@ -559,14 +580,15 @@ module.exports = {
           format: "accounting",
           fixed: false,
           align: "right",
-          values: reportData.data.map((e) => e.total.promotion),
+          values: reportData.reportArray.map((e) => e.total.promotion),
         });
       }
 
       if (
-        reportData.data &&
-        reportData.data.length > 0 &&
-        typeof reportData.data[0].total.tax === "number"
+        reportData.reportArray &&
+        reportData.reportArray.length > 0 &&
+        reportData.reportArray[0].total.tax !== null &&
+        reportData.reportArray[0].total.tax !== undefined
       ) {
         documentData.book.sheets[0].content.columns.push({
           name: "T. Pajak",
@@ -575,30 +597,15 @@ module.exports = {
           format: "accounting",
           fixed: false,
           align: "right",
-          values: reportData.data.map((e) => e.total.tax),
+          values: reportData.reportArray.map((e) => e.total.tax),
         });
       }
 
       if (
-        reportData.data &&
-        reportData.data.length > 0 &&
-        typeof reportData.data[0].total.netIncome === "number"
-      ) {
-        documentData.book.sheets[0].content.columns.push({
-          name: "T. Pendapatan Bersih",
-          color: { background: "#FFFF00", text: "#000000" },
-          fontStyle: "normal",
-          format: "accounting",
-          fixed: false,
-          align: "right",
-          values: reportData.data.map((e) => e.total.netIncome),
-        });
-      }
-
-      if (
-        reportData.data &&
-        reportData.data.length > 0 &&
-        typeof reportData.data[0].total.charge === "number"
+        reportData.reportArray &&
+        reportData.reportArray.length > 0 &&
+        reportData.reportArray[0].total.charge !== null &&
+        reportData.reportArray[0].total.charge !== undefined
       ) {
         documentData.book.sheets[0].content.columns.push({
           name: "T. Biaya Tambahan",
@@ -607,14 +614,15 @@ module.exports = {
           format: "accounting",
           fixed: false,
           align: "right",
-          values: reportData.data.map((e) => e.total.charge),
+          values: reportData.reportArray.map((e) => e.total.charge),
         });
       }
 
       if (
-        reportData.data &&
-        reportData.data.length > 0 &&
-        typeof reportData.data[0].total.tip === "number"
+        reportData.reportArray &&
+        reportData.reportArray.length > 0 &&
+        reportData.reportArray[0].total.tip !== null &&
+        reportData.reportArray[0].total.tip !== undefined
       ) {
         documentData.book.sheets[0].content.columns.push({
           name: "T. Tip",
@@ -623,14 +631,15 @@ module.exports = {
           format: "accounting",
           fixed: false,
           align: "right",
-          values: reportData.data.map((e) => e.total.tip),
+          values: reportData.reportArray.map((e) => e.total.tip),
         });
       }
 
       if (
         reportData &&
         reportData.data.length > 0 &&
-        typeof reportData.data[0].total.sales === "number"
+        reportData.reportArray[0].total.sales !== null &&
+        reportData.reportArray[0].total.sales !== undefined
       ) {
         documentData.book.sheets[0].content.columns.push({
           name: "T. Jumlah Terjual",
@@ -639,11 +648,9 @@ module.exports = {
           format: "accounting",
           fixed: false,
           align: "right",
-          values: reportData.data.map((e) => e.total.sales),
+          values: reportData.reportArray.map((e) => e.total.sales),
         });
       }
-
-      let extraColumns = [];
 
       let documentBuffer = await excelController.generate(documentData);
 
@@ -681,229 +688,6 @@ module.exports = {
 
   generateSalesReportByUser: async (req) => {
     return generateReport(req, "userId");
-  },
-
-  generateSalesReportByProductPeriod: async function (req) {
-    try {
-      let timeSpan = parseInt(req.query.timeSpan) || 1;
-      let reportType = req.query.reportType; // byAnnual, byMonth, byQuarter
-      let today = new Date();
-      let startDate = new Date();
-
-      if (reportType === "byAnnual") {
-        startDate.setFullYear(today.getFullYear() - timeSpan);
-      } else if (reportType === "byMonth") {
-        startDate.setMonth(today.getMonth() - (timeSpan - 1));
-      } else if (reportType === "byQuarter") {
-        startDate.setMonth(today.getMonth() - timeSpan * 3);
-      }
-      startDate.setHours(0, 0, 0, 0);
-
-      let endDate = new Date();
-      endDate.setHours(23, 59, 59, 999);
-
-      let pipeline = {
-        createdAt: {
-          $gte: new Date(startDate).toISOString(),
-          $lte: new Date(endDate).toISOString(),
-        },
-        "status.payment": "completed",
-      };
-
-      if (req.query.businessId) {
-        pipeline.businessId = req.query.businessId;
-      }
-
-      if (req.query.outletId) {
-        pipeline.outletId = req.query.outletId;
-      }
-
-      // Ambil data transaksi dalam rentang waktu yang dipilih
-      const transactions = await Transaction.find(pipeline).lean();
-
-      // Objek untuk menyimpan totalQty per produk dan varian
-      const productReport = {};
-
-      transactions.forEach((transaction) => {
-        // Hitung produk utama (details)
-        transaction.details.forEach((detail) => {
-          const key = `${detail.productId}-${detail.variantId}`;
-          if (!productReport[key]) {
-            productReport[key] = {
-              productId: detail.productId,
-              variantId: detail.variantId,
-              total: { sales: 0 },
-            };
-          }
-          productReport[key].total.sales += detail.qty;
-        });
-
-        // Hitung produk tambahan (additionals)
-        transaction.details.forEach((detail) => {
-          detail.additionals.forEach((additional) => {
-            const key = `${additional.productId}-null`;
-            if (!productReport[key]) {
-              productReport[key] = {
-                productId: additional.productId,
-                variantId: null,
-                total: { sales: 0 },
-              };
-            }
-            productReport[key].total.sales += additional.qty;
-          });
-        });
-      });
-
-      // Konversi objek ke array
-      let reportArray = Object.values(productReport);
-
-      // Populate productId dan variantId untuk mendapatkan detail produk dan varian
-      reportArray = await Promise.all(
-        reportArray.map(async (item) => {
-          const product = await Product.findById(item.productId).exec();
-
-          let variantData = null;
-          if (item.variantId && product.variants) {
-            variantData = product.variants.find(
-              (variant) => variant._id.toString() === item.variantId.toString()
-            );
-          }
-
-          return {
-            ...item,
-            productId: product, // Ganti productId dengan data produk yang sudah dipopulate
-            variantId: variantData, // Ganti variantId dengan data varian yang lengkap
-          };
-        })
-      );
-
-      // Urutkan berdasarkan jumlah penjualan terbanyak
-      reportArray.sort((a, b) => b.total.sales - a.total.sales);
-
-      let data = generateReportToChart(reportArray, req);
-      return { error: false, data };
-    } catch (error) {
-      console.error("Error generating product sales report by period:", error);
-      return { error: true, message: error.message };
-    }
-  },
-
-  generateSalesReportByPeriod: async function (req) {
-    try {
-      let timeSpan = parseInt(req.query.timeSpan) || 1; // Default 1 tahun
-      let reportType = req.query.reportType; // byAnnual, byMonth, byQuarter
-      let today = new Date();
-      let startDate = new Date();
-
-      if (reportType === "byAnnual") {
-        startDate.setFullYear(today.getFullYear() - timeSpan);
-      } else if (reportType === "byMonth") {
-        startDate.setMonth(today.getMonth() - (timeSpan - 1));
-      } else if (reportType === "byQuarter") {
-        startDate.setMonth(today.getMonth() - timeSpan * 3);
-      }
-      startDate.setHours(0, 0, 0, 0);
-
-      let endDate = new Date();
-      endDate.setHours(23, 59, 59, 999);
-
-      let pipeline = {
-        createdAt: {
-          $gte: new Date(startDate).toISOString(),
-          $lte: new Date(endDate).toISOString(),
-        },
-        "status.payment": "completed",
-      };
-
-      if (req.query.businessId) {
-        pipeline.businessId = req.query.businessId;
-      }
-
-      if (req.query.outletId) {
-        pipeline.outletId = req.query.outletId;
-      }
-
-      let transactions = await Transaction.find(pipeline).lean();
-
-      let report = [];
-      let periodMap = {};
-      let currentDate = new Date(startDate);
-      while (currentDate <= today) {
-        let periodKey;
-        if (reportType === "byAnnual") {
-          periodKey = currentDate.getFullYear().toString();
-          currentDate.setFullYear(currentDate.getFullYear() + 1);
-        } else if (reportType === "byMonth") {
-          periodKey =
-            currentDate.toLocaleString("en-US", { month: "short" }) +
-            " " +
-            currentDate.getFullYear();
-          currentDate.setMonth(currentDate.getMonth() + 1);
-        } else if (reportType === "byQuarter") {
-          let quarter = Math.floor(currentDate.getMonth() / 3) + 1;
-          periodKey = `Q${quarter} ${currentDate.getFullYear()}`;
-          currentDate.setMonth(currentDate.getMonth() + 3);
-        }
-        periodMap[periodKey] = {
-          label: periodKey,
-          total: { revenue: 0, grossProfit: 0, netIncome: 0, sales: 0, tax: 0 },
-        };
-      }
-
-      transactions.forEach((transaction) => {
-        let createdAt = new Date(transaction.createdAt);
-        let periodKey;
-        if (reportType === "byAnnual") {
-          periodKey = createdAt.getFullYear().toString();
-        } else if (reportType === "byMonth") {
-          periodKey =
-            createdAt.toLocaleString("en-US", { month: "short" }) +
-            " " +
-            createdAt.getFullYear();
-        } else if (reportType === "byQuarter") {
-          let quarter = Math.floor(createdAt.getMonth() / 3) + 1;
-          periodKey = `Q${quarter} ${createdAt.getFullYear()}`;
-        }
-
-        if (!periodMap[periodKey]) return;
-
-        let totalRevenue = transaction.details.reduce(
-          (sum, detail) => sum + detail.price * detail.qty,
-          0
-        );
-        let totalCost = transaction.details.reduce(
-          (sum, detail) => sum + detail.cost * detail.qty,
-          0
-        );
-        let grossProfit = totalRevenue - totalCost;
-        let taxAmount =
-          totalRevenue *
-          (transaction.taxes?.reduce((sum, tax) => sum + tax.amount, 0) || 0);
-        let netIncome = grossProfit - taxAmount;
-        let sales = transaction.details.reduce(
-          (sum, detail) => sum + detail.qty,
-          0
-        );
-
-        periodMap[periodKey].total.revenue += totalRevenue;
-        periodMap[periodKey].total.grossProfit += grossProfit;
-        periodMap[periodKey].total.tax += taxAmount;
-        periodMap[periodKey].total.netIncome += netIncome;
-        periodMap[periodKey].total.sales += sales;
-        periodMap[periodKey].total.tax += taxAmount;
-      });
-
-      report = Object.values(periodMap).sort(
-        (a, b) => new Date(a.label) - new Date(b.label)
-      );
-
-      let data = generateReportToChart(report, req);
-
-      return { error: false, data };
-    } catch (error) {
-      console.error("Error generating periodic report:", error);
-      return { error: true, message: error.message };
-    }
   },
 
   generateSalesReportByProduct: async function (req) {
@@ -996,7 +780,7 @@ module.exports = {
       reportArray.sort((a, b) => b.total.sales - a.total.sales);
 
       let data = generateReportToChart(reportArray, req);
-      return { error: false, data };
+      return { error: false, data, reportArray };
     } catch (error) {
       console.error("Error generating product sales report:", error);
       return { error: true, message: error.message };
@@ -1171,19 +955,21 @@ async function generateReport(req, groupField) {
           model,
           item[groupField]
         );
+
+        console.log("item", item);
         return {
           ...item,
           [groupField]: populatedField,
           total: {
             // sales: item.completed.sales - item.returned.sales,
-            cost: item.completed.cost - item.returned.cost,
-            revenue: item.completed.revenue - item.returned.revenue,
-            grossProfit: item.completed.grossProfit - item.returned.grossProfit,
-            tax: item.completed.tax - item.returned.tax,
-            charge: item.completed.charge - item.returned.charge,
-            tip: item.completed.tip - item.returned.tip,
-            promotion: item.completed.promotion - item.returned.promotion,
-            netIncome: item.completed.netIncome - item.returned.netIncome,
+            cost: item.completed.cost,
+            revenue: item.completed.revenue,
+            grossProfit: item.completed.grossProfit,
+            tax: item.completed.tax,
+            charge: item.completed.charge,
+            tip: item.completed.tip,
+            promotion: item.completed.promotion,
+            netIncome: item.completed.netIncome,
           },
         };
       })
@@ -1192,7 +978,7 @@ async function generateReport(req, groupField) {
     reportArray.sort((a, b) => b.total.revenue - a.total.revenue);
 
     let data = generateReportToChart(reportArray, req);
-    return { error: false, data };
+    return { error: false, data, reportArray };
   } catch (error) {
     console.error("Error generating report:", error);
     return { error: true, message: error.message };
