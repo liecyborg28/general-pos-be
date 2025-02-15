@@ -961,7 +961,6 @@ async function generateReport(req, groupField) {
           item[groupField]
         );
 
-        console.log("item", item);
         return {
           ...item,
           [groupField]: populatedField,
