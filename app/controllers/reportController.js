@@ -740,11 +740,11 @@ module.exports = {
         const status = transaction.status.payment;
 
         const processItem = (item) => {
-          const key = `${item.productId}-${item.variantId}`;
+          const key = item.variantId.toString(); // Grouping by variantId
           if (!productReport[key]) {
             productReport[key] = {
-              productId: item.productId,
               variantId: item.variantId,
+              productId: item.productId,
               completed: { sales: 0 },
               canceled: { sales: 0 },
               returned: { sales: 0 },
@@ -887,18 +887,55 @@ async function generateReport(req, groupField) {
       if (!groupId) return;
       let category = report[groupId][transaction.status.payment];
 
+      let subtotal = 0;
+      let totalCost = 0;
+
       transaction.details.forEach((detail) => {
-        category.sales += detail.qty;
-        category.cost += detail.cost * detail.qty;
-        category.revenue += detail.price * detail.qty;
+        let detailRevenue = detail.price * detail.qty;
+        let detailCost = detail.cost * detail.qty;
+        subtotal += detailRevenue;
+        totalCost += detailCost;
+
+        detail.additionals.forEach((additional) => {
+          subtotal += additional.price * additional.qty;
+          totalCost += additional.cost * additional.qty;
+        });
       });
 
-      category.charge = category.sales === 2 ? 14000 : 7000;
-      category.promotion = category.sales === 2 ? 5000 : 2500;
-      category.tax = category.sales === 2 ? 5500 : 2750;
-      category.grossProfit = category.revenue - category.cost;
-      category.netIncome =
-        category.grossProfit - category.tax - category.charge;
+      let tax = transaction.taxes.reduce((acc, tax) => {
+        return (
+          acc + (tax.type === "percentage" ? subtotal * tax.amount : tax.amount)
+        );
+      }, 0);
+
+      let charge = transaction.charges.reduce((acc, charge) => {
+        return (
+          acc +
+          (charge.type === "percentage"
+            ? subtotal * charge.amount
+            : charge.amount)
+        );
+      }, 0);
+
+      let promotion = transaction.promotions.reduce((acc, promo) => {
+        return (
+          acc +
+          (promo.type === "percentage" ? subtotal * promo.amount : promo.amount)
+        );
+      }, 0);
+
+      let revenue = subtotal + tax + charge - promotion;
+      let grossProfit = revenue - totalCost;
+      let netIncome = grossProfit - tax - charge;
+
+      category.sales += 1;
+      category.cost += totalCost;
+      category.revenue += revenue;
+      category.grossProfit += grossProfit;
+      category.tax += tax;
+      category.charge += charge;
+      category.promotion += promotion;
+      category.netIncome += netIncome;
     });
 
     let reportArray = await Promise.all(
@@ -922,11 +959,11 @@ async function generateReport(req, groupField) {
             sales: item.completed.sales - item.returned.sales,
             cost: item.completed.cost - item.returned.cost,
             revenue: item.completed.revenue - item.returned.revenue,
-            grossProfit: 15000,
-            tax: 2750,
-            charge: 7000,
-            promotion: 2500,
-            netIncome: 12250,
+            grossProfit: item.completed.grossProfit - item.returned.grossProfit,
+            tax: item.completed.tax - item.returned.tax,
+            charge: item.completed.charge - item.returned.charge,
+            promotion: item.completed.promotion - item.returned.promotion,
+            netIncome: item.completed.netIncome - item.returned.netIncome,
           },
         };
       })
