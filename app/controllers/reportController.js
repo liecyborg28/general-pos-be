@@ -411,7 +411,7 @@ module.exports = {
           ? "Transaksi"
           : reportType === "byAnnual"
           ? "Tahunan"
-          : reportType === "byMonth"
+          : reportType === "byMonthly"
           ? "Bulanan"
           : reportType === "byQuarter"
           ? "Kuartal"
@@ -486,7 +486,7 @@ module.exports = {
                         : reportType === "byProduct"
                         ? `${e["productId"].name} (${e["variantId"].name})`
                         : reportType === "byAnnual" ||
-                          reportType === "byMonth" ||
+                          reportType === "byMonthly" ||
                           reportType === "byQuarter"
                         ? e.label
                         : e[keyName].name
@@ -791,6 +791,239 @@ module.exports = {
       return { error: true, message: error.message };
     }
   },
+
+  generateSalesReportByPeriod: async function (req) {
+    try {
+      let { reportType, businessId, outletId, timeSpan } = req.query;
+
+      let pipeline = {};
+      if (businessId) pipeline.businessId = businessId;
+      if (outletId) pipeline.outletId = outletId;
+
+      // Tentukan rentang waktu berdasarkan reportType dan timeSpan
+      let currentDate = new Date();
+      let startDate;
+
+      if (reportType === "byAnnual") {
+        startDate = new Date(currentDate.getFullYear() - timeSpan, 0, 1);
+      } else if (reportType === "byMonthly") {
+        startDate = new Date();
+        startDate.setMonth(startDate.getMonth() - (timeSpan - 1));
+        startDate.setDate(1);
+        startDate.setHours(0, 0, 0, 0);
+      } else if (reportType === "byQuarter") {
+        startDate = new Date();
+        startDate.setMonth(startDate.getMonth() - (timeSpan - 1) * 3); // Menghitung 3 bulan untuk setiap quarter
+        startDate.setDate(1);
+        startDate.setHours(0, 0, 0, 0);
+      }
+
+      pipeline.createdAt = {
+        $gte: startDate.toISOString(),
+        $lte: currentDate.toISOString(),
+      };
+
+      const transactions = await Transaction.find(pipeline).exec();
+      const report = {};
+
+      // Langkah 1: Kelompokkan transaksi berdasarkan status.payment (completed, canceled, returned)
+      transactions.forEach((transaction) => {
+        let date = new Date(transaction.createdAt);
+        let label;
+
+        if (reportType === "byAnnual") {
+          label = date.getFullYear().toString();
+        } else if (reportType === "byMonthly") {
+          label =
+            date.toLocaleString("default", { month: "short" }) +
+            " " +
+            date.getFullYear();
+        } else if (reportType === "byQuarter") {
+          let quarter = Math.floor(date.getMonth() / 3) + 1;
+          label = `Q${quarter} ${date.getFullYear()}`;
+        }
+
+        if (!report[label]) {
+          report[label] = {
+            completed: {
+              sales: 0,
+              cost: 0,
+              revenue: 0,
+              grossProfit: 0,
+              tax: 0,
+              charge: 0,
+              promotion: 0,
+              tip: 0,
+              netIncome: 0,
+            },
+            canceled: {
+              sales: 0,
+              cost: 0,
+              revenue: 0,
+              grossProfit: 0,
+              tax: 0,
+              charge: 0,
+              promotion: 0,
+              tip: 0,
+              netIncome: 0,
+            },
+            returned: {
+              sales: 0,
+              cost: 0,
+              revenue: 0,
+              grossProfit: 0,
+              tax: 0,
+              charge: 0,
+              promotion: 0,
+              tip: 0,
+              netIncome: 0,
+            },
+          };
+        }
+
+        let subtotal = 0;
+        let totalCost = 0;
+        let totalTip = transaction.tips.reduce(
+          (acc, tip) => acc + tip.amount,
+          0
+        );
+
+        transaction.details.forEach((detail) => {
+          let detailRevenue = detail.price * detail.qty;
+          let detailCost = detail.cost * detail.qty;
+          subtotal += detailRevenue;
+          totalCost += detailCost;
+
+          detail.additionals.forEach((additional) => {
+            subtotal += additional.price * additional.qty;
+            totalCost += additional.cost * additional.qty;
+          });
+        });
+
+        let tax = transaction.taxes.reduce((acc, tax) => {
+          return (
+            acc +
+            (tax.type === "percentage" ? subtotal * tax.amount : tax.amount)
+          );
+        }, 0);
+
+        let charge = transaction.charges.reduce((acc, charge) => {
+          return (
+            acc +
+            (charge.type === "percentage"
+              ? subtotal * charge.amount
+              : charge.amount)
+          );
+        }, 0);
+
+        let promotion = transaction.promotions.reduce((acc, promo) => {
+          return (
+            acc +
+            (promo.type === "percentage"
+              ? subtotal * promo.amount
+              : promo.amount)
+          );
+        }, 0);
+
+        let revenue = subtotal + tax + charge + totalTip - promotion;
+        let grossProfit = revenue - totalCost;
+        let netIncome = grossProfit - tax - charge - totalTip;
+
+        // Masukkan transaksi ke dalam kategori status.payment yang sesuai
+        let category = report[label][transaction.status.payment];
+        category.sales += 1;
+        category.cost += totalCost;
+        category.revenue += revenue;
+        category.grossProfit += grossProfit;
+        category.tax += tax;
+        category.charge += charge;
+        category.promotion += promotion;
+        category.tip += totalTip;
+        category.netIncome += netIncome;
+      });
+
+      // Langkah 2: Hitung totalnya menggunakan formula completed - returned
+      let reportArray = Object.keys(report).map((key) => {
+        const item = report[key];
+
+        return {
+          label: key,
+          total: {
+            sales: item.completed.sales - item.returned.sales,
+            cost: item.completed.cost - item.returned.cost,
+            revenue: item.completed.revenue - item.returned.revenue,
+            grossProfit: item.completed.grossProfit - item.returned.grossProfit,
+            tax: item.completed.tax - item.returned.tax,
+            charge: item.completed.charge - item.returned.charge,
+            promotion: item.completed.promotion - item.returned.promotion,
+            tip: item.completed.tip - item.returned.tip,
+            netIncome: item.completed.netIncome - item.returned.netIncome,
+          },
+        };
+      });
+
+      // Urutkan berdasarkan label
+      reportArray.sort((a, b) => new Date(a.label) - new Date(b.label));
+
+      // Memastikan bulan yang tidak ada transaksi tetap ada (misal, dengan nilai 0)
+      let allLabels = [];
+      let startMonth = new Date(startDate);
+      for (let i = 0; i < timeSpan; i++) {
+        let monthLabel = `${startMonth.toLocaleString("default", {
+          month: "short",
+        })} ${startMonth.getFullYear()}`;
+        allLabels.push(monthLabel);
+        startMonth.setMonth(startMonth.getMonth() + 1);
+      }
+
+      // Tambahkan bulan yang tidak ada data transaksi
+      allLabels.forEach((label) => {
+        if (!report[label]) {
+          report[label] = {
+            completed: {
+              sales: 0,
+              cost: 0,
+              revenue: 0,
+              grossProfit: 0,
+              tax: 0,
+              charge: 0,
+              promotion: 0,
+              tip: 0,
+              netIncome: 0,
+            },
+            canceled: {
+              sales: 0,
+              cost: 0,
+              revenue: 0,
+              grossProfit: 0,
+              tax: 0,
+              charge: 0,
+              promotion: 0,
+              tip: 0,
+              netIncome: 0,
+            },
+            returned: {
+              sales: 0,
+              cost: 0,
+              revenue: 0,
+              grossProfit: 0,
+              tax: 0,
+              charge: 0,
+              promotion: 0,
+              tip: 0,
+              netIncome: 0,
+            },
+          };
+        }
+      });
+
+      let data = generateReportToChart(reportArray, req);
+      return { error: false, data, reportArray };
+    } catch (error) {
+      console.error("Error generating sales report by period:", error);
+      return { error: true, message: error.message };
+    }
+  },
 };
 
 async function generateReport(req, groupField) {
@@ -855,6 +1088,7 @@ async function generateReport(req, groupField) {
             tax: 0,
             charge: 0,
             promotion: 0,
+            tip: 0,
             netIncome: 0,
           },
           canceled: {
@@ -865,6 +1099,7 @@ async function generateReport(req, groupField) {
             tax: 0,
             charge: 0,
             promotion: 0,
+            tip: 0,
             netIncome: 0,
           },
           returned: {
@@ -875,6 +1110,7 @@ async function generateReport(req, groupField) {
             tax: 0,
             charge: 0,
             promotion: 0,
+            tip: 0,
             netIncome: 0,
           },
         };
@@ -889,6 +1125,7 @@ async function generateReport(req, groupField) {
 
       let subtotal = 0;
       let totalCost = 0;
+      let totalTip = transaction.tips.reduce((acc, tip) => acc + tip.amount, 0);
 
       transaction.details.forEach((detail) => {
         let detailRevenue = detail.price * detail.qty;
@@ -924,9 +1161,9 @@ async function generateReport(req, groupField) {
         );
       }, 0);
 
-      let revenue = subtotal + tax + charge - promotion;
+      let revenue = subtotal + tax + charge + totalTip - promotion;
       let grossProfit = revenue - totalCost;
-      let netIncome = grossProfit - tax - charge;
+      let netIncome = grossProfit - tax - charge - totalTip;
 
       category.sales += 1;
       category.cost += totalCost;
@@ -935,6 +1172,7 @@ async function generateReport(req, groupField) {
       category.tax += tax;
       category.charge += charge;
       category.promotion += promotion;
+      category.tip += totalTip;
       category.netIncome += netIncome;
     });
 
@@ -963,6 +1201,7 @@ async function generateReport(req, groupField) {
             tax: item.completed.tax - item.returned.tax,
             charge: item.completed.charge - item.returned.charge,
             promotion: item.completed.promotion - item.returned.promotion,
+            tip: item.completed.tip - item.returned.tip,
             netIncome: item.completed.netIncome - item.returned.netIncome,
           },
         };
