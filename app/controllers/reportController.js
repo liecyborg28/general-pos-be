@@ -1024,6 +1024,107 @@ module.exports = {
       return { error: true, message: error.message };
     }
   },
+
+  generateSalesReportByProductPeriod: async function (req) {
+    try {
+      let { reportType, timeSpan, businessId, outletId } = req.query;
+      let currentDate = new Date();
+      let startDate;
+
+      // Tentukan rentang waktu berdasarkan reportType dan timeSpan
+      if (reportType === "byAnnual") {
+        startDate = new Date(currentDate.getFullYear() - timeSpan, 0, 1);
+      } else if (reportType === "byMonthly") {
+        startDate = new Date();
+        startDate.setMonth(startDate.getMonth() - (timeSpan - 1));
+        startDate.setDate(1);
+        startDate.setHours(0, 0, 0, 0);
+      } else if (reportType === "byQuarter") {
+        startDate = new Date();
+        startDate.setMonth(startDate.getMonth() - timeSpan * 3);
+        startDate.setDate(1);
+        startDate.setHours(0, 0, 0, 0);
+      }
+
+      let pipeline = {
+        createdAt: {
+          $gte: startDate.toISOString(),
+          $lte: currentDate.toISOString(),
+        },
+      };
+
+      if (businessId) {
+        pipeline.businessId = businessId;
+      }
+
+      if (outletId) {
+        pipeline.outletId = outletId;
+      }
+
+      // Ambil transaksi sesuai filter yang diberikan
+      const transactions = await Transaction.find(pipeline).exec();
+      const productReport = {};
+
+      transactions.forEach((transaction) => {
+        const status = transaction.status.payment;
+
+        const processItem = (item) => {
+          const key = item.variantId.toString(); // Grouping by variantId
+          if (!productReport[key]) {
+            productReport[key] = {
+              variantId: item.variantId,
+              productId: item.productId,
+              completed: { sales: 0 },
+              canceled: { sales: 0 },
+              returned: { sales: 0 },
+            };
+          }
+          productReport[key][status].sales += item.qty;
+        };
+
+        // Proses data transaksi
+        transaction.details.forEach(processItem);
+        transaction.details.forEach((detail) => {
+          detail.additionals.forEach(processItem);
+        });
+      });
+
+      let reportArray = Object.values(productReport).map((item) => {
+        return {
+          productId: item.productId,
+          variantId: item.variantId,
+          total: {
+            sales: item.completed.sales - item.returned.sales,
+          },
+        };
+      });
+
+      // Menambahkan data produk dan varian produk
+      reportArray = await Promise.all(
+        reportArray.map(async (item) => {
+          const product = await Product.findById(item.productId).exec();
+          let variantData = null;
+          if (item.variantId && product.variants) {
+            variantData = product.variants.find(
+              (variant) => variant._id.toString() === item.variantId.toString()
+            );
+          }
+          return { ...item, productId: product, variantId: variantData };
+        })
+      );
+
+      // Mengurutkan berdasarkan penjualan tertinggi
+      reportArray.sort((a, b) => b.total.sales - a.total.sales);
+
+      console.log("test", reportArray);
+      // Generate laporan dalam format chart atau format lain
+      let data = generateReportToChart(reportArray, req);
+      return { error: false, data, reportArray };
+    } catch (error) {
+      console.error("Error generating product sales report:", error);
+      return { error: true, message: error.message };
+    }
+  },
 };
 
 async function generateReport(req, groupField) {
