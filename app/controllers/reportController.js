@@ -1116,7 +1116,6 @@ module.exports = {
       // Mengurutkan berdasarkan penjualan tertinggi
       reportArray.sort((a, b) => b.total.sales - a.total.sales);
 
-      console.log("test", reportArray);
       // Generate laporan dalam format chart atau format lain
       let data = generateReportToChart(reportArray, req);
       return { error: false, data, reportArray };
