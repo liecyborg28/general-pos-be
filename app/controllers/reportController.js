@@ -820,7 +820,10 @@ module.exports = {
 
       pipeline.createdAt = {
         $gte: startDate.toISOString(),
-        $lte: currentDate.toISOString(),
+        $lte: formatController.convertToLocaleISOStringNextDay(
+          currentDate.toISOString(),
+          "start"
+        ),
       };
 
       const transactions = await Transaction.find(pipeline).exec();
@@ -1049,7 +1052,10 @@ module.exports = {
       let pipeline = {
         createdAt: {
           $gte: startDate.toISOString(),
-          $lte: currentDate.toISOString(),
+          $lte: formatController.convertToLocaleISOStringNextDay(
+            currentDate.toISOString(),
+            "start"
+          ),
         },
       };
 
