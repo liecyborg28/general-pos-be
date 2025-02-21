@@ -66,9 +66,17 @@ module.exports = {
           const businessesPayload = [
             {
               status: "active",
-              imageUrl: null,
+              imageUrl: "assets/demo/images/logo-berlin-pool-bistro.PNG",
               name: "Berlin Pool & Bistro",
-              note: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+              note: "Berlin Pool & Bistro adalah destinasi sempurna bagi pecinta hiburan, makanan lezat, dan suasana santai. Menggabungkan konsep bistro modern dengan area billiard eksklusif, Berlin Pool & Bistro menawarkan pengalaman unik bagi pelanggan yang ingin bersantai setelah hari yang panjang atau bersenang-senang bersama teman-teman.",
+              createdAt: dateISOString,
+              updatedAt: dateISOString,
+            },
+            {
+              status: "active",
+              imageUrl: null,
+              name: "Anak Bawang",
+              note: "Anak Bawang hadir sebagai destinasi kuliner unik bagi pecinta makanan berbumbu kaya dan penuh aroma bawang yang menggoda. Dengan menu andalan seperti Ayam Bawang, Nasi Goreng Bawang, Mie Bawang Pedas, hingga Tahu Crispy Bawang, setiap hidangan kami diracik dengan resep spesial yang menghadirkan cita rasa gurih, renyah, dan menggugah selera.",
               createdAt: dateISOString,
               updatedAt: dateISOString,
             },
@@ -79,10 +87,32 @@ module.exports = {
               const outletsPayload = [
                 {
                   address:
-                    "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+                    "Jl. S. Parman No. 27, Kel. Grand Sentosa, Kec. Central District Kota Metropolis, 12345 Negara Arcadia",
                   businessId: businesses[0]._id.toString(),
                   name: "S. Parman",
-                  note: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+                  note: "Instagram: @berlinpoolbistro\nFacebook: Berlin Pool & Bistro\nTikTok: @berlinpoolbistro\nNama WiFi: BerlinPoolBistro\nPassword: GreatShots2025",
+                  status: "active",
+                  // timestamp
+                  createdAt: dateISOString,
+                  updatedAt: dateISOString,
+                },
+                {
+                  address:
+                    "Jl. Harmoni No. 40, Kel. Kepala Gading, Kec. Central District Kota Metropolis, 12345 Negara Arcadia",
+                  businessId: businesses[0]._id.toString(),
+                  name: "Harmoni",
+                  note: "Instagram: @berlinpoolbistro\nFacebook: Berlin Pool & Bistro\nTikTok: @berlinpoolbistro\nNama WiFi: BerlinPoolBistro\nPassword: GreatShots2025",
+                  status: "active",
+                  // timestamp
+                  createdAt: dateISOString,
+                  updatedAt: dateISOString,
+                },
+                {
+                  address:
+                    "Jl. Merdeka No. 9, Kel. Grand Sentosa, Kec. Central District Kota Metropolis, 12345 Negara Arcadia",
+                  businessId: businesses[1]._id.toString(),
+                  name: "Merdeka",
+                  note: "Instagram: @anak_bawang\nFacebook: Anak Bawang\nTikTok: @anak_bawang\nNama WiFi: anakbawang\nPassword: BawangEnakGurih",
                   status: "active",
                   // timestamp
                   createdAt: dateISOString,
