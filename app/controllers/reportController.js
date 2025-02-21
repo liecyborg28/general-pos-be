@@ -13,45 +13,45 @@ const formatController = require("./utils/formatController");
 const pageController = require("./utils/pageController");
 const pdfController = require("./utils/pdfController");
 
-function getRandomColorPair(currentColors = []) {
-  const flatColors = [
-    "#ff6b6b",
-    "#ff9f43",
-    "#feca57",
-    "#ffdd59",
-    "#48dbfb",
-    "#1dd1a1",
-    "#00d2d3",
-    "#54a0ff",
-    "#5f27cd",
-    "#c8d6e5",
-    "#576574",
-    "#ff4757",
-    "#ff6348",
-    "#ffa502",
-    "#fffa65",
-    "#7bed9f",
-    "#70a1ff",
-    "#5352ed",
-    "#e84393",
-    "#6c5ce7",
-    "#fd79a8",
-    "#00cec9",
-    "#00b894",
-    "#fab1a0",
-    "#e17055",
-    "#d63031",
-    "#0984e3",
-    "#74b9ff",
-    "#a29bfe",
-    "#55efc4",
-    "#81ecec",
-    "#ffeaa7",
-    "#b2bec3",
-    "#636e72",
-    "#2d3436",
-  ];
+const flatColors = [
+  "#ff6b6b",
+  "#ff9f43",
+  "#feca57",
+  "#ffdd59",
+  "#48dbfb",
+  "#1dd1a1",
+  "#00d2d3",
+  "#54a0ff",
+  "#5f27cd",
+  "#c8d6e5",
+  "#576574",
+  "#ff4757",
+  "#ff6348",
+  "#ffa502",
+  "#fffa65",
+  "#7bed9f",
+  "#70a1ff",
+  "#5352ed",
+  "#e84393",
+  "#6c5ce7",
+  "#fd79a8",
+  "#00cec9",
+  "#00b894",
+  "#fab1a0",
+  "#e17055",
+  "#d63031",
+  "#0984e3",
+  "#74b9ff",
+  "#a29bfe",
+  "#55efc4",
+  "#81ecec",
+  "#ffeaa7",
+  "#b2bec3",
+  "#636e72",
+  "#2d3436",
+];
 
+function getRandomColorPair(currentColors = []) {
   function generateUniqueColor() {
     let color;
     do {
@@ -338,23 +338,95 @@ function generateLineChart(data, chartColor, req) {
   return returnValue;
 }
 
-function generateReportToChart(reportArray, req) {
-  let totals = [0, 1, 2, 3, 4, 5, 6, 7];
+function generatePieChart(data, chartColor, req) {
+  let returnValue = {
+    labels: data.map((item) => {
+      switch (req.query.by) {
+        case "outlet":
+          return item.outletId?.name;
+        case "payment":
+          return item.paymentMethodId?.name;
+        case "service":
+          return item.serviceMethodId?.name;
+        case "user":
+          return item.userId?.username;
+        case "product":
+          return `${item.productId?.name} (${item.variantId?.name})`;
+        default:
+          return item?.label;
+      }
+    }),
+    datasets: [],
+  };
 
+  if (
+    data.length > 0 &&
+    data[0].total.revenue !== null &&
+    data[0].total.revenue !== undefined
+  ) {
+    returnValue?.datasets?.push({
+      data: data.map((e) => e.total.revenue),
+      backgroundColor: chartColor.map((e) => e.backgroundColor),
+      hoverBackgroundColor: chartColor.map((e) => e.borderColor),
+    });
+  }
+
+  return returnValue;
+}
+
+function generateDoughnutChart(data, chartColor, req) {
+  let returnValue = {
+    labels: data.map((item) => {
+      switch (req.query.by) {
+        case "outlet":
+          return item.outletId?.name;
+        case "payment":
+          return item.paymentMethodId?.name;
+        case "service":
+          return item.serviceMethodId?.name;
+        case "user":
+          return item.userId?.username;
+        case "product":
+          return `${item.productId?.name} (${item.variantId?.name})`;
+        default:
+          return item?.label;
+      }
+    }),
+    datasets: [],
+  };
+
+  if (
+    data.length > 0 &&
+    data[0].total.revenue !== null &&
+    data[0].total.revenue !== undefined
+  ) {
+    returnValue?.datasets?.push({
+      data: data.map((e) => e.total.revenue),
+      backgroundColor: chartColor.map((e) => e.backgroundColor),
+      hoverBackgroundColor: chartColor.map((e) => e.borderColor),
+    });
+  }
+
+  return returnValue;
+}
+
+function generateReportToChart(reportArray, req) {
   let chartColor = [];
 
   let tempChartColor = [];
 
-  chartColor = totals.map((e) => {
+  for (let i = 0; i < flatColors.length; i++) {
     let temp = getRandomColorPair(tempChartColor);
     tempChartColor.push(temp);
-    return temp;
-  });
+    chartColor.push(temp);
+  }
 
   let chartData = {
     chart: {
       horizontalBar: generateHorizontalBarChart(reportArray, chartColor, req),
       line: generateLineChart(reportArray, chartColor, req),
+      pie: generatePieChart(reportArray, chartColor, req),
+      doughnut: generateDoughnutChart(reportArray, chartColor, req),
     },
   };
 
@@ -1137,6 +1209,7 @@ async function generateReport(req, groupField) {
     let dateISOString = new Date().toISOString();
     let pageKey = req.query.pageKey ? req.query.pageKey : 1;
     let pageSize = req.query.pageSize ? req.query.pageSize : null;
+    let { reportType, businessId, outletId, timeSpan } = req.query;
 
     let defaultFrom = formatController.convertToLocaleISOString(
       dateISOString,
@@ -1147,8 +1220,30 @@ async function generateReport(req, groupField) {
       "end"
     );
 
-    let pipeline = {
-      createdAt: {
+    let startDate = new Date();
+    let currentDate = new Date();
+    let pipeline = {};
+
+    if (reportType === "byAnnual") {
+      startDate = new Date(currentDate.getFullYear() - timeSpan, 0, 1);
+    } else if (reportType === "byMonthly") {
+      startDate = new Date();
+      startDate.setMonth(startDate.getMonth() - (timeSpan - 1));
+      startDate.setDate(1);
+      startDate.setHours(0, 0, 0, 0);
+    } else if (reportType === "byQuarter") {
+      startDate = new Date();
+      startDate.setMonth(startDate.getMonth() - (timeSpan - 1) * 3); // Menghitung 3 bulan untuk setiap quarter
+      startDate.setDate(1);
+      startDate.setHours(0, 0, 0, 0);
+    }
+
+    if (
+      reportType !== "byAnnual" &&
+      reportType !== "byMonthly" &&
+      reportType !== "byQuarter"
+    ) {
+      pipeline.createdAt = {
         $gte: req.query.from
           ? formatController.convertToLocaleISOString(req.query.from, "start")
           : defaultFrom,
@@ -1158,15 +1253,23 @@ async function generateReport(req, groupField) {
               "end"
             )
           : defaultTo,
-      },
-    };
-
-    if (req.query.businessId) {
-      pipeline.businessId = req.query.businessId;
+      };
+    } else {
+      pipeline.createdAt = {
+        $gte: startDate.toISOString(),
+        $lte: formatController.convertToLocaleISOStringNextDay(
+          currentDate.toISOString(),
+          "start"
+        ),
+      };
     }
 
-    if (req.query.outletId) {
-      pipeline.outletId = req.query.outletId;
+    if (businessId) {
+      pipeline.businessId = businessId;
+    }
+
+    if (outletId) {
+      pipeline.outletId = outletId;
     }
 
     const transactions = await pageController.paginate(
