@@ -767,6 +767,7 @@ module.exports = {
       let dateISOString = new Date().toISOString();
       let pageKey = req.query.pageKey ? req.query.pageKey : 1;
       let pageSize = req.query.pageSize ? req.query.pageSize : null;
+      let { businessId, outletId } = req.query;
 
       let defaultFrom = formatController.convertToLocaleISOString(
         dateISOString,
@@ -791,12 +792,12 @@ module.exports = {
         },
       };
 
-      if (req.query.businessId) {
-        pipeline.businessId = req.query.businessId;
+      if (businessId) {
+        pipeline.businessId = businessId;
       }
 
-      if (req.query.outletId) {
-        pipeline.outletId = req.query.outletId;
+      if (outletId) {
+        pipeline.outletId = outletId;
       }
 
       const transactions = await pageController.paginate(
@@ -888,6 +889,14 @@ module.exports = {
         startDate.setMonth(startDate.getMonth() - (timeSpan - 1) * 3); // Menghitung 3 bulan untuk setiap quarter
         startDate.setDate(1);
         startDate.setHours(0, 0, 0, 0);
+      }
+
+      if (businessId) {
+        pipeline.businessId = businessId;
+      }
+
+      if (outletId) {
+        pipeline.outletId = outletId;
       }
 
       pipeline.createdAt = {

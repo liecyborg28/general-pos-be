@@ -72,7 +72,9 @@ module.exports = {
   },
 
   get: (req) => {
-    let { businessId, pageKey, pageSize } = req.query;
+    let { businessId } = req.query;
+    let pageKey = req.query.pageKey ? req.query.pageKey : 1;
+    let pageSize = req.query.pageSize ? req.query.pageSize : null;
 
     return new Promise((resolve, reject) => {
       let pipeline = {
