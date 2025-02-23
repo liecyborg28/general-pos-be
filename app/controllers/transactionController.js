@@ -236,8 +236,8 @@ module.exports = {
   },
 
   get: async (req) => {
+    let { businessId, outletId, from, to } = req.query;
     let dateISOString = new Date().toISOString();
-
     let pageKey = req.query.pageKey ? req.query.pageKey : 1;
     let pageSize = req.query.pageSize ? req.query.pageSize : null;
 
@@ -253,24 +253,21 @@ module.exports = {
     // Membuat pipeline dengan logika yang lebih sederhana
     let pipeline = {
       createdAt: {
-        $gte: req.query.from
-          ? formatController.convertToLocaleISOString(req.query.from, "start")
+        $gte: from
+          ? formatController.convertToLocaleISOString(from, "start")
           : defaultFrom,
-        $lte: req.query.to
-          ? formatController.convertToLocaleISOStringNextDay(
-              req.query.to,
-              "end"
-            )
+        $lte: to
+          ? formatController.convertToLocaleISOStringNextDay(to, "end")
           : defaultTo,
       },
     };
 
-    if (req.query.businessId) {
-      pipeline.businessId = req.query.businessId;
+    if (businessId) {
+      pipeline.businessId = businessId;
     }
 
-    if (req.query.outletId) {
-      pipeline.outletId = req.query.outletId;
+    if (outletId) {
+      pipeline.outletId = outletId;
     }
 
     try {

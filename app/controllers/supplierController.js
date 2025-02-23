@@ -71,6 +71,7 @@ const SupplierController = {
   },
 
   get: (req) => {
+    let { businessId } = req.query;
     let pageKey = req.query.pageKey ? req.query.pageKey : 1;
     let pageSize = req.query.pageSize ? req.query.pageSize : null;
 
@@ -78,6 +79,10 @@ const SupplierController = {
       let pipeline = {
         status: { $ne: "deleted" },
       };
+
+      if (businessId) {
+        pipeline.businessId = businessId;
+      }
 
       pageController
         .paginate(pageKey, pageSize, pipeline, Supplier)

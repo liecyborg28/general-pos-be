@@ -1204,12 +1204,92 @@ module.exports = {
                                                                           businessId:
                                                                             businesses[0]._id.toString(),
                                                                           email:
-                                                                            "example@gmail.com",
+                                                                            null,
                                                                           imageUrl:
                                                                             null,
-                                                                          name: "Customer Name",
+                                                                          name: "Meja 01",
                                                                           phone:
-                                                                            "+62852123456789",
+                                                                            null,
+                                                                          point: 0,
+                                                                          status:
+                                                                            "active",
+                                                                          // timestamp
+                                                                          createdAt:
+                                                                            dateISOString,
+                                                                          updatedAt:
+                                                                            dateISOString,
+                                                                        },
+                                                                        {
+                                                                          balance: 0,
+                                                                          businessId:
+                                                                            businesses[0]._id.toString(),
+                                                                          email:
+                                                                            null,
+                                                                          imageUrl:
+                                                                            null,
+                                                                          name: "Meja 02",
+                                                                          phone:
+                                                                            null,
+                                                                          point: 0,
+                                                                          status:
+                                                                            "active",
+                                                                          // timestamp
+                                                                          createdAt:
+                                                                            dateISOString,
+                                                                          updatedAt:
+                                                                            dateISOString,
+                                                                        },
+                                                                        {
+                                                                          balance: 0,
+                                                                          businessId:
+                                                                            businesses[0]._id.toString(),
+                                                                          email:
+                                                                            null,
+                                                                          imageUrl:
+                                                                            null,
+                                                                          name: "Meja 03",
+                                                                          phone:
+                                                                            null,
+                                                                          point: 0,
+                                                                          status:
+                                                                            "active",
+                                                                          // timestamp
+                                                                          createdAt:
+                                                                            dateISOString,
+                                                                          updatedAt:
+                                                                            dateISOString,
+                                                                        },
+                                                                        {
+                                                                          balance: 0,
+                                                                          businessId:
+                                                                            businesses[0]._id.toString(),
+                                                                          email:
+                                                                            null,
+                                                                          imageUrl:
+                                                                            null,
+                                                                          name: "Meja 04",
+                                                                          phone:
+                                                                            null,
+                                                                          point: 0,
+                                                                          status:
+                                                                            "active",
+                                                                          // timestamp
+                                                                          createdAt:
+                                                                            dateISOString,
+                                                                          updatedAt:
+                                                                            dateISOString,
+                                                                        },
+                                                                        {
+                                                                          balance: 0,
+                                                                          businessId:
+                                                                            businesses[0]._id.toString(),
+                                                                          email:
+                                                                            null,
+                                                                          imageUrl:
+                                                                            null,
+                                                                          name: "Meja 05",
+                                                                          phone:
+                                                                            null,
                                                                           point: 0,
                                                                           status:
                                                                             "active",

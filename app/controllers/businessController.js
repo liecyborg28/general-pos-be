@@ -72,11 +72,16 @@ module.exports = {
   },
 
   get: (req) => {
+    let { businessId } = req.query;
     let pageKey = req.query.pageKey ? req.query.pageKey : 1;
     let pageSize = req.query.pageSize ? req.query.pageSize : null;
 
     return new Promise((resolve, reject) => {
       let pipeline = { status: { $ne: "deleted" } };
+
+      if (businessId) {
+        pipeline._id = businessId;
+      }
 
       pageController
         .paginate(pageKey, pageSize, pipeline, Business)
