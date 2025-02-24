@@ -208,8 +208,6 @@ module.exports = {
                               "/transactions/purchase",
                               "/transactions/purchase/return",
                               "/transactions/purchase/history",
-                              // orders
-                              "/orders/customer",
                               // reports
                               "/reports/dashboard",
                               "/reports/charts",
