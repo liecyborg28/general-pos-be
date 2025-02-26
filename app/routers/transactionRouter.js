@@ -4,6 +4,17 @@ const router = require("express").Router();
 const authController = require("../controllers/authController");
 const transactionController = require("../controllers/transactionController");
 
+router.route("/transactions/order").post((req, res) => {
+  transactionController
+    .createOrder(req)
+    .then((value) => {
+      res.status(200).send(value);
+    })
+    .catch((err) => {
+      res.status(500).send(err);
+    });
+});
+
 router
   .route("/transactions")
   .get((req, res) => {

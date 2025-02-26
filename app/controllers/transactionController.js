@@ -42,6 +42,241 @@ function generateRequestCodes() {
 }
 
 module.exports = {
+  createOrder: async (req) => {
+    try {
+      const { details, status, customerId, userId, businessId, outletId } =
+        req.body;
+
+      if (!businessId) {
+        return Promise.reject({
+          error: true,
+          message: {
+            en: `Business ID not found! Please check the link you used.`,
+            id: `Business ID tidak ditemukan! mohon periksa kembali tautan yang Anda gunakan.`,
+          },
+        });
+      }
+
+      if (!outletId) {
+        return Promise.reject({
+          error: true,
+          message: {
+            en: `Outlet ID not found! Please check the link you used.`,
+            id: `Outlet ID tidak ditemukan! mohon periksa kembali tautan yang Anda gunakan.`,
+          },
+        });
+      }
+
+      if (!customerId) {
+        return Promise.reject({
+          error: true,
+          message: {
+            en: `Customer ID not found! Please check the link you used.`,
+            id: `Customer ID tidak ditemukan! mohon periksa kembali tautan yang Anda gunakan.`,
+          },
+        });
+      }
+
+      if (!userId) {
+        return Promise.reject({
+          error: true,
+          message: {
+            en: `User ID not found! Please check the link you used.`,
+            id: `User ID tidak ditemukan! mohon periksa kembali tautan yang Anda gunakan.`,
+          },
+        });
+      }
+
+      let dateISOString = new Date().toISOString();
+      const skipValidation = status?.payment === "returned";
+
+      // Deklarasikan groupedDetails di luar blok validasi agar bisa digunakan di semua kondisi
+      let groupedDetails = {};
+      for (const productDetail of details) {
+        let key = `${productDetail.productId}-${
+          productDetail.variantId || "default"
+        }`;
+
+        if (!groupedDetails[key]) {
+          groupedDetails[key] = { ...productDetail, qty: 0, additionals: [] };
+        }
+        groupedDetails[key].qty += productDetail.qty;
+        groupedDetails[key].additionals.push(
+          ...(productDetail.additionals || [])
+        );
+      }
+
+      // Gabungkan additionals yang sama
+      for (const key in groupedDetails) {
+        let groupedAdditionals = {};
+        for (const additional of groupedDetails[key].additionals) {
+          let addKey = `${additional.productId}-${
+            additional.variantId || "default"
+          }`;
+
+          if (!groupedAdditionals[addKey]) {
+            groupedAdditionals[addKey] = { ...additional, qty: 0 };
+          }
+          groupedAdditionals[addKey].qty += additional.qty;
+        }
+        groupedDetails[key].additionals = Object.values(groupedAdditionals);
+      }
+
+      if (!skipValidation) {
+        // Step 1: Validasi stok
+        for (const key in groupedDetails) {
+          const productDetail = groupedDetails[key];
+
+          // Validasi komponen utama
+          for (const component of productDetail.components) {
+            const dbComponent = await Component.findById(component.componentId);
+            if (
+              !dbComponent ||
+              dbComponent.qty.current < component.qty * productDetail.qty
+            ) {
+              return Promise.reject({
+                error: true,
+                message: {
+                  en: `${dbComponent?.name || "Component"} is insufficient.`,
+                  id: `Bahan baku ${
+                    dbComponent?.name || "Component"
+                  } tidak mencukupi.`,
+                },
+              });
+            }
+          }
+        }
+      }
+
+      // Step 2: Update stok setelah validasi sukses atau jika payment === 'returned'
+      for (const key in groupedDetails) {
+        const productDetail = groupedDetails[key];
+
+        // Update stok komponen utama
+        for (const component of productDetail.components) {
+          const updatedComponent = await Component.findByIdAndUpdate(
+            component.componentId,
+            {
+              $inc: {
+                "qty.current": skipValidation
+                  ? component.qty * productDetail.qty
+                  : -component.qty * productDetail.qty,
+              },
+            },
+            { new: true }
+          );
+
+          // Update status berdasarkan stok terkini
+          const newStatus =
+            updatedComponent.qty.current <= 0
+              ? "outOfStock"
+              : updatedComponent.qty.current <= updatedComponent.qty.min
+              ? "almostOut"
+              : "available";
+
+          await Component.findByIdAndUpdate(
+            component.componentId,
+            { "qty.status": newStatus },
+            { new: true }
+          );
+        }
+
+        // Update stok produk utama (jika countable)
+        const product = await Product.findById(productDetail.productId);
+        if (product.countable) {
+          await Product.updateOne(
+            { _id: product._id, "variants._id": productDetail.variantId },
+            {
+              $inc: {
+                "variants.$.qty": skipValidation
+                  ? productDetail.qty
+                  : -productDetail.qty,
+              },
+            }
+          );
+        }
+
+        // Update stok additionals
+        for (const additional of productDetail.additionals) {
+          for (const component of additional.components) {
+            const updatedAdditionalComponent =
+              await Component.findByIdAndUpdate(
+                component.componentId,
+                {
+                  $inc: {
+                    "qty.current": skipValidation
+                      ? component.qty * additional.qty
+                      : -component.qty * additional.qty,
+                  },
+                },
+                { new: true }
+              );
+
+            // Update status berdasarkan stok terkini
+            const newAdditionalStatus =
+              updatedAdditionalComponent.qty.current <= 0
+                ? "outOfStock"
+                : updatedAdditionalComponent.qty.current <=
+                  updatedAdditionalComponent.qty.min
+                ? "almostOut"
+                : "available";
+
+            await Component.findByIdAndUpdate(
+              component.componentId,
+              { "qty.status": newAdditionalStatus },
+              { new: true }
+            );
+          }
+
+          // Update stok varian produk tambahan (jika countable)
+          const additionalProduct = await Product.findById(
+            additional.productId
+          );
+          if (additionalProduct.countable) {
+            await Product.updateOne(
+              {
+                _id: additionalProduct._id,
+                "variants._id": additional.variantId,
+              },
+              {
+                $inc: {
+                  "variants.$.qty": skipValidation
+                    ? additional.qty
+                    : -additional.qty,
+                },
+              }
+            );
+          }
+        }
+      }
+
+      // Step 3: Simpan transaksi
+      let payload = {
+        ...req.body,
+        request: generateRequestCodes(),
+        createdAt: dateISOString,
+        updatedAt: dateISOString,
+      };
+
+      const transaction = new Transaction(payload);
+      await transaction.save();
+
+      return Promise.resolve({
+        error: false,
+        message: successMessages.TRANSACTION_CREATED_SUCCESS_ORDER,
+      });
+    } catch (error) {
+      console.error(error);
+      return Promise.reject({
+        error: true,
+        message: {
+          en: "There was an error processing the transaction.",
+          id: "Terjadi kesalahan saat memproses transaksi.",
+        },
+      });
+    }
+  },
+
   create: async (req) => {
     try {
       const { details, status } = req.body;

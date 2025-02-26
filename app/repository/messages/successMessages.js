@@ -115,6 +115,10 @@ module.exports = {
     en: "Transaction created successfully!",
     id: "Transaksi berhasil disimpan!",
   },
+  TRANSACTION_CREATED_SUCCESS_ORDER: {
+    en: "Transaction successfully ordered! Please wait while your order is being processed.",
+    id: "Transaksi berhasil diorder! mohon tunggu orderan Anda diproses.",
+  },
   // U
   UNIT_CREATED_SUCCESS: {
     en: "Unit created successfully!",

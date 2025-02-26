@@ -7,21 +7,21 @@ const categoryController = require("../controllers/categoryController");
 router
   .route("/categories")
   .get((req, res) => {
-    authController
-      .checkAccess(req)
-      .then(() => {
-        categoryController
-          .get(req)
-          .then((value) => {
-            res.status(200).send(value);
-          })
-          .catch((err) => {
-            res.status(500).send(err);
-          });
+    // authController
+    //   .checkAccess(req)
+    //   .then(() => {
+    categoryController
+      .get(req)
+      .then((value) => {
+        res.status(200).send(value);
       })
       .catch((err) => {
         res.status(500).send(err);
       });
+    // })
+    // .catch((err) => {
+    //   res.status(500).send(err);
+    // });
   })
   .post((req, res) => {
     authController

@@ -821,6 +821,7 @@ module.exports = {
               completed: { sales: 0 },
               canceled: { sales: 0 },
               returned: { sales: 0 },
+              pending: { sales: 0 },
             };
           }
           productReport[key][status].sales += item.qty;
@@ -952,6 +953,17 @@ module.exports = {
               netIncome: 0,
             },
             returned: {
+              sales: 0,
+              cost: 0,
+              revenue: 0,
+              grossProfit: 0,
+              tax: 0,
+              charge: 0,
+              promotion: 0,
+              tip: 0,
+              netIncome: 0,
+            },
+            pending: {
               sales: 0,
               cost: 0,
               revenue: 0,
@@ -1097,6 +1109,17 @@ module.exports = {
               tip: 0,
               netIncome: 0,
             },
+            pending: {
+              sales: 0,
+              cost: 0,
+              revenue: 0,
+              grossProfit: 0,
+              tax: 0,
+              charge: 0,
+              promotion: 0,
+              tip: 0,
+              netIncome: 0,
+            },
           };
         }
       });
@@ -1164,6 +1187,7 @@ module.exports = {
               completed: { sales: 0 },
               canceled: { sales: 0 },
               returned: { sales: 0 },
+              pending: { sales: 0 },
             };
           }
           productReport[key][status].sales += item.qty;
@@ -1321,6 +1345,17 @@ async function generateReport(req, groupField) {
             netIncome: 0,
           },
           returned: {
+            sales: 0,
+            cost: 0,
+            revenue: 0,
+            grossProfit: 0,
+            tax: 0,
+            charge: 0,
+            promotion: 0,
+            tip: 0,
+            netIncome: 0,
+          },
+          pending: {
             sales: 0,
             cost: 0,
             revenue: 0,

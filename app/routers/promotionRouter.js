@@ -6,21 +6,21 @@ const promotionController = require("../controllers/promotionController");
 router
   .route("/promotions")
   .get((req, res) => {
-    authController
-      .checkAccess(req)
-      .then(() => {
-        promotionController
-          .get(req)
-          .then((value) => {
-            res.status(200).send(value);
-          })
-          .catch((err) => {
-            res.status(500).send(err);
-          });
+    // authController
+    //   .checkAccess(req)
+    //   .then(() => {
+    promotionController
+      .get(req)
+      .then((value) => {
+        res.status(200).send(value);
       })
       .catch((err) => {
         res.status(500).send(err);
       });
+    // })
+    // .catch((err) => {
+    //   res.status(500).send(err);
+    // });
   })
   .post((req, res) => {
     authController

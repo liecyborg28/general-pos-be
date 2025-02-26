@@ -6,21 +6,21 @@ const taxController = require("../controllers/taxController");
 router
   .route("/taxes")
   .get((req, res) => {
-    authController
-      .checkAccess(req)
-      .then(() => {
-        taxController
-          .get(req)
-          .then((value) => {
-            res.status(200).send(value);
-          })
-          .catch((err) => {
-            res.status(500).send(err);
-          });
+    // authController
+    //   .checkAccess(req)
+    //   .then(() => {
+    taxController
+      .get(req)
+      .then((value) => {
+        res.status(200).send(value);
       })
       .catch((err) => {
         res.status(500).send(err);
       });
+    // })
+    // .catch((err) => {
+    //   res.status(500).send(err);
+    // });
   })
   .post((req, res) => {
     authController
