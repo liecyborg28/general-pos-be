@@ -14,6 +14,8 @@ const routes = require("./app/routers/routers/routers");
 
 const port = process.env.PORT;
 
+const allowedIp = process.env.ALLOWED_IP;
+
 // Koneksi ke MongoDB
 mongoose
   .connect(dbConfig.url, dbConfig.connectOption)
@@ -43,6 +45,11 @@ app.use((err, req, res, next) => {
   res.status(500).send({ message: errorMessages.SOMETHING_WENT_WRONG });
 });
 
-app.listen(port, () => {
+// offline
+// app.listen(port, () => {
+//   console.log(`HTTP server running on port ${port}`);
+// });
+// online
+app.listen(port, allowedIp, () => {
   console.log(`HTTP server running on port ${port}`);
 });
