@@ -45,11 +45,45 @@ app.use((err, req, res, next) => {
   res.status(500).send({ message: errorMessages.SOMETHING_WENT_WRONG });
 });
 
-// offline
-// app.listen(port, () => {
-//   console.log(`HTTP server running on port ${port}`);
-// });
-// online
 app.listen(port, allowedIp, () => {
   console.log(`HTTP server running on port ${port}`);
 });
+
+// require("dotenv").config();
+
+// const https = require("https");
+// const fs = require("fs");
+// const express = require("express");
+// const cors = require("cors");
+
+// const app = express();
+// const port = process.env.PORT;
+// const allowedIp = process.env.ALLOWED_IP;
+
+// // Load SSL Certificate
+// const options = {
+//   key: fs.readFileSync("/etc/ssl/mycert/server.key"),
+//   cert: fs.readFileSync("/etc/ssl/mycert/server.crt"),
+// };
+
+// // Pengaturan CORS
+// const corsOptions = {
+//   origin: "*",
+//   credentials: true,
+//   methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+//   allowedHeaders: "Content-Type, Authorization",
+// };
+
+// app.use(cors(corsOptions));
+// app.use(express.json());
+// app.use(express.urlencoded({ extended: true }));
+
+// // Tes API
+// app.get("/", (req, res) => {
+//   res.send("Hello, Secure World!");
+// });
+
+// // Jalankan server HTTPS
+// https.createServer(options, app).listen(port, allowedIp, () => {
+//   console.log(`HTTPS server running on https://141.136.47.185:${port}`);
+// });
