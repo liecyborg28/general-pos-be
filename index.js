@@ -108,5 +108,5 @@ app.use((err, req, res, next) => {
 
 // Jalankan server HTTPS
 https.createServer(options, app).listen(port, allowedIp, () => {
-  console.log(`HTTPS server running on https://141.136.47.185:${port}`);
+  console.log(`HTTPS server running on port ${port}`);
 });
