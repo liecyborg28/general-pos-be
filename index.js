@@ -53,30 +53,16 @@ require("dotenv").config();
 
 const cors = require("cors");
 const express = require("express");
-const fs = require("fs");
 const mongoose = require("mongoose");
-const https = require("https");
+const http = require("http");
 
 // custom
 const app = express();
 const dbConfig = require("./config/dbConfig");
 const errorMessages = require("./app/repository/messages/errorMessages");
 const routes = require("./app/routers/routers/routers");
-
 const port = process.env.PORT;
 const allowedIp = process.env.ALLOWED_IP;
-
-// Load SSL Certificate
-const options = {
-  key: fs.readFileSync(
-    "/www/server/panel/vhost/cert/berlinpoolbistro.online/privkey.pem",
-    "utf8"
-  ),
-  cert: fs.readFileSync(
-    "/www/server/panel/vhost/cert/berlinpoolbistro.online/fullchain.pem",
-    "utf8"
-  ),
-};
 
 mongoose
   .connect(dbConfig.url, dbConfig.connectOption)
@@ -112,7 +98,7 @@ app.use((err, req, res, next) => {
   res.status(500).send({ message: errorMessages.SOMETHING_WENT_WRONG });
 });
 
-// Jalankan server HTTPS
-https.createServer(options, app).listen(port, allowedIp, () => {
-  console.log(`HTTPS server running on port ${port}`);
+// Jalankan server HTTP (SSL handled by Nginx)
+http.createServer(app).listen(port, allowedIp, () => {
+  console.log(`HTTP server running on port ${port}`);
 });
