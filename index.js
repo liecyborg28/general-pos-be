@@ -68,8 +68,14 @@ const allowedIp = process.env.ALLOWED_IP;
 
 // Load SSL Certificate
 const options = {
-  key: fs.readFileSync("/etc/ssl/mycert/server.key"),
-  cert: fs.readFileSync("/etc/ssl/mycert/server.crt"),
+  key: fs.readFileSync(
+    "/www/server/panel/vhost/cert/berlinpoolbistro.online/privkey.pem",
+    "utf8"
+  ),
+  cert: fs.readFileSync(
+    "/www/server/panel/vhost/cert/berlinpoolbistro.online/fullchain.pem",
+    "utf8"
+  ),
 };
 
 mongoose
