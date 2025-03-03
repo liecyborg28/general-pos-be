@@ -66,7 +66,7 @@ module.exports = {
           const businessesPayload = [
             {
               status: "active",
-              imageUrl: "assets/demo/images/logo-berlin-pool-bistro.PNG",
+              imageUrl: null,
               name: "Berlin Pool & Bistro",
               note: "Berlin Pool & Bistro adalah destinasi sempurna bagi pecinta hiburan, makanan lezat, dan suasana santai. Menggabungkan konsep bistro modern dengan area billiard eksklusif, Berlin Pool & Bistro menawarkan pengalaman unik bagi pelanggan yang ingin bersantai setelah hari yang panjang atau bersenang-senang bersama teman-teman.",
               createdAt: dateISOString,
