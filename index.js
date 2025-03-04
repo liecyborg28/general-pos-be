@@ -49,8 +49,7 @@ app.listen(port, allowedIp, () => {
   console.log(`HTTP server running on port ${port}`);
 });
 
-// require("dotenv").config();
-
+// // [MODE VPS]
 // const cors = require("cors");
 // const express = require("express");
 // const mongoose = require("mongoose");
