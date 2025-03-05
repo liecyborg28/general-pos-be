@@ -264,6 +264,7 @@ module.exports = {
       return Promise.resolve({
         error: false,
         message: successMessages.TRANSACTION_CREATED_SUCCESS_ORDER,
+        data: transaction,
       });
     } catch (error) {
       console.error(error);
