@@ -739,4 +739,161 @@ module.exports = {
       return { error: true, message: err.message || "Unknown error" };
     }
   },
+  bulkCreate: async (req) => {
+    try {
+      const transactions = req.body.transactions; // Array transaksi
+      let dateISOString = new Date().toISOString();
+
+      if (!Array.isArray(transactions) || transactions.length === 0) {
+        return Promise.reject({
+          error: true,
+          message: "Invalid transactions data!",
+        });
+      }
+
+      let bulkOperations = [];
+      for (const transaction of transactions) {
+        const { details, status } = transaction;
+        const skipValidation = status?.payment === "returned";
+        let groupedDetails = {};
+
+        for (const productDetail of details) {
+          let key = `${productDetail.productId}-${
+            productDetail.variantId || "default"
+          }`;
+          if (!groupedDetails[key]) {
+            groupedDetails[key] = { ...productDetail, qty: 0, additionals: [] };
+          }
+          groupedDetails[key].qty += productDetail.qty;
+          groupedDetails[key].additionals.push(
+            ...(productDetail.additionals || [])
+          );
+        }
+
+        for (const key in groupedDetails) {
+          let groupedAdditionals = {};
+          for (const additional of groupedDetails[key].additionals) {
+            let addKey = `${additional.productId}-${
+              additional.variantId || "default"
+            }`;
+            if (!groupedAdditionals[addKey]) {
+              groupedAdditionals[addKey] = { ...additional, qty: 0 };
+            }
+            groupedAdditionals[addKey].qty += additional.qty;
+          }
+          groupedDetails[key].additionals = Object.values(groupedAdditionals);
+        }
+
+        if (!skipValidation) {
+          for (const key in groupedDetails) {
+            const productDetail = groupedDetails[key];
+            for (const component of productDetail.components) {
+              const dbComponent = await Component.findById(
+                component.componentId
+              );
+              if (
+                !dbComponent ||
+                dbComponent.qty.current < component.qty * productDetail.qty
+              ) {
+                return Promise.reject({
+                  error: true,
+                  message: `Component ${
+                    dbComponent?.name || "Unknown"
+                  } is insufficient.`,
+                });
+              }
+            }
+            for (const additional of productDetail.additionals) {
+              for (const component of additional.components) {
+                const dbComponent = await Component.findById(
+                  component.componentId
+                );
+                if (
+                  !dbComponent ||
+                  dbComponent.qty.current < component.qty * additional.qty
+                ) {
+                  return Promise.reject({
+                    error: true,
+                    message: `Additional component ${
+                      dbComponent?.name || "Unknown"
+                    } is insufficient.`,
+                  });
+                }
+              }
+            }
+          }
+        }
+
+        let payload = {
+          ...transaction,
+          request: generateRequestCodes(),
+          createdAt: dateISOString,
+          updatedAt: dateISOString,
+        };
+
+        bulkOperations.push({ insertOne: { document: payload } });
+      }
+
+      await Transaction.bulkWrite(bulkOperations);
+      return {
+        error: false,
+        message: "Bulk transactions created successfully!",
+      };
+    } catch (error) {
+      console.error(error);
+      return { error: true, message: "Error processing bulk transactions." };
+    }
+  },
+
+  bulkUpdate: async (req) => {
+    try {
+      const updates = req.body.updates;
+      let dateISOString = new Date().toISOString();
+      if (!Array.isArray(updates) || updates.length === 0) {
+        return Promise.reject({
+          error: true,
+          message: "Invalid updates data!",
+        });
+      }
+
+      let bulkOperations = [];
+      for (const { transactionId, data } of updates) {
+        if (!transactionId) continue;
+        data.updatedAt = dateISOString;
+
+        const transaction = await Transaction.findById(transactionId);
+        if (!transaction) continue;
+
+        if (data.status?.payment === "canceled") {
+          for (const detail of transaction.details) {
+            for (const componentDetail of [
+              ...detail.components,
+              ...detail.additionals.flatMap((a) => a.components),
+            ]) {
+              await Component.findByIdAndUpdate(componentDetail.componentId, {
+                $inc: { "qty.current": componentDetail.qty * detail.qty },
+              });
+            }
+          }
+        }
+
+        bulkOperations.push({
+          updateOne: { filter: { _id: transactionId }, update: { $set: data } },
+        });
+      }
+
+      if (bulkOperations.length === 0) {
+        return { error: true, message: "No valid transactions to update." };
+      }
+
+      await Transaction.bulkWrite(bulkOperations);
+      return {
+        error: false,
+        message: "Bulk transactions updated successfully!",
+      };
+    } catch (error) {
+      console.error(error);
+      return { error: true, message: "Error processing bulk updates." };
+    }
+  },
 };
