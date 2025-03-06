@@ -286,6 +286,25 @@ module.exports = {
                             createdAt: dateISOString,
                             updatedAt: dateISOString,
                           },
+                          {
+                            access: [
+                              "/transactions/pos",
+                              "/transactions/pos/return",
+                              "/transactions/pos/history",
+                              "/transactions/purchase",
+                              "/transactions/purchase/return",
+                              "/transactions/purchase/history",
+                              // settings
+                              "/settings/appearance",
+                              "/settings/device",
+                              "/settings/account",
+                            ],
+                            businessId: businesses[0]._id.toString(),
+                            name: "cashier",
+                            status: "active",
+                            createdAt: dateISOString,
+                            updatedAt: dateISOString,
+                          },
                         ];
 
                         Role.insertMany(rolesPayload, { ordered: true })
@@ -302,7 +321,7 @@ module.exports = {
                                 gender: "male",
                                 imageUrl:
                                   "assets/demo/images/avatar/ivanmagalhaes.png",
-                                name: "User Name",
+                                name: "Super Admin",
                                 password: "12345678",
                                 phone: null,
                                 roleId: roles[0]._id.toString(),
@@ -326,17 +345,17 @@ module.exports = {
                                 email: null,
                                 gender: "female",
                                 imageUrl:
-                                  "assets/demo/images/avatar/bernardodominic.png",
-                                name: "User Name 2",
+                                  "assets/demo/images/avatar/ionibowcher.png",
+                                name: "",
                                 password: "12345678",
                                 phone: null,
-                                roleId: roles[0]._id.toString(),
+                                roleId: roles[1]._id.toString(),
                                 settings: {
                                   theme: "light",
                                   language: "id",
                                 },
                                 status: "active",
-                                username: "admin2",
+                                username: "kasir",
                                 // timestamp
                                 createdAt: dateISOString,
                                 updatedAt: dateISOString,
