@@ -98,7 +98,10 @@ class PdfController {
   }
 
   async convertHtmlToPdfBuffer(html) {
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({
+      executablePath: "/usr/bin/google-chrome", // Gunakan path yang ditemukan
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
+    });
     const page = await browser.newPage();
 
     // Muat HTML di halaman
