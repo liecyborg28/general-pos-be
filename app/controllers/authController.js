@@ -346,7 +346,7 @@ module.exports = {
                                 gender: "female",
                                 imageUrl:
                                   "assets/demo/images/avatar/ionibowcher.png",
-                                name: "",
+                                name: "Kasir 01",
                                 password: "12345678",
                                 phone: null,
                                 roleId: roles[1]._id.toString(),
