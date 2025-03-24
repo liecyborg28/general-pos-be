@@ -66,7 +66,7 @@ module.exports = {
           const businessesPayload = [
             {
               status: "active",
-              imageUrl: "assets/demo/images/logo/logo-berlin-pool-bistro.png",
+              imageUrl: null,
               name: "Berlin Pool & Bistro",
               note: "Berlin Pool & Bistro adalah destinasi sempurna bagi pecinta hiburan, makanan lezat, dan suasana santai. Menggabungkan konsep bistro modern dengan area billiard eksklusif, Berlin Pool & Bistro menawarkan pengalaman unik bagi pelanggan yang ingin bersantai setelah hari yang panjang atau bersenang-senang bersama teman-teman.",
               createdAt: dateISOString,
@@ -74,7 +74,7 @@ module.exports = {
             },
             {
               status: "active",
-              imageUrl: "assets/demo/images/logo/logo-anak-bawang.png",
+              imageUrl: null,
               name: "Anak Bawang",
               note: "Anak Bawang hadir sebagai destinasi kuliner unik bagi pecinta makanan berbumbu kaya dan penuh aroma bawang yang menggoda. Dengan menu andalan seperti Ayam Bawang, Nasi Goreng Bawang, Mie Bawang Pedas, hingga Tahu Crispy Bawang, setiap hidangan kami diracik dengan resep spesial yang menghadirkan cita rasa gurih, renyah, dan menggugah selera.",
               createdAt: dateISOString,
@@ -483,7 +483,7 @@ module.exports = {
                                             separator: ".",
                                             status: "active",
                                             symbol: "Rp",
-                                            totalDecimal: 2,
+                                            totalDecimal: 0,
                                             createdAt: dateISOString,
                                             updatedAt: dateISOString,
                                           },
