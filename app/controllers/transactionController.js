@@ -457,6 +457,7 @@ module.exports = {
 
       return Promise.resolve({
         error: false,
+        data: transaction,
         message: successMessages.TRANSACTION_CREATED_SUCCESS,
       });
     } catch (error) {

@@ -599,8 +599,52 @@ module.exports = {
                                                   changedBy:
                                                     users[0]._id.toString(),
                                                   imageUrl:
-                                                    "assets/demo/images/component/ikan_asin.JPG",
+                                                    "assets/demo/images/component/ikan_asin.jpg",
                                                   name: "Ikan Asin",
+                                                  status: "active",
+                                                  unitId:
+                                                    units[0]._id.toString(),
+                                                  qty: {
+                                                    current: 10,
+                                                    max: 100,
+                                                    min: 5,
+                                                    status: "available",
+                                                  },
+                                                  createdAt: dateISOString,
+                                                  updatedAt: dateISOString,
+                                                },
+                                                {
+                                                  businessId:
+                                                    businesses[0]._id.toString(),
+                                                  categoryId:
+                                                    categories[4]._id.toString(),
+                                                  changedBy:
+                                                    users[0]._id.toString(),
+                                                  imageUrl:
+                                                    "assets/demo/images/component/telur.jpg",
+                                                  name: "Telur Ayam",
+                                                  status: "active",
+                                                  unitId:
+                                                    units[0]._id.toString(),
+                                                  qty: {
+                                                    current: 10,
+                                                    max: 100,
+                                                    min: 5,
+                                                    status: "available",
+                                                  },
+                                                  createdAt: dateISOString,
+                                                  updatedAt: dateISOString,
+                                                },
+                                                {
+                                                  businessId:
+                                                    businesses[0]._id.toString(),
+                                                  categoryId:
+                                                    categories[4]._id.toString(),
+                                                  changedBy:
+                                                    users[0]._id.toString(),
+                                                  imageUrl:
+                                                    "assets/demo/images/component/sosis.png",
+                                                  name: "Sosis Ayam",
                                                   status: "active",
                                                   unitId:
                                                     units[0]._id.toString(),
@@ -806,7 +850,6 @@ module.exports = {
                                                       createdAt: dateISOString,
                                                       updatedAt: dateISOString,
                                                     },
-
                                                     {
                                                       businessId:
                                                         businesses[0]._id.toString(),
@@ -893,6 +936,129 @@ module.exports = {
                                                             "assets/demo/images/product/nasi_goreng_ikan_asin.JPG",
                                                           name: "Ikan Asin",
                                                           price: 16000,
+                                                          qty: 10,
+                                                        },
+                                                      ],
+                                                      createdAt: dateISOString,
+                                                      updatedAt: dateISOString,
+                                                    },
+                                                    {
+                                                      businessId:
+                                                        businesses[0]._id.toString(),
+                                                      categoryIds: [
+                                                        categories[4]._id.toString(),
+                                                      ],
+                                                      changedBy:
+                                                        users[0]._id.toString(),
+                                                      code: {
+                                                        bar: "telurdadar",
+                                                        qr: "telurdadar",
+                                                      },
+                                                      countable: true,
+                                                      charged: false,
+                                                      name: "Telur",
+                                                      status: "active",
+                                                      unitId:
+                                                        units[0]._id.toString(),
+                                                      variants: [
+                                                        {
+                                                          components: [
+                                                            {
+                                                              componentId:
+                                                                components[4]._id.toString(),
+                                                              qty: 1,
+                                                            },
+                                                          ],
+                                                          cost: 2000,
+                                                          description:
+                                                            "Deskripsi untuk telur dadar.",
+                                                          default: true,
+                                                          imageUrl:
+                                                            "assets/demo/images/product/telur_dadar.jpg",
+                                                          name: "Dadar",
+                                                          price: 3000,
+                                                          qty: 10,
+                                                        },
+                                                      ],
+                                                      createdAt: dateISOString,
+                                                      updatedAt: dateISOString,
+                                                    },
+                                                    {
+                                                      businessId:
+                                                        businesses[0]._id.toString(),
+                                                      categoryIds: [
+                                                        categories[4]._id.toString(),
+                                                      ],
+                                                      changedBy:
+                                                        users[0]._id.toString(),
+                                                      code: {
+                                                        bar: "telurmatasapi",
+                                                        qr: "telurmatasapi",
+                                                      },
+                                                      countable: true,
+                                                      charged: false,
+                                                      name: "Telur",
+                                                      status: "active",
+                                                      unitId:
+                                                        units[0]._id.toString(),
+                                                      variants: [
+                                                        {
+                                                          components: [
+                                                            {
+                                                              componentId:
+                                                                components[4]._id.toString(),
+                                                              qty: 1,
+                                                            },
+                                                          ],
+                                                          cost: 2000,
+                                                          description:
+                                                            "Deskripsi untuk telur mata sapi.",
+                                                          default: true,
+                                                          imageUrl:
+                                                            "assets/demo/images/product/telur_mata_sapi.jpeg",
+                                                          name: "Mata Sapi",
+                                                          price: 3000,
+                                                          qty: 10,
+                                                        },
+                                                      ],
+                                                      createdAt: dateISOString,
+                                                      updatedAt: dateISOString,
+                                                    },
+                                                    {
+                                                      businessId:
+                                                        businesses[0]._id.toString(),
+                                                      categoryIds: [
+                                                        categories[4]._id.toString(),
+                                                      ],
+                                                      changedBy:
+                                                        users[0]._id.toString(),
+                                                      code: {
+                                                        bar: "sosisgoreng",
+                                                        qr: "sosisgoreng",
+                                                      },
+                                                      countable: true,
+                                                      charged: false,
+                                                      name: "Sosis",
+                                                      status: "active",
+                                                      unitId:
+                                                        units[0]._id.toString(),
+                                                      variants: [
+                                                        {
+                                                          components: [
+                                                            {
+                                                              componentId:
+                                                                components[5]._id.toString(),
+                                                              qty: 1,
+                                                            },
+                                                          ],
+                                                          cost: 2000,
+                                                          description:
+                                                            "Deskripsi untuk sosis goreng.",
+                                                          default: true,
+                                                          imageUrl:
+                                                            "assets/demo/images/product/sosis_goreng.webp",
+                                                          name: "Goreng",
+                                                          price: 3000,
                                                           qty: 10,
                                                         },
                                                       ],
