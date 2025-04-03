@@ -516,9 +516,9 @@ module.exports = {
               name: "Laporan Penjualan",
               content: {
                 header: {
-                  name: `${name} Periode (${formatController.convertToDateDDMMYYYY(
+                  name: `${name} Periode (${formatController.getNextDay(
                     req.query?.from ? req.query?.from : dateISOString
-                  )} - ${formatController.convertToDateDDMMYYYY(
+                  )} - ${formatController.getNextDay(
                     req.query?.to ? req.query?.to : dateISOString
                   )})`,
                   color: { background: "#FFFF00", text: "#000000" },
@@ -1278,7 +1278,10 @@ async function generateReport(req, groupField) {
     ) {
       pipeline.createdAt = {
         $gte: req.query.from
-          ? formatController.convertToLocaleISOString(req.query.from, "start")
+          ? formatController.convertToLocaleISOStringNextDay(
+              req.query.from,
+              "start"
+            )
           : defaultFrom,
         $lte: req.query.to
           ? formatController.convertToLocaleISOStringNextDay(

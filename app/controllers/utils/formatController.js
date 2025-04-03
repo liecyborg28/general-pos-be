@@ -72,4 +72,16 @@ module.exports = {
     const year = date.getFullYear();
     return `${day}/${month}/${year}`;
   },
+
+  getPreviousDay(dateISOString) {
+    const date = new Date(dateISOString);
+    date.setDate(date.getDate() - 1);
+    return this.convertToDateDDMMYYYY(date.toISOString());
+  },
+
+  getNextDay(dateISOString) {
+    const date = new Date(dateISOString);
+    date.setDate(date.getDate() + 1);
+    return this.convertToDateDDMMYYYY(date.toISOString());
+  },
 };
