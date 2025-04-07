@@ -11,6 +11,7 @@ const ServiceMethod = require("../models/serviceMethodModel");
 const Tax = require("../models/taxModel");
 const Transaction = require("../models/transactionModel");
 const User = require("../models/userModel");
+const Warehouse = require("../models/warehouseModel");
 
 // controllers
 const dataController = require("./utils/dataController");
@@ -88,6 +89,7 @@ module.exports = {
       }
 
       let dateISOString = new Date().toISOString();
+      let warehouse = await Warehouse.findById(transaction.warehouseId);
       const skipValidation = status?.payment === "returned";
 
       // Deklarasikan groupedDetails di luar blok validasi agar bisa digunakan di semua kondisi
@@ -130,9 +132,14 @@ module.exports = {
           // Validasi komponen utama
           for (const component of productDetail.components) {
             const dbComponent = await Component.findById(component.componentId);
+            const dbComponentWarehouse = warehouse.components.find(
+              (e) => e._id.toString() === component.componentId
+            );
+
             if (
               !dbComponent ||
-              dbComponent.qty.current < component.qty * productDetail.qty
+              dbComponentWarehouse.qty.current <
+                component.qty * productDetail.qty
             ) {
               return Promise.reject({
                 error: true,
@@ -154,77 +161,99 @@ module.exports = {
 
         // Update stok komponen utama
         for (const component of productDetail.components) {
-          const updatedComponent = await Component.findByIdAndUpdate(
-            component.componentId,
-            {
-              $inc: {
-                "qty.current": skipValidation
-                  ? component.qty * productDetail.qty
-                  : -component.qty * productDetail.qty,
-              },
-            },
-            { new: true }
+          let dbComponentWarehouse = warehouse.components.find(
+            (e) => e._id.toString() === component.componentId
           );
+
+          let dbComponentWarehouseFindIndex = warehouse.components.findIndex(
+            (e) => e._id.toString() === component.componentId
+          );
+
+          dbComponentWarehouse.qty.current += skipValidation
+            ? component.qty * productDetail.qty
+            : -component.qty * productDetail.qty;
 
           // Update status berdasarkan stok terkini
           const newStatus =
-            updatedComponent.qty.current <= 0
+            dbComponentWarehouse.qty.current <= 0
               ? "outOfStock"
-              : updatedComponent.qty.current <= updatedComponent.qty.min
+              : dbComponentWarehouse.qty.current <= dbComponentWarehouse.qty.min
               ? "almostOut"
               : "available";
 
-          await Component.findByIdAndUpdate(
-            component.componentId,
-            { "qty.status": newStatus },
-            { new: true }
-          );
-        }
+          dbComponentWarehouse.qty.status = newStatus;
 
-        // Update stok produk utama (jika countable)
-        const product = await Product.findById(productDetail.productId);
-        if (product.countable) {
-          await Product.updateOne(
-            { _id: product._id, "variants._id": productDetail.variantId },
+          warehouse.components[dbComponentWarehouseFindIndex] =
+            dbComponentWarehouse;
+
+          await Warehouse.findByIdAndUpdate(
+            transaction.warehouseId,
+            warehouse,
             {
-              $inc: {
-                "variants.$.qty": skipValidation
-                  ? productDetail.qty
-                  : -productDetail.qty,
-              },
+              new: true,
             }
           );
         }
 
+        // Update stok produk utama (jika countable)
+        warehouse = await Warehouse.findById(transaction.warehouseId);
+        const product = await Product.findById(productDetail.productId);
+        if (product.countable) {
+          let dbProductWarehouse = warehouse.products.find(
+            (e) => e._id.toString() === productDetail.productId
+          );
+
+          let dbProductWarehouseFindIndex = warehouse.products.findIndex(
+            (e) => e._id.toString() === productDetail.productId
+          );
+
+          let dbProductVariantWarehouseFindIndex =
+            dbProductWarehouse.variants.findIndex(
+              (e) => e._id.toString() === productDetail.variantId
+            );
+
+          dbProductWarehouse.variants[dbProductVariantWarehouseFindIndex].qty +=
+            skipValidation ? productDetail.qty : -productDetail.qty;
+
+          warehouse.products[dbProductWarehouseFindIndex] = dbProductWarehouse;
+
+          await Warehouse.findByIdAndUpdate(
+            transaction.warehouseId,
+            warehouse,
+            {
+              new: true,
+            }
+          );
+        }
+
+        warehouse = await Warehouse.findById(transaction.warehouseId);
         // Update stok additionals
         for (const additional of productDetail.additionals) {
           for (const component of additional.components) {
-            const updatedAdditionalComponent =
-              await Component.findByIdAndUpdate(
-                component.componentId,
-                {
-                  $inc: {
-                    "qty.current": skipValidation
-                      ? component.qty * additional.qty
-                      : -component.qty * additional.qty,
-                  },
-                },
-                { new: true }
+            let dbAdditionalComponentWarehouse = warehouse.components.find(
+              (e) => e._id.toString() === transaction.warehouseId
+            );
+
+            let dbAdditionalComponentWarehouseFindIndex =
+              warehouse.components.findIndex(
+                (e) => e._id.toString() === transaction.warehouseId
               );
 
-            // Update status berdasarkan stok terkini
-            const newAdditionalStatus =
-              updatedAdditionalComponent.qty.current <= 0
-                ? "outOfStock"
-                : updatedAdditionalComponent.qty.current <=
-                  updatedAdditionalComponent.qty.min
-                ? "almostOut"
-                : "available";
+            dbAdditionalComponentWarehouse.qty.current += skipValidation
+              ? component.qty * additional.qty
+              : -component.qty * additional.qty;
 
-            await Component.findByIdAndUpdate(
-              component.componentId,
-              { "qty.status": newAdditionalStatus },
-              { new: true }
+            dbAdditionalComponentWarehouse.qty.status = newAdditionalStatus;
+
+            warehouse.components[dbAdditionalComponentWarehouseFindIndex] =
+              dbAdditionalComponentWarehouse;
+
+            await Warehouse.findByIdAndUpdate(
+              transaction.warehouseId,
+              warehouse,
+              {
+                new: true,
+              }
             );
           }
 
@@ -233,17 +262,29 @@ module.exports = {
             additional.productId
           );
           if (additionalProduct.countable) {
-            await Product.updateOne(
+            warehouse = await Warehouse.findById(transaction.warehouseId);
+
+            let dbAdditionalProductWarehouse = warehouse.products.find(
+              (e) => e._id.toString() === additional.productId
+            );
+
+            let dbAdditionalProductWarehouseFindIndex =
+              warehouse.products.findIndex(
+                (e) => e._id.toString() === additional.productId
+              );
+
+            dbAdditionalProductWarehouse.qty += skipValidation
+              ? additional.qty
+              : -additional.qty;
+
+            warehouse.products[dbAdditionalProductWarehouseFindIndex] =
+              dbAdditionalProductWarehouse;
+
+            await Warehouse.findByIdAndUpdate(
+              transaction.warehouseId,
+              warehouse,
               {
-                _id: additionalProduct._id,
-                "variants._id": additional.variantId,
-              },
-              {
-                $inc: {
-                  "variants.$.qty": skipValidation
-                    ? additional.qty
-                    : -additional.qty,
-                },
+                new: true,
               }
             );
           }
@@ -282,6 +323,7 @@ module.exports = {
     try {
       const { details, status } = req.body;
       let dateISOString = new Date().toISOString();
+      let warehouse = await Warehouse.findById(transaction.warehouseId);
       const skipValidation = status?.payment === "returned";
 
       // Deklarasikan groupedDetails di luar blok validasi agar bisa digunakan di semua kondisi
@@ -324,9 +366,14 @@ module.exports = {
           // Validasi komponen utama
           for (const component of productDetail.components) {
             const dbComponent = await Component.findById(component.componentId);
+            const dbComponentWarehouse = warehouse.components.find(
+              (e) => e._id.toString() === component.componentId
+            );
+
             if (
               !dbComponent ||
-              dbComponent.qty.current < component.qty * productDetail.qty
+              dbComponentWarehouse.qty.current <
+                component.qty * productDetail.qty
             ) {
               return Promise.reject({
                 error: true,
@@ -348,77 +395,99 @@ module.exports = {
 
         // Update stok komponen utama
         for (const component of productDetail.components) {
-          const updatedComponent = await Component.findByIdAndUpdate(
-            component.componentId,
-            {
-              $inc: {
-                "qty.current": skipValidation
-                  ? component.qty * productDetail.qty
-                  : -component.qty * productDetail.qty,
-              },
-            },
-            { new: true }
+          let dbComponentWarehouse = warehouse.components.find(
+            (e) => e._id.toString() === component.componentId
           );
+
+          let dbComponentWarehouseFindIndex = warehouse.components.findIndex(
+            (e) => e._id.toString() === component.componentId
+          );
+
+          dbComponentWarehouse.qty.current += skipValidation
+            ? component.qty * productDetail.qty
+            : -component.qty * productDetail.qty;
 
           // Update status berdasarkan stok terkini
           const newStatus =
-            updatedComponent.qty.current <= 0
+            dbComponentWarehouse.qty.current <= 0
               ? "outOfStock"
-              : updatedComponent.qty.current <= updatedComponent.qty.min
+              : dbComponentWarehouse.qty.current <= dbComponentWarehouse.qty.min
               ? "almostOut"
               : "available";
 
-          await Component.findByIdAndUpdate(
-            component.componentId,
-            { "qty.status": newStatus },
-            { new: true }
-          );
-        }
+          dbComponentWarehouse.qty.status = newStatus;
 
-        // Update stok produk utama (jika countable)
-        const product = await Product.findById(productDetail.productId);
-        if (product.countable) {
-          await Product.updateOne(
-            { _id: product._id, "variants._id": productDetail.variantId },
+          warehouse.components[dbComponentWarehouseFindIndex] =
+            dbComponentWarehouse;
+
+          await Warehouse.findByIdAndUpdate(
+            transaction.warehouseId,
+            warehouse,
             {
-              $inc: {
-                "variants.$.qty": skipValidation
-                  ? productDetail.qty
-                  : -productDetail.qty,
-              },
+              new: true,
             }
           );
         }
 
+        // Update stok produk utama (jika countable)
+        warehouse = await Warehouse.findById(transaction.warehouseId);
+        const product = await Product.findById(productDetail.productId);
+        if (product.countable) {
+          let dbProductWarehouse = warehouse.products.find(
+            (e) => e._id.toString() === productDetail.productId
+          );
+
+          let dbProductWarehouseFindIndex = warehouse.products.findIndex(
+            (e) => e._id.toString() === productDetail.productId
+          );
+
+          let dbProductVariantWarehouseFindIndex =
+            dbProductWarehouse.variants.findIndex(
+              (e) => e._id.toString() === productDetail.variantId
+            );
+
+          dbProductWarehouse.variants[dbProductVariantWarehouseFindIndex].qty +=
+            skipValidation ? productDetail.qty : -productDetail.qty;
+
+          warehouse.products[dbProductWarehouseFindIndex] = dbProductWarehouse;
+
+          await Warehouse.findByIdAndUpdate(
+            transaction.warehouseId,
+            warehouse,
+            {
+              new: true,
+            }
+          );
+        }
+
+        warehouse = await Warehouse.findById(transaction.warehouseId);
         // Update stok additionals
         for (const additional of productDetail.additionals) {
           for (const component of additional.components) {
-            const updatedAdditionalComponent =
-              await Component.findByIdAndUpdate(
-                component.componentId,
-                {
-                  $inc: {
-                    "qty.current": skipValidation
-                      ? component.qty * additional.qty
-                      : -component.qty * additional.qty,
-                  },
-                },
-                { new: true }
+            let dbAdditionalComponentWarehouse = warehouse.components.find(
+              (e) => e._id.toString() === transaction.warehouseId
+            );
+
+            let dbAdditionalComponentWarehouseFindIndex =
+              warehouse.components.findIndex(
+                (e) => e._id.toString() === transaction.warehouseId
               );
 
-            // Update status berdasarkan stok terkini
-            const newAdditionalStatus =
-              updatedAdditionalComponent.qty.current <= 0
-                ? "outOfStock"
-                : updatedAdditionalComponent.qty.current <=
-                  updatedAdditionalComponent.qty.min
-                ? "almostOut"
-                : "available";
+            dbAdditionalComponentWarehouse.qty.current += skipValidation
+              ? component.qty * additional.qty
+              : -component.qty * additional.qty;
 
-            await Component.findByIdAndUpdate(
-              component.componentId,
-              { "qty.status": newAdditionalStatus },
-              { new: true }
+            dbAdditionalComponentWarehouse.qty.status = newAdditionalStatus;
+
+            warehouse.components[dbAdditionalComponentWarehouseFindIndex] =
+              dbAdditionalComponentWarehouse;
+
+            await Warehouse.findByIdAndUpdate(
+              transaction.warehouseId,
+              warehouse,
+              {
+                new: true,
+              }
             );
           }
 
@@ -427,17 +496,29 @@ module.exports = {
             additional.productId
           );
           if (additionalProduct.countable) {
-            await Product.updateOne(
+            warehouse = await Warehouse.findById(transaction.warehouseId);
+
+            let dbAdditionalProductWarehouse = warehouse.products.find(
+              (e) => e._id.toString() === additional.productId
+            );
+
+            let dbAdditionalProductWarehouseFindIndex =
+              warehouse.products.findIndex(
+                (e) => e._id.toString() === additional.productId
+              );
+
+            dbAdditionalProductWarehouse.qty += skipValidation
+              ? additional.qty
+              : -additional.qty;
+
+            warehouse.products[dbAdditionalProductWarehouseFindIndex] =
+              dbAdditionalProductWarehouse;
+
+            await Warehouse.findByIdAndUpdate(
+              transaction.warehouseId,
+              warehouse,
               {
-                _id: additionalProduct._id,
-                "variants._id": additional.variantId,
-              },
-              {
-                $inc: {
-                  "variants.$.qty": skipValidation
-                    ? additional.qty
-                    : -additional.qty,
-                },
+                new: true,
               }
             );
           }
