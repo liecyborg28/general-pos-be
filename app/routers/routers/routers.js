@@ -22,6 +22,7 @@ const taxRouter = require("../taxRouter");
 const transactionRouter = require("../transactionRouter");
 const unitRouter = require("../unitRouter");
 const userRouter = require("../userRouter");
+const warehouseRouter = require("../warehouseRouter");
 
 router.use(authRouter);
 router.use(businessRouter);
@@ -44,5 +45,6 @@ router.use(transactionRouter);
 router.use(taxRouter);
 router.use(unitRouter);
 router.use(userRouter);
+router.use(warehouseRouter);
 
 module.exports = router;

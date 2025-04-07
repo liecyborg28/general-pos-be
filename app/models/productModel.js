@@ -42,7 +42,7 @@ const Product = mongoose.Schema({
       imageUrl: String,
       name: String,
       price: Number,
-      qty: Number,
+      // qty: Number,
     },
   ],
   // timestamp

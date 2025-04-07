@@ -131,7 +131,10 @@ module.exports = {
   // V
 
   // W
-
+  WAREHOUSE_CREATED_SUCCESS: {
+    en: "Warehouse created successfully!",
+    id: "Gudang berhasil ditambahkan!",
+  },
   // X
 
   // Y

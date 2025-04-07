@@ -546,6 +546,10 @@ module.exports = {
             PaymentMethod,
             transaction.paymentMethodId
           );
+          transaction.warehouseId = await dataController.populateFieldById(
+            warehouseController,
+            transaction.warehouseId
+          );
 
           // Populate charges, promotions, dan taxes secara paralel
           await Promise.all(

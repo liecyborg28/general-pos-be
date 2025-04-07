@@ -1,5 +1,4 @@
-// models
-const Outlet = require("../models/outletModel");
+const Warehouse = require("../models/warehouseModel");
 const User = require("../models/userModel");
 
 // controllers
@@ -12,32 +11,25 @@ const successMessages = require("../repository/messages/successMessages");
 
 module.exports = {
   create: async (req) => {
+    let dateISOString = new Date().toISOString();
     let body = req.body;
+
+    let isBodyValid = () => {
+      return body.name && body.components && body.products;
+    };
+
     const bearerHeader = req.headers["authorization"];
     const bearerToken = bearerHeader.split(" ")[1];
+
     let userByToken = await User.findOne({
       "auth.accessToken": bearerToken,
     });
 
-    let dateISOString = new Date().toISOString();
-    let isBodyValid = () => {
-      return (
-        body.address &&
-        body.businessId &&
-        body.warehouseId &&
-        body.name &&
-        body.status
-      );
-    };
-
     let payload = isBodyValid()
       ? {
-          address: body.address,
-          businessId: body.businessId,
-          warehouseId: body.warehouseId,
           name: body.name,
-          note: body.note ? body.note : null,
-          status: body.status,
+          components: body.components,
+          products: body.products,
           createdAt: dateISOString,
           updatedAt: dateISOString,
         }
@@ -48,8 +40,12 @@ module.exports = {
 
     if (isBodyValid()) {
       let nameIsExist = await dataController.isExist(
-        { businessId: body.businessId, name: body.name },
-        Outlet
+        {
+          businessId: body.businessId,
+          name: body.name,
+          status: { $ne: "deleted" },
+        },
+        Product
       );
 
       if (nameIsExist) {
@@ -60,13 +56,13 @@ module.exports = {
       }
 
       return new Promise((resolve, reject) => {
-        new Outlet(payload)
+        new Product(payload)
           .save()
           .then((result) => {
             resolve({
               error: false,
               data: result,
-              message: successMessages.OUTLET_CREATED_SUCCESS,
+              message: successMessages.PRODUCT_CREATED_SUCCESS,
             });
           })
           .catch((err) => {
@@ -79,9 +75,9 @@ module.exports = {
   },
 
   get: (req) => {
-    let { businessId } = req.query;
     let pageKey = req.query.pageKey ? req.query.pageKey : 1;
     let pageSize = req.query.pageSize ? req.query.pageSize : null;
+    let { businessId } = req.query;
 
     return new Promise((resolve, reject) => {
       let pipeline = {
@@ -93,14 +89,16 @@ module.exports = {
       }
 
       pageController
-        .paginate(pageKey, pageSize, pipeline, Outlet)
-        .then((outlets) => {
-          Outlet.populate(outlets.data, { path: "businessId warehouseId" })
+        .paginate(pageKey, pageSize, pipeline, Warehouse)
+        .then((warehouses) => {
+          Warehouse.populate(warehouses.data, {
+            path: "businessId",
+          })
             .then((data) => {
               resolve({
                 error: false,
                 data: data,
-                count: outlets.count,
+                count: warehouses.count,
               });
             })
             .catch((err) => {
@@ -114,46 +112,38 @@ module.exports = {
   },
 
   update: async (req) => {
-    let body = req.body;
+    let dateISOString = new Date().toISOString();
     const bearerHeader = req.headers["authorization"];
     const bearerToken = bearerHeader.split(" ")[1];
 
     let userByToken = await User.findOne({
       "auth.accessToken": bearerToken,
     });
-    let dateISOString = new Date().toISOString();
-    // let nameIsExist = await dataController.isExist(
-    //   { businessId: body.data.businessId, name: body.data.name },
-    //   Outlet
-    // );
 
-    // if (nameIsExist) {
-    //   return Promise.reject({
-    //     error: true,
-    //     message: errorMessages.NAME_ALREADY_EXISTS,
-    //   });
-    // }
+    let body = req.body;
 
-    if (!body.outletId) {
+    if (!body.warehouseId) {
       return Promise.reject({
         error: true,
         message: errorMessages.INVALID_DATA,
       });
-    } else {
-      body.data["updatedAt"] = dateISOString;
-      return new Promise((resolve, reject) => {
-        Outlet.findByIdAndUpdate(body.outletId, body.data, { new: true })
-          .then((result) => {
-            resolve({
-              error: false,
-              data: result,
-              message: successMessages.DATA_SUCCESS_UPDATED,
-            });
-          })
-          .catch((err) => {
-            reject({ error: true, message: err });
-          });
-      });
     }
+
+    body.data["updatedAt"] = dateISOString;
+    body.data["changedBy"] = userByToken._id;
+
+    return new Promise((resolve, reject) => {
+      Warehouse.findByIdAndUpdate(body.warehouseId, body.data, { new: true })
+        .then((result) => {
+          resolve({
+            error: false,
+            data: result,
+            message: successMessages.DATA_SUCCESS_UPDATED,
+          });
+        })
+        .catch((err) => {
+          reject({ error: true, message: err });
+        });
+    });
   },
 };

@@ -18,6 +18,7 @@ const Supplier = require("../models/supplierModel");
 const Tax = require("../models/taxModel");
 const Unit = require("../models/unitModel");
 const User = require("../models/userModel");
+const Warehouse = require("../models/warehouseModel");
 
 // controllers
 const dataController = require("./utils/dataController");
@@ -72,54 +73,10 @@ module.exports = {
               createdAt: dateISOString,
               updatedAt: dateISOString,
             },
-            {
-              status: "active",
-              imageUrl: null,
-              name: "Anak Bawang",
-              note: "Anak Bawang hadir sebagai destinasi kuliner unik bagi pecinta makanan berbumbu kaya dan penuh aroma bawang yang menggoda. Dengan menu andalan seperti Ayam Bawang, Nasi Goreng Bawang, Mie Bawang Pedas, hingga Tahu Crispy Bawang, setiap hidangan kami diracik dengan resep spesial yang menghadirkan cita rasa gurih, renyah, dan menggugah selera.",
-              createdAt: dateISOString,
-              updatedAt: dateISOString,
-            },
           ];
 
           Business.insertMany(businessesPayload, { ordered: true })
             .then((businesses) => {
-              const outletsPayload = [
-                {
-                  address:
-                    "Jl. S. Parman No. 27, Kel. Grand Sentosa, Kec. Central District Kota Metropolis, 12345 Negara Arcadia",
-                  businessId: businesses[0]._id.toString(),
-                  name: "S. Parman",
-                  note: "Instagram: @berlinpoolbistro\nFacebook: Berlin Pool & Bistro\nTikTok: @berlinpoolbistro\nNama WiFi: BerlinPoolBistro\nPassword: GreatShots2025",
-                  status: "active",
-                  // timestamp
-                  createdAt: dateISOString,
-                  updatedAt: dateISOString,
-                },
-                {
-                  address:
-                    "Jl. Harmoni No. 40, Kel. Kepala Gading, Kec. Central District Kota Metropolis, 12345 Negara Arcadia",
-                  businessId: businesses[0]._id.toString(),
-                  name: "Harmoni",
-                  note: "Instagram: @berlinpoolbistro\nFacebook: Berlin Pool & Bistro\nTikTok: @berlinpoolbistro\nNama WiFi: BerlinPoolBistro\nPassword: GreatShots2025",
-                  status: "active",
-                  // timestamp
-                  createdAt: dateISOString,
-                  updatedAt: dateISOString,
-                },
-                {
-                  address:
-                    "Jl. Merdeka No. 9, Kel. Grand Sentosa, Kec. Central District Kota Metropolis, 12345 Negara Arcadia",
-                  businessId: businesses[1]._id.toString(),
-                  name: "Merdeka",
-                  note: "Instagram: @anak_bawang\nFacebook: Anak Bawang\nTikTok: @anak_bawang\nNama WiFi: anakbawang\nPassword: BawangEnakGurih",
-                  status: "active",
-                  // timestamp
-                  createdAt: dateISOString,
-                  updatedAt: dateISOString,
-                },
-              ];
-
               const paymentMethodsPayload = [
                 {
                   businessId: businesses[0]._id.toString(),
@@ -197,222 +154,270 @@ module.exports = {
                   ServiceMethod.insertMany(serviceMethodsPayload, {
                     ordered: true,
                   }).then((serviceMethods) => {
-                    Outlet.insertMany(outletsPayload, { ordered: true }).then(
-                      (outlets) => {
-                        const rolesPayload = [
-                          {
-                            access: [
-                              "/transactions/pos",
-                              "/transactions/pos/return",
-                              "/transactions/pos/history",
-                              "/transactions/purchase",
-                              "/transactions/purchase/return",
-                              "/transactions/purchase/history",
-                              // reports
-                              "/reports/dashboard",
-                              "/reports/charts",
-                              // businesses
-                              "/management/businesses",
-                              "/management/business/add",
-                              "/management/business/edit",
-                              // outlets
-                              "/management/outlets",
-                              "/management/outlet/add",
-                              "/management/outlet/edit",
-                              // charges
-                              "/management/charges",
-                              "/management/charge/add",
-                              "/management/charge/edit",
-                              // promotions
-                              "/management/promotions",
-                              "/management/promotion/add",
-                              "/management/promotion/edit",
-                              // taxes
-                              "/management/taxes",
-                              "/management/tax/add",
-                              "/management/tax/edit",
-                              // serviceMethods
-                              "/management/service/methods",
-                              "/management/service/method/add",
-                              "/management/service/method/edit",
-                              // paymentMethods
-                              "/management/payment/methods",
-                              "/management/payment/method/add",
-                              "/management/payment/method/edit",
-                              // currencies
-                              "/management/currencies",
-                              "/management/currency/add",
-                              "/management/currency/edit",
-                              // suppliers
-                              "/management/suppliers",
-                              "/management/supplier/add",
-                              "/management/supplier/edit",
-                              // customers
-                              "/management/customers",
-                              "/management/customer/add",
-                              "/management/customer/edit",
-                              // roles
-                              "/management/roles",
-                              "/management/role/add",
-                              "/management/role/edit",
-                              // categories
-                              "/management/categories",
-                              "/management/category/add",
-                              "/management/category/edit",
-                              // components
-                              "/management/components",
-                              "/management/component/add",
-                              "/management/component/edit",
-                              // products
-                              "/management/products",
-                              "/management/product/add",
-                              "/management/product/edit",
-                              // units
-                              "/management/units",
-                              "/management/unit/add",
-                              "/management/unit/edit",
-                              // users
-                              "/management/users",
-                              "/management/user/add",
-                              "/management/user/edit",
-                              // settings
-                              "/settings/appearance",
-                              "/settings/device",
-                              "/settings/account",
-                            ],
-                            businessId: businesses[0]._id.toString(),
-                            name: "administrator",
-                            status: "active",
-                            createdAt: dateISOString,
-                            updatedAt: dateISOString,
-                          },
-                          {
-                            access: [
-                              "/transactions/pos",
-                              "/transactions/pos/return",
-                              "/transactions/pos/history",
-                              "/transactions/purchase",
-                              "/transactions/purchase/return",
-                              "/transactions/purchase/history",
-                              // settings
-                              "/settings/appearance",
-                              "/settings/device",
-                              "/settings/account",
-                            ],
-                            businessId: businesses[0]._id.toString(),
-                            name: "cashier",
-                            status: "active",
-                            createdAt: dateISOString,
-                            updatedAt: dateISOString,
-                          },
-                        ];
+                    const warehousesPayload = [
+                      {
+                        name: "Gudang Utama",
+                        businessId: businesses[0]._id.toString(),
+                        components: [],
+                        products: [],
+                        status: "active",
+                        createdAt: dateISOString,
+                        updatedAt: dateISOString,
+                      },
+                    ];
 
-                        Role.insertMany(rolesPayload, { ordered: true })
-                          .then((roles) => {
-                            const usersPayload = [
-                              {
-                                auth: {
-                                  accessToken: authUtils.generateAccessToken(),
-                                  expiredAt:
-                                    authUtils.generateExpirationDate(7),
-                                },
-                                businessId: businesses[0]._id.toString(),
-                                email: null,
-                                gender: "male",
-                                imageUrl:
-                                  "assets/demo/images/avatar/ivanmagalhaes.png",
-                                name: "Super Admin",
-                                password: "12345678",
-                                phone: null,
-                                roleId: roles[0]._id.toString(),
-                                settings: {
-                                  theme: "light",
-                                  language: "id",
-                                },
-                                status: "active",
-                                username: "admin",
-                                // timestamp
-                                createdAt: dateISOString,
-                                updatedAt: dateISOString,
-                              },
-                              {
-                                auth: {
-                                  accessToken: authUtils.generateAccessToken(),
-                                  expiredAt:
-                                    authUtils.generateExpirationDate(7),
-                                },
-                                businessId: businesses[0]._id.toString(),
-                                email: null,
-                                gender: "female",
-                                imageUrl:
-                                  "assets/demo/images/avatar/ionibowcher.png",
-                                name: "Kasir 01",
-                                password: "12345678",
-                                phone: null,
-                                roleId: roles[1]._id.toString(),
-                                settings: {
-                                  theme: "light",
-                                  language: "id",
-                                },
-                                status: "active",
-                                username: "kasir",
-                                // timestamp
-                                createdAt: dateISOString,
-                                updatedAt: dateISOString,
-                              },
-                            ];
+                    Warehouse.insertMany(warehousesPayload, {
+                      ordered: true,
+                    }).then((warehouses) => {
+                      const outletsPayload = [
+                        {
+                          address:
+                            "Jl. S. Parman No. 27, Kel. Grand Sentosa, Kec. Central District Kota Metropolis, 12345 Negara Arcadia",
+                          businessId: businesses[0]._id.toString(),
+                          warehouseId: warehouses[0]._id.toString(),
+                          name: "S. Parman",
+                          note: "Instagram: @berlinpoolbistro\nFacebook: Berlin Pool & Bistro\nTikTok: @berlinpoolbistro\nNama WiFi: BerlinPoolBistro\nPassword: GreatShots2025",
+                          status: "active",
+                          // timestamp
+                          createdAt: dateISOString,
+                          updatedAt: dateISOString,
+                        },
+                        {
+                          address:
+                            "Jl. Harmoni No. 40, Kel. Kepala Gading, Kec. Central District Kota Metropolis, 12345 Negara Arcadia",
+                          businessId: businesses[0]._id.toString(),
+                          warehouseId: warehouses[0]._id.toString(),
+                          name: "Harmoni",
+                          note: "Instagram: @berlinpoolbistro\nFacebook: Berlin Pool & Bistro\nTikTok: @berlinpoolbistro\nNama WiFi: BerlinPoolBistro\nPassword: GreatShots2025",
+                          status: "active",
+                          // timestamp
+                          createdAt: dateISOString,
+                          updatedAt: dateISOString,
+                        },
+                      ];
 
-                            User.insertMany(usersPayload, { ordered: true })
-                              .then((users) => {
-                                const categoriesPayload = [
-                                  {
-                                    businessId: businesses[0]._id.toString(),
-                                    name: "Makanan",
-                                    status: "active",
-                                    createdAt: dateISOString,
-                                    updatedAt: dateISOString,
-                                  },
-                                  {
-                                    businessId: businesses[0]._id.toString(),
-                                    name: "Minuman",
-                                    status: "active",
-                                    createdAt: dateISOString,
-                                    updatedAt: dateISOString,
-                                  },
-                                  {
-                                    businessId: businesses[0]._id.toString(),
-                                    name: "Coffee",
-                                    status: "active",
-                                    createdAt: dateISOString,
-                                    updatedAt: dateISOString,
-                                  },
-                                  {
-                                    businessId: businesses[0]._id.toString(),
-                                    name: "Non Coffee",
-                                    status: "active",
-                                    createdAt: dateISOString,
-                                    updatedAt: dateISOString,
-                                  },
-                                  {
-                                    businessId: businesses[0]._id.toString(),
-                                    name: "Tambahan",
-                                    status: "active",
-                                    createdAt: dateISOString,
-                                    updatedAt: dateISOString,
-                                  },
-                                  {
-                                    businessId: businesses[0]._id.toString(),
-                                    name: "Paketan",
-                                    status: "active",
-                                    createdAt: dateISOString,
-                                    updatedAt: dateISOString,
-                                  },
-                                ];
+                      Outlet.insertMany(outletsPayload, { ordered: true })
+                        .then((outlets) => {
+                          const rolesPayload = [
+                            {
+                              access: [
+                                "/transactions/pos",
+                                "/transactions/pos/return",
+                                "/transactions/pos/history",
+                                "/transactions/purchase",
+                                "/transactions/purchase/return",
+                                "/transactions/purchase/history",
+                                // reports
+                                "/reports/dashboard",
+                                "/reports/charts",
+                                // businesses
+                                "/management/businesses",
+                                "/management/business/add",
+                                "/management/business/edit",
+                                // warehouses
+                                "/management/warehouses",
+                                "/management/warehouses/add",
+                                "/management/warehouses/edit",
+                                // warehouses
+                                // outlets
+                                "/management/outlets",
+                                "/management/outlet/add",
+                                "/management/outlet/edit",
+                                // charges
+                                "/management/charges",
+                                "/management/charge/add",
+                                "/management/charge/edit",
+                                // promotions
+                                "/management/promotions",
+                                "/management/promotion/add",
+                                "/management/promotion/edit",
+                                // taxes
+                                "/management/taxes",
+                                "/management/tax/add",
+                                "/management/tax/edit",
+                                // serviceMethods
+                                "/management/service/methods",
+                                "/management/service/method/add",
+                                "/management/service/method/edit",
+                                // paymentMethods
+                                "/management/payment/methods",
+                                "/management/payment/method/add",
+                                "/management/payment/method/edit",
+                                // currencies
+                                "/management/currencies",
+                                "/management/currency/add",
+                                "/management/currency/edit",
+                                // suppliers
+                                "/management/suppliers",
+                                "/management/supplier/add",
+                                "/management/supplier/edit",
+                                // customers
+                                "/management/customers",
+                                "/management/customer/add",
+                                "/management/customer/edit",
+                                // roles
+                                "/management/roles",
+                                "/management/role/add",
+                                "/management/role/edit",
+                                // categories
+                                "/management/categories",
+                                "/management/category/add",
+                                "/management/category/edit",
+                                // components
+                                "/management/components",
+                                "/management/component/add",
+                                "/management/component/edit",
+                                // products
+                                "/management/products",
+                                "/management/product/add",
+                                "/management/product/edit",
+                                // units
+                                "/management/units",
+                                "/management/unit/add",
+                                "/management/unit/edit",
+                                // users
+                                "/management/users",
+                                "/management/user/add",
+                                "/management/user/edit",
+                                // settings
+                                "/settings/appearance",
+                                "/settings/device",
+                                "/settings/account",
+                              ],
+                              businessId: businesses[0]._id.toString(),
+                              name: "administrator",
+                              status: "active",
+                              createdAt: dateISOString,
+                              updatedAt: dateISOString,
+                            },
+                            {
+                              access: [
+                                "/transactions/pos",
+                                "/transactions/pos/return",
+                                "/transactions/pos/history",
+                                "/transactions/purchase",
+                                "/transactions/purchase/return",
+                                "/transactions/purchase/history",
+                                // settings
+                                "/settings/appearance",
+                                "/settings/device",
+                                "/settings/account",
+                              ],
+                              businessId: businesses[0]._id.toString(),
+                              name: "cashier",
+                              status: "active",
+                              createdAt: dateISOString,
+                              updatedAt: dateISOString,
+                            },
+                          ];
 
-                                Category.insertMany(categoriesPayload, {
-                                  ordered: true,
-                                })
-                                  .then((categories) => {
+                          Role.insertMany(rolesPayload, { ordered: true })
+                            .then((roles) => {
+                              const usersPayload = [
+                                {
+                                  auth: {
+                                    accessToken:
+                                      authUtils.generateAccessToken(),
+                                    expiredAt:
+                                      authUtils.generateExpirationDate(7),
+                                  },
+                                  businessId: businesses[0]._id.toString(),
+                                  email: null,
+                                  gender: "male",
+                                  imageUrl:
+                                    "assets/demo/images/avatar/ivanmagalhaes.png",
+                                  name: "Kepala Administrator",
+                                  password: "12345678",
+                                  phone: null,
+                                  roleId: roles[0]._id.toString(),
+                                  settings: {
+                                    theme: "light",
+                                    language: "id",
+                                  },
+                                  status: "active",
+                                  username: "admin",
+                                  // timestamp
+                                  createdAt: dateISOString,
+                                  updatedAt: dateISOString,
+                                },
+                                {
+                                  auth: {
+                                    accessToken:
+                                      authUtils.generateAccessToken(),
+                                    expiredAt:
+                                      authUtils.generateExpirationDate(7),
+                                  },
+                                  businessId: businesses[0]._id.toString(),
+                                  email: null,
+                                  gender: "female",
+                                  imageUrl:
+                                    "assets/demo/images/avatar/ionibowcher.png",
+                                  name: "Vera Febrianti",
+                                  password: "12345678",
+                                  phone: null,
+                                  roleId: roles[1]._id.toString(),
+                                  settings: {
+                                    theme: "light",
+                                    language: "id",
+                                  },
+                                  status: "active",
+                                  username: "kasir",
+                                  // timestamp
+                                  createdAt: dateISOString,
+                                  updatedAt: dateISOString,
+                                },
+                              ];
+
+                              User.insertMany(usersPayload, { ordered: true })
+                                .then((users) => {
+                                  const categoriesPayload = [
+                                    {
+                                      businessId: businesses[0]._id.toString(),
+                                      name: "Makanan",
+                                      status: "active",
+                                      createdAt: dateISOString,
+                                      updatedAt: dateISOString,
+                                    },
+                                    {
+                                      businessId: businesses[0]._id.toString(),
+                                      name: "Minuman",
+                                      status: "active",
+                                      createdAt: dateISOString,
+                                      updatedAt: dateISOString,
+                                    },
+                                    {
+                                      businessId: businesses[0]._id.toString(),
+                                      name: "Coffee",
+                                      status: "active",
+                                      createdAt: dateISOString,
+                                      updatedAt: dateISOString,
+                                    },
+                                    {
+                                      businessId: businesses[0]._id.toString(),
+                                      name: "Non Coffee",
+                                      status: "active",
+                                      createdAt: dateISOString,
+                                      updatedAt: dateISOString,
+                                    },
+                                    {
+                                      businessId: businesses[0]._id.toString(),
+                                      name: "Tambahan",
+                                      status: "active",
+                                      createdAt: dateISOString,
+                                      updatedAt: dateISOString,
+                                    },
+                                    {
+                                      businessId: businesses[0]._id.toString(),
+                                      name: "Paketan",
+                                      status: "active",
+                                      createdAt: dateISOString,
+                                      updatedAt: dateISOString,
+                                    },
+                                  ];
+
+                                  Category.insertMany(categoriesPayload, {
+                                    ordered: true,
+                                  }).then((categories) => {
                                     const unitsPayload = [
                                       {
                                         businessId:
@@ -1726,20 +1731,20 @@ module.exports = {
                                       .catch((err) => {
                                         reject({ error: true, message: err });
                                       });
-                                  })
-                                  .catch((err) => {
-                                    reject({ error: true, message: err });
                                   });
-                              })
-                              .catch((err) => {
-                                reject({ error: true, message: err });
-                              });
-                          })
-                          .catch((err) => {
-                            reject({ error: true, message: err });
-                          });
-                      }
-                    );
+                                })
+                                .catch((err) => {
+                                  reject({ error: true, message: err });
+                                });
+                            })
+                            .catch((err) => {
+                              reject({ error: true, message: err });
+                            });
+                        })
+                        .catch((err) => {
+                          reject({ error: true, message: err });
+                        });
+                    });
                   });
                 })
                 .catch((err) => {

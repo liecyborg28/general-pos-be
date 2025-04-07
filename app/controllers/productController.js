@@ -161,17 +161,6 @@ module.exports = {
     return new Promise((resolve, reject) => {
       Product.findByIdAndUpdate(body.productId, body.data, { new: true })
         .then((result) => {
-          // logController.create({
-          //   by: userByToken._id,
-          //   data: result,
-          //   from: result._id,
-          //   note: body.note ? body.note : null,
-          //   title: "Update Product",
-          //   type: "product",
-          //   // timestamp
-          //   createdAt: dateISOString,
-          // });
-
           resolve({
             error: false,
             data: result,

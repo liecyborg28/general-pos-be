@@ -10,6 +10,10 @@ const Outlet = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Business",
   },
+  warehouseId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Warehouse",
+  },
   name: String,
   note: String,
   status: String,
