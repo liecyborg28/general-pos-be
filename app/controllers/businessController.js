@@ -1,6 +1,8 @@
 // Models
 const Business = require("../models/businessModel");
+const Outlet = require("../models/outletModel");
 const User = require("../models/userModel");
+const Warehouse = require("../models/warehouseModel");
 
 // controllers
 const dataController = require("./utils/dataController");
@@ -56,11 +58,54 @@ module.exports = {
         new Business(payload)
           .save()
           .then((result) => {
-            resolve({
-              error: false,
-              data: result,
-              message: successMessages.BUSINESS_CREATED_SUCCESS,
-            });
+            const warehousesPayload = [
+              {
+                name: "Gudang Utama",
+                businessId: result._id.toString(),
+                components: [],
+                products: [],
+                status: "active",
+                createdAt: dateISOString,
+                updatedAt: dateISOString,
+              },
+            ];
+
+            Warehouse.insertMany(warehousesPayload, { ordered: true })
+              .then((warehouses) => {
+                const outletsPayload = [
+                  {
+                    address: `Address for ${result.name}.`,
+                    businessId: result._id.toString(),
+                    warehouseId: warehouses[0]._id.toString(),
+                    name: `Outlet Utama ${result.name}`,
+                    note: "",
+                    status: "active",
+                    createdAt: dateISOString,
+                    updatedAt: dateISOString,
+                  },
+                ];
+
+                Outlet.insertMany(outletsPayload, { ordered: true })
+                  .then((outlets) => {
+                    resultFinal = {
+                      business: result,
+                      outlet: outlets[0],
+                      warehouse: warehouses[0],
+                    };
+
+                    resolve({
+                      error: false,
+                      data: resultFinal,
+                      message: successMessages.BUSINESS_CREATED_SUCCESS,
+                    });
+                  })
+                  .catch((err) => {
+                    reject({ error: true, message: err });
+                  });
+              })
+              .catch((err) => {
+                reject({ error: true, message: err });
+              });
           })
           .catch((err) => {
             reject({ error: true, message: err });

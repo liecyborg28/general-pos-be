@@ -738,24 +738,50 @@ module.exports = {
       // Jika status payment adalah "canceled"
       if (data.status.payment === "canceled") {
         // Loop setiap detail produk untuk mengembalikan qty setiap komponen terkait
+        let warehouse = await Warehouse.findById(transaction.warehouseId);
         for (const detail of transaction.details) {
           // 1. Update stok produk utama dengan mempertimbangkan varian
           const product = await Product.findById(detail.productId);
+
           if (product && product.countable) {
+            let dbProductWarehouse = warehouse.products.find(
+              (e) => e._id.toString() === detail.productId
+            );
+
+            let dbProductWarehouseFindIndex = warehouse.products.findIndex(
+              (e) => e._id.toString() === detail.productId
+            );
+
+            let dbProductVariantWarehouseFindIndex =
+              dbProductWarehouse.variants.findIndex(
+                (e) => e._id.toString() === detail.productId
+              );
             if (detail.variantId) {
               // Temukan varian yang sesuai dan update qty-nya
-              const variantIndex = product.variants.findIndex(
-                (v) => v._id.toString() === detail.variantId
-              );
-              if (variantIndex !== -1) {
-                product.variants[variantIndex].qty += detail.qty;
+
+              if (dbProductVariantWarehouseFindIndex !== -1) {
+                dbProductWarehouse.variants[
+                  dbProductVariantWarehouseFindIndex
+                ].qty += detail.qty;
               }
             } else {
               // Jika tidak ada varian, update qty produk langsung
-              product.qty += detail.qty;
+              dbProductWarehouse.qty += detail.qty;
             }
-            await product.save();
+
+            warehouse.products[dbProductWarehouseFindIndex] =
+              dbProductWarehouse;
+
+            await Warehouse.findByIdAndUpdate(
+              transaction.warehouseId,
+              warehouse,
+              {
+                new: true,
+              }
+            );
           }
+
+          warehouse = await Warehouse.findById(transaction.warehouseId);
 
           // 2. Update stok komponen utama dan tambahan
           for (const componentDetail of [
@@ -764,46 +790,89 @@ module.exports = {
               (additional) => additional.components
             ),
           ]) {
-            const component = await Component.findById(
-              componentDetail.componentId
+            // const component = await Component.findById(
+            //   componentDetail.componentId
+            // );
+
+            let dbComponentWarehouse = warehouse.components.find(
+              (e) => e._id.toString() === componentDetail.componentId
             );
-            if (component) {
+
+            let dbComponentWarehouseFindIndex = warehouse.components.findIndex(
+              (e) => e._id.toString() === componentDetail.componentId
+            );
+
+            if (dbComponentWarehouse) {
               // Tambahkan kembali qty.current dari komponen
-              component.qty.current += componentDetail.qty * detail.qty;
+              dbComponentWarehouse.qty.current +=
+                componentDetail.qty * detail.qty;
 
               // Tentukan qty.status berdasarkan kondisi qty.current dan qty.min
-              if (component.qty.current <= 0) {
-                component.qty.status = "outOfStock";
-              } else if (component.qty.current <= component.qty.min) {
-                component.qty.status = "almostOut";
+              if (dbComponentWarehouse.qty.current <= 0) {
+                dbComponentWarehouse.qty.status = "outOfStock";
+              } else if (
+                dbComponentWarehouse.qty.current <= dbComponentWarehouse.qty.min
+              ) {
+                dbComponentWarehouse.qty.status = "almostOut";
               } else {
-                component.qty.status = "available";
+                dbComponentWarehouse.qty.status = "available";
               }
 
-              await component.save();
+              warehouse.components[dbComponentWarehouseFindIndex] =
+                dbComponentWarehouse;
+
+              await Warehouse.findByIdAndUpdate(
+                transaction.warehouseId,
+                warehouse,
+                {
+                  new: true,
+                }
+              );
             }
           }
 
+          warehouse = await Warehouse.findById(transaction.warehouseId);
           // 3. Update stok produk tambahan (additionals) dengan mempertimbangkan varian
           for (const additional of detail.additionals) {
             const additionalProduct = await Product.findById(
               additional.productId
             );
+
             if (additionalProduct && additionalProduct.countable) {
-              if (additional.variantId) {
-                // Update qty pada varian tambahan jika ada
-                const variantIndex = additionalProduct.variants.findIndex(
-                  (v) => v._id.toString() === additional.variantId
+              let dbAdditionalProductWarehouse = warehouse.products.find(
+                (e) => e._id.toString() === additional.productId
+              );
+
+              let dbAdditionalProductWarehouseFindIndex =
+                warehouse.products.findIndex(
+                  (e) => e._id.toString() === additional.productId
                 );
-                if (variantIndex !== -1) {
-                  additionalProduct.variants[variantIndex].qty +=
-                    additional.qty;
+
+              let dbAdditionalProductVariantWarehouseFindIndex =
+                dbAdditionalProductWarehouse.variants.find(
+                  (e) => e._id.toString() === additional.variantId
+                );
+              if (additional.variantId) {
+                if (dbAdditionalProductVariantWarehouseFindIndex !== -1) {
+                  dbAdditionalProductWarehouse.variants[
+                    dbAdditionalProductVariantWarehouseFindIndex
+                  ].qty += additional.qty;
                 }
               } else {
                 // Jika tidak ada varian, update qty produk langsung
-                additionalProduct.qty += additional.qty;
+                dbAdditionalProductWarehouse.qty += additional.qty;
               }
-              await additionalProduct.save();
+
+              warehouse.products[dbAdditionalProductWarehouseFindIndex] =
+                dbAdditionalProductWarehouse;
+
+              await Warehouse.findByIdAndUpdate(
+                transaction.warehouseId,
+                warehouse,
+                {
+                  new: true,
+                }
+              );
             }
           }
         }
