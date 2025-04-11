@@ -42,6 +42,9 @@ const Product = mongoose.Schema({
       imageUrl: String,
       name: String,
       price: Number,
+      variantId: {
+        type: mongoose.Schema.Types.ObjectId,
+      },
       // qty: Number,
     },
   ],

@@ -15,7 +15,13 @@ module.exports = {
     let body = req.body;
 
     let isBodyValid = () => {
-      return body.name && body.components && body.products;
+      return (
+        body.name &&
+        body.businessId &&
+        body.components &&
+        body.products &&
+        body.status !== null
+      );
     };
 
     const bearerHeader = req.headers["authorization"];
@@ -28,8 +34,10 @@ module.exports = {
     let payload = isBodyValid()
       ? {
           name: body.name,
+          businessId: body.businessId,
           components: body.components,
           products: body.products,
+          status: body.status,
           createdAt: dateISOString,
           updatedAt: dateISOString,
         }
@@ -45,7 +53,7 @@ module.exports = {
           name: body.name,
           status: { $ne: "deleted" },
         },
-        Product
+        Warehouse
       );
 
       if (nameIsExist) {
@@ -56,7 +64,7 @@ module.exports = {
       }
 
       return new Promise((resolve, reject) => {
-        new Product(payload)
+        new Warehouse(payload)
           .save()
           .then((result) => {
             resolve({

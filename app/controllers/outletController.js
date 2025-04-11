@@ -26,7 +26,7 @@ module.exports = {
         body.businessId &&
         body.warehouseId &&
         body.name &&
-        body.status
+        body.status !== null
       );
     };
 

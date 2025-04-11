@@ -1,3 +1,5 @@
+const mongoose = require("mongoose");
+
 // utils
 const authUtils = require("../utility/authUtils");
 
@@ -216,9 +218,8 @@ module.exports = {
                                 "/management/business/edit",
                                 // warehouses
                                 "/management/warehouses",
-                                "/management/warehouses/add",
-                                "/management/warehouses/edit",
-                                // warehouses
+                                "/management/warehouse/add",
+                                "/management/warehouse/edit",
                                 // outlets
                                 "/management/outlets",
                                 "/management/outlet/add",
@@ -705,10 +706,11 @@ module.exports = {
                                                             "Deskripsi untuk bihun goreng ayam.",
                                                           default: true,
                                                           imageUrl:
-                                                            "assets/demo/images/product/bihun_goreng.JPG",
+                                                            "assets/demo/images/product/bihun_goreng.jpg",
                                                           name: "Ayam",
                                                           price: 15000,
-                                                          qty: 10,
+                                                          variantId:
+                                                            new mongoose.Types.ObjectId(),
                                                         },
                                                         {
                                                           components: [
@@ -723,10 +725,11 @@ module.exports = {
                                                             "Deskripsi untuk bihun goreng sapi.",
                                                           default: false,
                                                           imageUrl:
-                                                            "assets/demo/images/product/bihun_goreng.JPG",
+                                                            "assets/demo/images/product/bihun_goreng.jpg",
                                                           name: "Sapi",
                                                           price: 18000,
-                                                          qty: 10,
+                                                          variantId:
+                                                            new mongoose.Types.ObjectId(),
                                                         },
                                                       ],
                                                       createdAt: dateISOString,
@@ -764,10 +767,11 @@ module.exports = {
                                                             "Deskripsi untuk chicken crispy lado ijo original.",
                                                           default: true,
                                                           imageUrl:
-                                                            "assets/demo/images/product/chicken_crispy_lado_ijo.JPG",
+                                                            "assets/demo/images/product/chicken_crispy_lado_ijo.jpg",
                                                           name: "Original",
                                                           price: 25000,
-                                                          qty: 10,
+                                                          variantId:
+                                                            new mongoose.Types.ObjectId(),
                                                         },
                                                       ],
                                                       createdAt: dateISOString,
@@ -805,10 +809,11 @@ module.exports = {
                                                             "Deskripsi untuk nasi ayam cabe hijau original.",
                                                           default: true,
                                                           imageUrl:
-                                                            "assets/demo/images/product/nasi_ayam_cabe_hijau.JPG",
+                                                            "assets/demo/images/product/nasi_ayam_cabe_hijau.jpg",
                                                           name: "Original",
                                                           price: 26000,
-                                                          qty: 10,
+                                                          variantId:
+                                                            new mongoose.Types.ObjectId(),
                                                         },
                                                       ],
                                                       createdAt: dateISOString,
@@ -846,10 +851,11 @@ module.exports = {
                                                             "Deskripsi untuk golden kari ayam original.",
                                                           default: true,
                                                           imageUrl:
-                                                            "assets/demo/images/product/golden_kari_ayam.JPG",
+                                                            "assets/demo/images/product/golden_kari_ayam.jpg",
                                                           name: "Original",
                                                           price: 28000,
-                                                          qty: 10,
+                                                          variantId:
+                                                            new mongoose.Types.ObjectId(),
                                                         },
                                                       ],
                                                       createdAt: dateISOString,
@@ -892,10 +898,11 @@ module.exports = {
                                                             "Deskripsi untuk nasi goreng ayam.",
                                                           default: true,
                                                           imageUrl:
-                                                            "assets/demo/images/product/nasi_goreng_ayam.JPG",
+                                                            "assets/demo/images/product/nasi_goreng_ayam.jpg",
                                                           name: "Ayam",
                                                           price: 15000,
-                                                          qty: 10,
+                                                          variantId:
+                                                            new mongoose.Types.ObjectId(),
                                                         },
                                                         {
                                                           components: [
@@ -915,10 +922,11 @@ module.exports = {
                                                             "Deskripsi untuk nasi goreng sapi.",
                                                           default: false,
                                                           imageUrl:
-                                                            "assets/demo/images/product/nasi_goreng_beef.JPG",
+                                                            "assets/demo/images/product/nasi_goreng_beef.jpg",
                                                           name: "Sapi",
                                                           price: 18000,
-                                                          qty: 10,
+                                                          variantId:
+                                                            new mongoose.Types.ObjectId(),
                                                         },
                                                         {
                                                           components: [
@@ -938,10 +946,11 @@ module.exports = {
                                                             "Deskripsi untuk nasi goreng ikan asin.",
                                                           default: false,
                                                           imageUrl:
-                                                            "assets/demo/images/product/nasi_goreng_ikan_asin.JPG",
+                                                            "assets/demo/images/product/nasi_goreng_ikan_asin.jpg",
                                                           name: "Ikan Asin",
                                                           price: 16000,
-                                                          qty: 10,
+                                                          variantId:
+                                                            new mongoose.Types.ObjectId(),
                                                         },
                                                       ],
                                                       createdAt: dateISOString,
@@ -982,7 +991,8 @@ module.exports = {
                                                             "assets/demo/images/product/telur_dadar.jpg",
                                                           name: "Dadar",
                                                           price: 3000,
-                                                          qty: 10,
+                                                          variantId:
+                                                            new mongoose.Types.ObjectId(),
                                                         },
                                                       ],
                                                       createdAt: dateISOString,
@@ -1023,7 +1033,8 @@ module.exports = {
                                                             "assets/demo/images/product/telur_mata_sapi.jpeg",
                                                           name: "Mata Sapi",
                                                           price: 3000,
-                                                          qty: 10,
+                                                          variantId:
+                                                            new mongoose.Types.ObjectId(),
                                                         },
                                                       ],
                                                       createdAt: dateISOString,
@@ -1064,7 +1075,8 @@ module.exports = {
                                                             "assets/demo/images/product/sosis_goreng.webp",
                                                           name: "Goreng",
                                                           price: 3000,
-                                                          qty: 10,
+                                                          variantId:
+                                                            new mongoose.Types.ObjectId(),
                                                         },
                                                       ],
                                                       createdAt: dateISOString,
@@ -1098,10 +1110,11 @@ module.exports = {
                                                             "Deskripsi untuk brown sugar coffee milk ice.",
                                                           default: true,
                                                           imageUrl:
-                                                            "assets/demo/images/product/brown_sugar_coffee_milk.JPG",
+                                                            "assets/demo/images/product/brown_sugar_coffee_milk.jpg",
                                                           name: "Ice",
                                                           price: 12000,
-                                                          qty: 10,
+                                                          variantId:
+                                                            new mongoose.Types.ObjectId(),
                                                         },
                                                         {
                                                           components: [],
@@ -1110,10 +1123,11 @@ module.exports = {
                                                             "Deskripsi untuk brown sugar coffee milk hot.",
                                                           default: false,
                                                           imageUrl:
-                                                            "assets/demo/images/product/brown_sugar_coffee_milk.JPG",
+                                                            "assets/demo/images/product/brown_sugar_coffee_milk.jpg",
                                                           name: "Hot",
                                                           price: 11000,
-                                                          qty: 10,
+                                                          variantId:
+                                                            new mongoose.Types.ObjectId(),
                                                         },
                                                       ],
                                                       createdAt: dateISOString,
@@ -1147,10 +1161,11 @@ module.exports = {
                                                             "Deskripsi untuk brown sugar cappucino hot.",
                                                           default: true,
                                                           imageUrl:
-                                                            "assets/demo/images/product/cappucino_hot.JPG",
+                                                            "assets/demo/images/product/cappucino_hot.jpg",
                                                           name: "Hot",
                                                           price: 12000,
-                                                          qty: 10,
+                                                          variantId:
+                                                            new mongoose.Types.ObjectId(),
                                                         },
                                                       ],
                                                       createdAt: dateISOString,
@@ -1184,10 +1199,11 @@ module.exports = {
                                                             "Deskripsi untuk matcha ice.",
                                                           default: true,
                                                           imageUrl:
-                                                            "assets/demo/images/product/matcha.JPG",
+                                                            "assets/demo/images/product/matcha.jpg",
                                                           name: "Ice",
                                                           price: 12000,
-                                                          qty: 10,
+                                                          variantId:
+                                                            new mongoose.Types.ObjectId(),
                                                         },
                                                         {
                                                           components: [],
@@ -1196,10 +1212,11 @@ module.exports = {
                                                             "Deskripsi untuk brown sugar matcha hot.",
                                                           default: false,
                                                           imageUrl:
-                                                            "assets/demo/images/product/matcha.JPG",
+                                                            "assets/demo/images/product/matcha.jpg",
                                                           name: "Hot",
                                                           price: 11000,
-                                                          qty: 10,
+                                                          variantId:
+                                                            new mongoose.Types.ObjectId(),
                                                         },
                                                       ],
                                                       createdAt: dateISOString,
@@ -1233,10 +1250,11 @@ module.exports = {
                                                             "Deskripsi untuk redvelvet ice.",
                                                           default: true,
                                                           imageUrl:
-                                                            "assets/demo/images/product/redvelvet.JPG",
+                                                            "assets/demo/images/product/redvelvet.jpg",
                                                           name: "Ice",
                                                           price: 12000,
-                                                          qty: 10,
+                                                          variantId:
+                                                            new mongoose.Types.ObjectId(),
                                                         },
                                                         {
                                                           components: [],
@@ -1245,10 +1263,11 @@ module.exports = {
                                                             "Deskripsi untuk redvelvet hot.",
                                                           default: false,
                                                           imageUrl:
-                                                            "assets/demo/images/product/redvelvet.JPG",
+                                                            "assets/demo/images/product/redvelvet.jpg",
                                                           name: "Hot",
                                                           price: 11000,
-                                                          qty: 10,
+                                                          variantId:
+                                                            new mongoose.Types.ObjectId(),
                                                         },
                                                       ],
                                                       createdAt: dateISOString,
@@ -1497,7 +1516,7 @@ module.exports = {
                                                                       }
                                                                     )
                                                                       .then(
-                                                                        (
+                                                                        async (
                                                                           customers
                                                                         ) => {
                                                                           const purchaseOrders =
@@ -1638,6 +1657,68 @@ module.exports = {
                                                                               },
                                                                             ];
 
+                                                                          const bulkOps =
+                                                                            warehouses.map(
+                                                                              (
+                                                                                warehouse
+                                                                              ) => ({
+                                                                                updateOne:
+                                                                                  {
+                                                                                    filter:
+                                                                                      {
+                                                                                        _id: warehouse._id,
+                                                                                      },
+                                                                                    update:
+                                                                                      {
+                                                                                        $set: {
+                                                                                          components:
+                                                                                            components.map(
+                                                                                              (
+                                                                                                a
+                                                                                              ) => ({
+                                                                                                componentId:
+                                                                                                  a._id.toString(),
+                                                                                                qty: {
+                                                                                                  current: 10,
+                                                                                                  max: 100,
+                                                                                                  min: 5,
+                                                                                                  status:
+                                                                                                    "available",
+                                                                                                },
+                                                                                              })
+                                                                                            ),
+                                                                                          products:
+                                                                                            products.map(
+                                                                                              (
+                                                                                                a
+                                                                                              ) => ({
+                                                                                                productId:
+                                                                                                  a._id.toString(),
+                                                                                                variants:
+                                                                                                  a.variants.map(
+                                                                                                    (
+                                                                                                      b
+                                                                                                    ) => ({
+                                                                                                      variantId:
+                                                                                                        b.variantId.toString(),
+                                                                                                      qty: 10,
+                                                                                                    })
+                                                                                                  ),
+                                                                                              })
+                                                                                            ),
+                                                                                        },
+                                                                                      },
+                                                                                  },
+                                                                              })
+                                                                            );
+
+                                                                          await Warehouse.bulkWrite(
+                                                                            bulkOps
+                                                                          );
+
+                                                                          warehouses =
+                                                                            await Warehouse.find();
+
                                                                           resolve(
                                                                             {
                                                                               error: false,
@@ -1660,6 +1741,7 @@ module.exports = {
                                                                                 suppliers,
                                                                                 transactions,
                                                                                 purchaseOrders,
+                                                                                warehouses,
                                                                               },
                                                                               message:
                                                                                 successMessages.ACCESS_CREATED_SUCCESS,

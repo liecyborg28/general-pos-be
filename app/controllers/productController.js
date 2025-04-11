@@ -9,6 +9,8 @@ const pageController = require("./utils/pageController");
 const errorMessages = require("../repository/messages/errorMessages");
 const successMessages = require("../repository/messages/successMessages");
 
+const mongoose = require("mongoose");
+
 module.exports = {
   create: async (req) => {
     let dateISOString = new Date().toISOString();
@@ -43,7 +45,10 @@ module.exports = {
           name: body.name,
           status: body.status,
           unitId: body.unitId,
-          variants: body.variants,
+          variants: body.variants.map((e) => ({
+            ...e,
+            variantId: new mongoose.Types.ObjectId(),
+          })),
           createdAt: dateISOString,
           updatedAt: dateISOString,
         }
@@ -153,6 +158,13 @@ module.exports = {
         error: true,
         message: errorMessages.INVALID_DATA,
       });
+    }
+
+    if (body.data.variants) {
+      body.data.variants = body.data.variants.map((e) => ({
+        ...e,
+        variantId: e.variantId ? e.variantId : new mongoose.Types.ObjectId(),
+      }));
     }
 
     body.data["updatedAt"] = dateISOString;

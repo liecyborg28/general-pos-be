@@ -31,10 +31,12 @@ const Warehouse = mongoose.Schema({
   products: [
     {
       productId: String,
-      qty: Number,
+      // qty: Number,
       variants: [
         {
-          variantId: String,
+          variantId: {
+            type: mongoose.Schema.Types.ObjectId,
+          },
           qty: Number,
         },
       ],
