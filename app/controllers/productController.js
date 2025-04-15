@@ -21,6 +21,7 @@ module.exports = {
         body.businessId &&
         body.categoryIds &&
         body.categoryIds.length > 0 &&
+        body.code &&
         body.countable !== null &&
         body.name &&
         body.status &&
@@ -41,6 +42,7 @@ module.exports = {
           businessId: body.businessId,
           categoryIds: body.categoryIds,
           changedBy: userByToken._id,
+          code: body.code,
           countable: body.countable,
           name: body.name,
           status: body.status,

@@ -1666,7 +1666,7 @@ module.exports = {
                                                                                   {
                                                                                     filter:
                                                                                       {
-                                                                                        _id: warehouse._id,
+                                                                                        _id: warehouse._id.toString(),
                                                                                       },
                                                                                     update:
                                                                                       {
