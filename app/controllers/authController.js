@@ -676,7 +676,7 @@ module.exports = {
                                                             "Deskripsi untuk bihun goreng ayam.",
                                                           default: true,
                                                           imageUrl:
-                                                            "assets/demo/images/product/bihun_goreng.jpg",
+                                                            "assets/demo/images/product/bihun_goreng.JPG",
                                                           name: "Ayam",
                                                           price: 15000,
                                                           variantId:
@@ -695,7 +695,7 @@ module.exports = {
                                                             "Deskripsi untuk bihun goreng sapi.",
                                                           default: false,
                                                           imageUrl:
-                                                            "assets/demo/images/product/bihun_goreng.jpg",
+                                                            "assets/demo/images/product/bihun_goreng.JPG",
                                                           name: "Sapi",
                                                           price: 18000,
                                                           variantId:
@@ -737,7 +737,7 @@ module.exports = {
                                                             "Deskripsi untuk chicken crispy lado ijo original.",
                                                           default: true,
                                                           imageUrl:
-                                                            "assets/demo/images/product/chicken_crispy_lado_ijo.jpg",
+                                                            "assets/demo/images/product/chicken_crispy_lado_ijo.JPG",
                                                           name: "Original",
                                                           price: 25000,
                                                           variantId:
@@ -779,7 +779,7 @@ module.exports = {
                                                             "Deskripsi untuk nasi ayam cabe hijau original.",
                                                           default: true,
                                                           imageUrl:
-                                                            "assets/demo/images/product/nasi_ayam_cabe_hijau.jpg",
+                                                            "assets/demo/images/product/nasi_ayam_cabe_hijau.JPG",
                                                           name: "Original",
                                                           price: 26000,
                                                           variantId:
@@ -821,7 +821,7 @@ module.exports = {
                                                             "Deskripsi untuk golden kari ayam original.",
                                                           default: true,
                                                           imageUrl:
-                                                            "assets/demo/images/product/golden_kari_ayam.jpg",
+                                                            "assets/demo/images/product/golden_kari_ayam.JPG",
                                                           name: "Original",
                                                           price: 28000,
                                                           variantId:
@@ -868,7 +868,7 @@ module.exports = {
                                                             "Deskripsi untuk nasi goreng ayam.",
                                                           default: true,
                                                           imageUrl:
-                                                            "assets/demo/images/product/nasi_goreng_ayam.jpg",
+                                                            "assets/demo/images/product/nasi_goreng_ayam.JPG",
                                                           name: "Ayam",
                                                           price: 15000,
                                                           variantId:
@@ -892,7 +892,7 @@ module.exports = {
                                                             "Deskripsi untuk nasi goreng sapi.",
                                                           default: false,
                                                           imageUrl:
-                                                            "assets/demo/images/product/nasi_goreng_beef.jpg",
+                                                            "assets/demo/images/product/nasi_goreng_beef.JPG",
                                                           name: "Sapi",
                                                           price: 18000,
                                                           variantId:
@@ -916,7 +916,7 @@ module.exports = {
                                                             "Deskripsi untuk nasi goreng ikan asin.",
                                                           default: false,
                                                           imageUrl:
-                                                            "assets/demo/images/product/nasi_goreng_ikan_asin.jpg",
+                                                            "assets/demo/images/product/nasi_goreng_ikan_asin.JPG",
                                                           name: "Ikan Asin",
                                                           price: 16000,
                                                           variantId:
@@ -1080,7 +1080,7 @@ module.exports = {
                                                             "Deskripsi untuk brown sugar coffee milk ice.",
                                                           default: true,
                                                           imageUrl:
-                                                            "assets/demo/images/product/brown_sugar_coffee_milk.jpg",
+                                                            "assets/demo/images/product/brown_sugar_coffee_milk.JPG",
                                                           name: "Ice",
                                                           price: 12000,
                                                           variantId:
@@ -1093,7 +1093,7 @@ module.exports = {
                                                             "Deskripsi untuk brown sugar coffee milk hot.",
                                                           default: false,
                                                           imageUrl:
-                                                            "assets/demo/images/product/brown_sugar_coffee_milk.jpg",
+                                                            "assets/demo/images/product/brown_sugar_coffee_milk.JPG",
                                                           name: "Hot",
                                                           price: 11000,
                                                           variantId:
@@ -1131,7 +1131,7 @@ module.exports = {
                                                             "Deskripsi untuk brown sugar cappucino hot.",
                                                           default: true,
                                                           imageUrl:
-                                                            "assets/demo/images/product/cappucino_hot.jpg",
+                                                            "assets/demo/images/product/cappucino_hot.JPG",
                                                           name: "Hot",
                                                           price: 12000,
                                                           variantId:
@@ -1169,7 +1169,7 @@ module.exports = {
                                                             "Deskripsi untuk matcha ice.",
                                                           default: true,
                                                           imageUrl:
-                                                            "assets/demo/images/product/matcha.jpg",
+                                                            "assets/demo/images/product/matcha.JPG",
                                                           name: "Ice",
                                                           price: 12000,
                                                           variantId:
@@ -1182,7 +1182,7 @@ module.exports = {
                                                             "Deskripsi untuk brown sugar matcha hot.",
                                                           default: false,
                                                           imageUrl:
-                                                            "assets/demo/images/product/matcha.jpg",
+                                                            "assets/demo/images/product/matcha.JPG",
                                                           name: "Hot",
                                                           price: 11000,
                                                           variantId:
@@ -1220,7 +1220,7 @@ module.exports = {
                                                             "Deskripsi untuk redvelvet ice.",
                                                           default: true,
                                                           imageUrl:
-                                                            "assets/demo/images/product/redvelvet.jpg",
+                                                            "assets/demo/images/product/redvelvet.JPG",
                                                           name: "Ice",
                                                           price: 12000,
                                                           variantId:
@@ -1233,7 +1233,7 @@ module.exports = {
                                                             "Deskripsi untuk redvelvet hot.",
                                                           default: false,
                                                           imageUrl:
-                                                            "assets/demo/images/product/redvelvet.jpg",
+                                                            "assets/demo/images/product/redvelvet.JPG",
                                                           name: "Hot",
                                                           price: 11000,
                                                           variantId:
