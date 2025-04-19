@@ -24,12 +24,12 @@ const Component = mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Unit",
   },
-  qty: {
-    current: Number,
-    max: Number,
-    min: Number,
-    status: String,
-  },
+  // qty: {
+  //   current: Number,
+  //   max: Number,
+  //   min: Number,
+  //   status: String,
+  // },
   // timestamp
   createdAt: String,
   updatedAt: String,

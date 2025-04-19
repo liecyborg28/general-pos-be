@@ -333,7 +333,7 @@ module.exports = {
                                   roleId: roles[0]._id.toString(),
                                   settings: {
                                     theme: "light",
-                                    language: "id",
+                                    language: "en",
                                   },
                                   status: "active",
                                   username: "admin",
@@ -359,7 +359,7 @@ module.exports = {
                                   roleId: roles[1]._id.toString(),
                                   settings: {
                                     theme: "light",
-                                    language: "id",
+                                    language: "en",
                                   },
                                   status: "active",
                                   username: "kasir",
@@ -544,12 +544,7 @@ module.exports = {
                                                   status: "active",
                                                   unitId:
                                                     units[0]._id.toString(),
-                                                  qty: {
-                                                    current: 10,
-                                                    max: 100,
-                                                    min: 5,
-                                                    status: "available",
-                                                  },
+
                                                   createdAt: dateISOString,
                                                   updatedAt: dateISOString,
                                                 },
@@ -566,12 +561,7 @@ module.exports = {
                                                   status: "active",
                                                   unitId:
                                                     units[0]._id.toString(),
-                                                  qty: {
-                                                    current: 10,
-                                                    max: 100,
-                                                    min: 5,
-                                                    status: "available",
-                                                  },
+
                                                   createdAt: dateISOString,
                                                   updatedAt: dateISOString,
                                                 },
@@ -588,12 +578,7 @@ module.exports = {
                                                   status: "active",
                                                   unitId:
                                                     units[0]._id.toString(),
-                                                  qty: {
-                                                    current: 10,
-                                                    max: 100,
-                                                    min: 5,
-                                                    status: "available",
-                                                  },
+
                                                   createdAt: dateISOString,
                                                   updatedAt: dateISOString,
                                                 },
@@ -610,12 +595,7 @@ module.exports = {
                                                   status: "active",
                                                   unitId:
                                                     units[0]._id.toString(),
-                                                  qty: {
-                                                    current: 10,
-                                                    max: 100,
-                                                    min: 5,
-                                                    status: "available",
-                                                  },
+
                                                   createdAt: dateISOString,
                                                   updatedAt: dateISOString,
                                                 },
@@ -632,12 +612,7 @@ module.exports = {
                                                   status: "active",
                                                   unitId:
                                                     units[0]._id.toString(),
-                                                  qty: {
-                                                    current: 10,
-                                                    max: 100,
-                                                    min: 5,
-                                                    status: "available",
-                                                  },
+
                                                   createdAt: dateISOString,
                                                   updatedAt: dateISOString,
                                                 },
@@ -654,12 +629,7 @@ module.exports = {
                                                   status: "active",
                                                   unitId:
                                                     units[0]._id.toString(),
-                                                  qty: {
-                                                    current: 10,
-                                                    max: 100,
-                                                    min: 5,
-                                                    status: "available",
-                                                  },
+
                                                   createdAt: dateISOString,
                                                   updatedAt: dateISOString,
                                                 },

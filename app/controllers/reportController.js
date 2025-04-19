@@ -849,7 +849,8 @@ module.exports = {
           let variantData = null;
           if (item.variantId && product.variants) {
             variantData = product.variants.find(
-              (variant) => variant._id.toString() === item.variantId.toString()
+              (variant) =>
+                variant.variantId.toString() === item.variantId.toString()
             );
           }
           return { ...item, productId: product, variantId: variantData };
@@ -1217,7 +1218,8 @@ module.exports = {
           let variantData = null;
           if (item.variantId && product.variants) {
             variantData = product.variants.find(
-              (variant) => variant._id.toString() === item.variantId.toString()
+              (variant) =>
+                variant.variantId.toString() === item.variantId.toString()
             );
           }
           return { ...item, productId: product, variantId: variantData };

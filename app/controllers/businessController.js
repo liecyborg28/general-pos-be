@@ -24,12 +24,12 @@ module.exports = {
     });
 
     let isBodyValid = () => {
-      return body.imageUrl && body.name && body.status;
+      return body.name && body.status;
     };
 
     let payload = isBodyValid()
       ? {
-          imageUrl: body.imageUrl,
+          imageUrl: body.imageUrl ? body.imageUrl : null,
           name: body.name,
           note: body.note ? body.note : null,
           status: body.status,
