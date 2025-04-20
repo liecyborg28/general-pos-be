@@ -709,7 +709,8 @@ module.exports = {
       // Jika status payment adalah "canceled"
       if (data.status.payment === "canceled") {
         // Loop setiap detail produk untuk mengembalikan qty setiap komponen terkait
-        let warehouse = await Warehouse.findById(req.body.warehouseId);
+        let warehouse = await Warehouse.findById(transaction.warehouseId);
+
         for (const detail of transaction.details) {
           // 1. Update stok produk utama dengan mempertimbangkan varian
           const product = await Product.findById(detail.productId);
@@ -743,12 +744,16 @@ module.exports = {
             warehouse.products[dbProductWarehouseFindIndex] =
               dbProductWarehouse;
 
-            await Warehouse.findByIdAndUpdate(req.body.warehouseId, warehouse, {
-              new: true,
-            });
+            await Warehouse.findByIdAndUpdate(
+              transaction.warehouseId,
+              warehouse,
+              {
+                new: true,
+              }
+            );
           }
 
-          warehouse = await Warehouse.findById(req.body.warehouseId);
+          warehouse = await Warehouse.findById(transaction.warehouseId);
 
           // 2. Update stok komponen utama dan tambahan
           for (const componentDetail of [
@@ -789,7 +794,7 @@ module.exports = {
                 dbComponentWarehouse;
 
               await Warehouse.findByIdAndUpdate(
-                req.body.warehouseId,
+                transaction.warehouseId,
                 warehouse,
                 {
                   new: true,
@@ -798,7 +803,7 @@ module.exports = {
             }
           }
 
-          warehouse = await Warehouse.findById(req.body.warehouseId);
+          warehouse = await Warehouse.findById(transaction.warehouseId);
           // 3. Update stok produk tambahan (additionals) dengan mempertimbangkan varian
           for (const additional of detail.additionals) {
             const additionalProduct = await Product.findById(
@@ -834,7 +839,7 @@ module.exports = {
                 dbAdditionalProductWarehouse;
 
               await Warehouse.findByIdAndUpdate(
-                req.body.warehouseId,
+                transaction.warehouseId,
                 warehouse,
                 {
                   new: true,

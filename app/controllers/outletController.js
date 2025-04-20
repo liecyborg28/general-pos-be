@@ -143,10 +143,13 @@ module.exports = {
       body.data["updatedAt"] = dateISOString;
       return new Promise((resolve, reject) => {
         Outlet.findByIdAndUpdate(body.outletId, body.data, { new: true })
-          .then((result) => {
+          .then(async (result) => {
+            result = await Outlet.populate([result], {
+              path: "businessId warehouseId",
+            });
             resolve({
               error: false,
-              data: result,
+              data: result[0],
               message: successMessages.DATA_SUCCESS_UPDATED,
             });
           })
