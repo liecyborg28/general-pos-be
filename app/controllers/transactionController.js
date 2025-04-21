@@ -178,12 +178,17 @@ module.exports = {
 
         // Update stok komponen utama
         for (const component of productDetail.components) {
-          let dbComponentWarehouse = warehouse.components.find(
-            (e) => e.componentId.toString() === component.componentId._id
+          let dbComponentWarehouse = warehouse.components.find((e) =>
+            component.componentId?._id
+              ? e.componentId.toString() === component.componentId._id
+              : e.componentId.toString() === component.componentId
           );
 
           let dbComponentWarehouseFindIndex = warehouse.components.findIndex(
-            (e) => e.componentId.toString() === component.componentId.id
+            (e) =>
+              component.componentId?._id
+                ? e.componentId.toString() === component.componentId?._id
+                : e.componentId.toString() === component.componentId
           );
 
           dbComponentWarehouse.qty.current += skipValidation
@@ -240,17 +245,30 @@ module.exports = {
         for (const additional of productDetail.additionals) {
           for (const component of additional.components) {
             let dbAdditionalComponentWarehouse = warehouse.components.find(
-              (e) => e.componentId.toString() === component.componentId
+              (e) =>
+                component.componentId._id
+                  ? e.componentId.toString() === component.componentId._id
+                  : e.componentId.toString() === component.componentId
             );
 
             let dbAdditionalComponentWarehouseFindIndex =
-              warehouse.components.findIndex(
-                (e) => e.componentId.toString() === component.componentId
+              warehouse.components.findIndex((e) =>
+                component.componentId._id
+                  ? e.componentId.toString() === component.componentId._id
+                  : e.componentId.toString() === component.componentId
               );
 
             dbAdditionalComponentWarehouse.qty.current += skipValidation
               ? component.qty * additional.qty
               : -component.qty * additional.qty;
+
+            const newAdditionalStatus =
+              dbAdditionalComponentWarehouse.qty.current <= 0
+                ? "outOfStock"
+                : dbAdditionalComponentWarehouse.qty.current <=
+                  dbAdditionalComponentWarehouse.qty.min
+                ? "almostOut"
+                : "available";
 
             dbAdditionalComponentWarehouse.qty.status = newAdditionalStatus;
 
@@ -507,6 +525,7 @@ module.exports = {
           );
           if (additionalProduct.countable) {
             warehouse = await Warehouse.findById(warehouseId);
+
             let dbAdditionalProductWarehouse = warehouse.products.find(
               (e) => e.productId.toString() === additional.productId
             );
