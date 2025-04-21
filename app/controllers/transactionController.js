@@ -179,11 +179,11 @@ module.exports = {
         // Update stok komponen utama
         for (const component of productDetail.components) {
           let dbComponentWarehouse = warehouse.components.find(
-            (e) => e.componentId.toString() === component.componentId
+            (e) => e.componentId.toString() === component.componentId._id
           );
 
           let dbComponentWarehouseFindIndex = warehouse.components.findIndex(
-            (e) => e.componentId.toString() === component.componentId
+            (e) => e.componentId.toString() === component.componentId.id
           );
 
           dbComponentWarehouse.qty.current += skipValidation
@@ -399,12 +399,17 @@ module.exports = {
 
         // Update stok komponen utama
         for (const component of productDetail.components) {
-          let dbComponentWarehouse = warehouse.components.find(
-            (e) => e.componentId.toString() === component.componentId._id
+          let dbComponentWarehouse = warehouse.components.find((e) =>
+            component.componentId?._id
+              ? e.componentId.toString() === component.componentId._id
+              : e.componentId.toString() === component.componentId
           );
 
           let dbComponentWarehouseFindIndex = warehouse.components.findIndex(
-            (e) => e.componentId.toString() === component.componentId._id
+            (e) =>
+              component.componentId?._id
+                ? e.componentId.toString() === component.componentId?._id
+                : e.componentId.toString() === component.componentId
           );
 
           dbComponentWarehouse.qty.current += skipValidation
@@ -461,17 +466,30 @@ module.exports = {
         for (const additional of productDetail.additionals) {
           for (const component of additional.components) {
             let dbAdditionalComponentWarehouse = warehouse.components.find(
-              (e) => e.componentId.toString() === component.componentId
+              (e) =>
+                component.componentId._id
+                  ? e.componentId.toString() === component.componentId._id
+                  : e.componentId.toString() === component.componentId
             );
 
             let dbAdditionalComponentWarehouseFindIndex =
-              warehouse.components.findIndex(
-                (e) => e.componentId.toString() === component.componentId
+              warehouse.components.findIndex((e) =>
+                component.componentId._id
+                  ? e.componentId.toString() === component.componentId._id
+                  : e.componentId.toString() === component.componentId
               );
 
             dbAdditionalComponentWarehouse.qty.current += skipValidation
               ? component.qty * additional.qty
               : -component.qty * additional.qty;
+
+            const newAdditionalStatus =
+              dbAdditionalComponentWarehouse.qty.current <= 0
+                ? "outOfStock"
+                : dbAdditionalComponentWarehouse.qty.current <=
+                  dbAdditionalComponentWarehouse.qty.min
+                ? "almostOut"
+                : "available";
 
             dbAdditionalComponentWarehouse.qty.status = newAdditionalStatus;
 
@@ -489,7 +507,6 @@ module.exports = {
           );
           if (additionalProduct.countable) {
             warehouse = await Warehouse.findById(warehouseId);
-
             let dbAdditionalProductWarehouse = warehouse.products.find(
               (e) => e.productId.toString() === additional.productId
             );
@@ -499,9 +516,14 @@ module.exports = {
                 (e) => e.productId.toString() === additional.productId
               );
 
-            dbAdditionalProductWarehouse.qty += skipValidation
-              ? additional.qty
-              : -additional.qty;
+            let dbAdditionalProductVariantWarehouseFindIndex =
+              dbAdditionalProductWarehouse.variants.findIndex(
+                (a) => a.variantId.toString() === additional.variantId
+              );
+
+            dbAdditionalProductWarehouse.variants[
+              dbAdditionalProductVariantWarehouseFindIndex
+            ].qty += skipValidation ? additional.qty : -additional.qty;
 
             warehouse.products[dbAdditionalProductWarehouseFindIndex] =
               dbAdditionalProductWarehouse;
@@ -779,18 +801,17 @@ module.exports = {
               (additional) => additional.components
             ),
           ]) {
-            // const component = await Component.findById(
-            //   componentDetail.componentId
-            // );
-
-            let dbComponentWarehouse = warehouse.components.find(
-              (e) => e.componentId.toString() === componentDetail.componentId
+            let dbComponentWarehouse = warehouse.components.find((e) =>
+              componentDetail?.componentId?._id
+                ? e.componentId.toString() === componentDetail.componentId._id
+                : e.componentId.toString() === componentDetail.componentId
             );
-
             let dbComponentWarehouseFindIndex = warehouse.components.findIndex(
-              (e) => e.componentId.toString() === componentDetail.componentId
+              (e) =>
+                componentDetail?.componentId?._id
+                  ? e.componentId.toString() === componentDetail.componentId._id
+                  : e.componentId.toString() === componentDetail.componentId
             );
-
             if (dbComponentWarehouse) {
               // Tambahkan kembali qty.current dari komponen
               dbComponentWarehouse.qty.current +=
@@ -838,18 +859,16 @@ module.exports = {
                 );
 
               let dbAdditionalProductVariantWarehouseFindIndex =
-                dbAdditionalProductWarehouse.variants.find(
+                dbAdditionalProductWarehouse.variants.findIndex(
                   (e) => e.variantId.toString() === additional.variantId
                 );
+
               if (additional.variantId) {
                 if (dbAdditionalProductVariantWarehouseFindIndex !== -1) {
                   dbAdditionalProductWarehouse.variants[
                     dbAdditionalProductVariantWarehouseFindIndex
                   ].qty += additional.qty;
                 }
-              } else {
-                // Jika tidak ada varian, update qty produk langsung
-                dbAdditionalProductWarehouse.qty += additional.qty;
               }
 
               warehouse.products[dbAdditionalProductWarehouseFindIndex] =
