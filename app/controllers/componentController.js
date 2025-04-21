@@ -14,9 +14,6 @@ module.exports = {
       return (
         body.businessId &&
         body.categoryId &&
-        body.current !== null &&
-        body.max !== null &&
-        body.min !== null &&
         body.name &&
         body.status &&
         body.unitId
@@ -30,16 +27,6 @@ module.exports = {
       "auth.accessToken": bearerToken,
     });
 
-    let qtyStatusData = "";
-
-    if (body.current <= 0) {
-      qtyStatusData = "outOfStock";
-    } else if (body.current <= body.min) {
-      qtyStatusData = "almostOut";
-    } else {
-      qtyStatusData = "available";
-    }
-
     let payload = isBodyValid()
       ? {
           businessId: body.businessId,
@@ -49,12 +36,6 @@ module.exports = {
           name: body.name,
           status: body.status,
           unitId: body.unitId,
-          qty: {
-            current: body.current,
-            max: body.max,
-            min: body.min,
-            status: qtyStatusData,
-          },
           createdAt: dateISOString,
           updatedAt: dateISOString,
         }
@@ -155,26 +136,6 @@ module.exports = {
 
     body.data["updatedAt"] = dateISOString;
     body.data["changedBy"] = userByToken._id;
-
-    if (body.data.qty) {
-      let component = await Component.findOne({ _id: body.componentId });
-
-      let qtyData = body.data.qty;
-
-      let componentQty = component.qty;
-
-      let qtyStatusData = "";
-
-      if (qtyData.current < 1) {
-        qtyStatusData = "outOfStock";
-      } else if (qtyData.current <= componentQty.min) {
-        qtyStatusData = "almostOut";
-      } else {
-        qtyStatusData = "available";
-      }
-
-      body.data["qty"]["status"] = qtyStatusData;
-    }
 
     return new Promise((resolve, reject) => {
       Component.findByIdAndUpdate(body.componentId, body.data, { new: true })
