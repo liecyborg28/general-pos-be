@@ -45,8 +45,15 @@ function generateRequestCodes() {
 module.exports = {
   createOrder: async (req) => {
     try {
-      const { details, status, customerId, userId, businessId, outletId } =
-        req.body;
+      const {
+        details,
+        status,
+        customerId,
+        userId,
+        businessId,
+        outletId,
+        warehouseId,
+      } = req.body;
 
       if (!businessId) {
         return Promise.reject({
@@ -88,8 +95,18 @@ module.exports = {
         });
       }
 
+      if (!warehouseId) {
+        return Promise.reject({
+          error: true,
+          message: {
+            en: `Warehouse ID not found! Please check the link you used.`,
+            id: `Warehouse ID tidak ditemukan! mohon periksa kembali tautan yang Anda gunakan.`,
+          },
+        });
+      }
+
       let dateISOString = new Date().toISOString();
-      let warehouse = await Warehouse.findById(req.body.warehouseId);
+      let warehouse = await Warehouse.findById(warehouseId);
       const skipValidation = status?.payment === "returned";
 
       // Deklarasikan groupedDetails di luar blok validasi agar bisa digunakan di semua kondisi
@@ -186,13 +203,13 @@ module.exports = {
           warehouse.components[dbComponentWarehouseFindIndex] =
             dbComponentWarehouse;
 
-          await Warehouse.findByIdAndUpdate(req.body.warehouseId, warehouse, {
+          await Warehouse.findByIdAndUpdate(warehouseId, warehouse, {
             new: true,
           });
         }
 
         // Update stok produk utama (jika countable)
-        warehouse = await Warehouse.findById(req.body.warehouseId);
+        warehouse = await Warehouse.findById(warehouseId);
         const product = await Product.findById(productDetail.productId);
         if (product.countable) {
           let dbProductWarehouse = warehouse.products.find(
@@ -213,12 +230,12 @@ module.exports = {
 
           warehouse.products[dbProductWarehouseFindIndex] = dbProductWarehouse;
 
-          await Warehouse.findByIdAndUpdate(req.body.warehouseId, warehouse, {
+          await Warehouse.findByIdAndUpdate(warehouseId, warehouse, {
             new: true,
           });
         }
 
-        warehouse = await Warehouse.findById(req.body.warehouseId);
+        warehouse = await Warehouse.findById(warehouseId);
         // Update stok additionals
         for (const additional of productDetail.additionals) {
           for (const component of additional.components) {
@@ -240,7 +257,7 @@ module.exports = {
             warehouse.components[dbAdditionalComponentWarehouseFindIndex] =
               dbAdditionalComponentWarehouse;
 
-            await Warehouse.findByIdAndUpdate(req.body.warehouseId, warehouse, {
+            await Warehouse.findByIdAndUpdate(warehouseId, warehouse, {
               new: true,
             });
           }
@@ -250,7 +267,7 @@ module.exports = {
             additional.productId
           );
           if (additionalProduct.countable) {
-            warehouse = await Warehouse.findById(req.body.warehouseId);
+            warehouse = await Warehouse.findById(warehouseId);
 
             let dbAdditionalProductWarehouse = warehouse.products.find(
               (e) => e.productId.toString() === additional.productId
@@ -268,7 +285,7 @@ module.exports = {
             warehouse.products[dbAdditionalProductWarehouseFindIndex] =
               dbAdditionalProductWarehouse;
 
-            await Warehouse.findByIdAndUpdate(req.body.warehouseId, warehouse, {
+            await Warehouse.findByIdAndUpdate(warehouseId, warehouse, {
               new: true,
             });
           }
@@ -308,9 +325,9 @@ module.exports = {
 
   create: async (req) => {
     try {
-      const { details, status } = req.body;
+      const { details, status, warehouseId } = req.body;
       let dateISOString = new Date().toISOString();
-      let warehouse = await Warehouse.findById(req.body.warehouseId);
+      let warehouse = await Warehouse.findById(warehouseId);
       const skipValidation = status?.payment === "returned";
 
       // Deklarasikan groupedDetails di luar blok validasi agar bisa digunakan di semua kondisi
@@ -383,11 +400,11 @@ module.exports = {
         // Update stok komponen utama
         for (const component of productDetail.components) {
           let dbComponentWarehouse = warehouse.components.find(
-            (e) => e.componentId.toString() === component.componentId
+            (e) => e.componentId.toString() === component.componentId._id
           );
 
           let dbComponentWarehouseFindIndex = warehouse.components.findIndex(
-            (e) => e.componentId.toString() === component.componentId
+            (e) => e.componentId.toString() === component.componentId._id
           );
 
           dbComponentWarehouse.qty.current += skipValidation
@@ -407,13 +424,13 @@ module.exports = {
           warehouse.components[dbComponentWarehouseFindIndex] =
             dbComponentWarehouse;
 
-          await Warehouse.findByIdAndUpdate(req.body.warehouseId, warehouse, {
+          await Warehouse.findByIdAndUpdate(warehouseId, warehouse, {
             new: true,
           });
         }
 
         // Update stok produk utama (jika countable)
-        warehouse = await Warehouse.findById(req.body.warehouseId);
+        warehouse = await Warehouse.findById(warehouseId);
         const product = await Product.findById(productDetail.productId);
         if (product.countable) {
           let dbProductWarehouse = warehouse.products.find(
@@ -434,22 +451,22 @@ module.exports = {
 
           warehouse.products[dbProductWarehouseFindIndex] = dbProductWarehouse;
 
-          await Warehouse.findByIdAndUpdate(req.body.warehouseId, warehouse, {
+          await Warehouse.findByIdAndUpdate(warehouseId, warehouse, {
             new: true,
           });
         }
 
-        warehouse = await Warehouse.findById(req.body.warehouseId);
+        warehouse = await Warehouse.findById(warehouseId);
         // Update stok additionals
         for (const additional of productDetail.additionals) {
           for (const component of additional.components) {
             let dbAdditionalComponentWarehouse = warehouse.components.find(
-              (e) => e.componentId.toString() === req.body.warehouseId
+              (e) => e.componentId.toString() === component.componentId
             );
 
             let dbAdditionalComponentWarehouseFindIndex =
               warehouse.components.findIndex(
-                (e) => e.componentId.toString() === req.body.warehouseId
+                (e) => e.componentId.toString() === component.componentId
               );
 
             dbAdditionalComponentWarehouse.qty.current += skipValidation
@@ -461,7 +478,7 @@ module.exports = {
             warehouse.components[dbAdditionalComponentWarehouseFindIndex] =
               dbAdditionalComponentWarehouse;
 
-            await Warehouse.findByIdAndUpdate(req.body.warehouseId, warehouse, {
+            await Warehouse.findByIdAndUpdate(warehouseId, warehouse, {
               new: true,
             });
           }
@@ -471,7 +488,7 @@ module.exports = {
             additional.productId
           );
           if (additionalProduct.countable) {
-            warehouse = await Warehouse.findById(req.body.warehouseId);
+            warehouse = await Warehouse.findById(warehouseId);
 
             let dbAdditionalProductWarehouse = warehouse.products.find(
               (e) => e.productId.toString() === additional.productId
@@ -489,7 +506,7 @@ module.exports = {
             warehouse.products[dbAdditionalProductWarehouseFindIndex] =
               dbAdditionalProductWarehouse;
 
-            await Warehouse.findByIdAndUpdate(req.body.warehouseId, warehouse, {
+            await Warehouse.findByIdAndUpdate(warehouseId, warehouse, {
               new: true,
             });
           }
@@ -598,9 +615,9 @@ module.exports = {
             PaymentMethod,
             transaction.paymentMethodId
           );
-          req.body.warehouseId = await dataController.populateFieldById(
+          transaction.warehouseId = await dataController.populateFieldById(
             Warehouse,
-            req.body.warehouseId
+            transaction.warehouseId
           );
 
           // Populate charges, promotions, dan taxes secara paralel
@@ -726,7 +743,7 @@ module.exports = {
 
             let dbProductVariantWarehouseFindIndex =
               dbProductWarehouse.variants.findIndex(
-                (e) => e.variantId.toString() === detail.productId
+                (e) => e.variantId.toString() === detail.variantId
               );
             if (detail.variantId) {
               // Temukan varian yang sesuai dan update qty-nya
