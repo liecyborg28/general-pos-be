@@ -1649,7 +1649,7 @@ module.exports = {
                                                                                                 componentId:
                                                                                                   a._id.toString(),
                                                                                                 qty: {
-                                                                                                  current: 10,
+                                                                                                  current: 100,
                                                                                                   max: 100,
                                                                                                   min: 5,
                                                                                                   status:
@@ -1671,7 +1671,7 @@ module.exports = {
                                                                                                     ) => ({
                                                                                                       variantId:
                                                                                                         b.variantId.toString(),
-                                                                                                      qty: 10,
+                                                                                                      qty: 100,
                                                                                                     })
                                                                                                   ),
                                                                                               })
