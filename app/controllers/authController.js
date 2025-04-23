@@ -1845,17 +1845,15 @@ module.exports = {
             }
 
             // generate new access token
-            const auth = {
-              accessToken: authUtils.generateAccessToken(),
-              expiredAt: authUtils.generateExpirationDate(7),
-            };
+            // const auth = {
+            //   accessToken: authUtils.generateAccessToken(),
+            //   expiredAt: authUtils.generateExpirationDate(7),
+            // };
 
             User.findByIdAndUpdate(result._id.toString(), {
-              auth,
+              // auth,
             })
               .then((user) => {
-                // update new token
-                user.auth = auth;
                 // pageController
                 //   .paginate(1, null, { status: { $ne: "deleted" } }, Business)
                 //   .then((businesses) => {
