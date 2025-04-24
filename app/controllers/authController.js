@@ -1870,9 +1870,9 @@ module.exports = {
                           data: {
                             user: userPopulate[0],
                             currency: currencies[0],
-                            additionalCategories: categories.filter(
-                              (e) => e.name === "Tambahan"
-                            ),
+                            additionalCategories: categories
+                              .filter((e) => e.name === "Tambahan")
+                              .map((j) => j._id),
                             // businesses,
                           },
                         });
@@ -1883,6 +1883,9 @@ module.exports = {
                   //       reject({ error: true, message: err });
                   //     });
                   // })
+                  .catch((err) => {
+                    reject({ error: true, message: err });
+                  })
                   .catch((err) => {
                     reject({ error: true, message: err });
                   })
