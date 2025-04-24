@@ -1871,7 +1871,11 @@ module.exports = {
                             user: userPopulate[0],
                             currency: currencies[0],
                             additionalCategories: categories
-                              .filter((e) => e.name === "Tambahan")
+                              .filter(
+                                (e) =>
+                                  e.name === "Tambahan" ||
+                                  e.name === "Additional"
+                              )
                               .map((j) => j._id),
                             // businesses,
                           },
