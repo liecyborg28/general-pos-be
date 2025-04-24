@@ -1859,16 +1859,23 @@ module.exports = {
                 //   .then((businesses) => {
                 User.populate([user], { path: "roleId businessId" })
                   .then((userPopulate) => {
-                    Currency.find({
+                    Category.find({
                       businessId: userPopulate[0].businessId?._id,
-                    }).then((currencies) => {
-                      resolve({
-                        error: false,
-                        data: {
-                          user: userPopulate[0],
-                          currency: currencies[0],
-                          // businesses,
-                        },
+                    }).then((categories) => {
+                      Currency.find({
+                        businessId: userPopulate[0].businessId?._id,
+                      }).then((currencies) => {
+                        resolve({
+                          error: false,
+                          data: {
+                            user: userPopulate[0],
+                            currency: currencies[0],
+                            additionalCategories: categories.filter(
+                              (e) => e.name === "Tambahan"
+                            ),
+                            // businesses,
+                          },
+                        });
                       });
                     });
                   })
